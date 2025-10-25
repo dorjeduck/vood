@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="256.0" height="256.0" viewBox="-128.0 -128.0 256.0 256.0">
+<defs>
+</defs>
+<rect x="-128.0" y="-128.0" width="256.0" height="256.0" fill="#000017" fill-opacity="1.0" />
+<g>
+<g transform="translate(-72.0,-2.204364238465236e-15)">
+<text x="0" y="0" font-size="80" font-family="Comfortaa" font-weight="lighter" fill="rgb(253,190,2)" text-anchor="middle" letter-spacing="0" dominant-baseline="central">V</text>
+</g>
+<g transform="translate(0.0,-36.0)">
+<text x="0" y="0" font-size="80" font-family="Comfortaa" font-weight="lighter" fill="rgb(253,190,2)" text-anchor="middle" letter-spacing="0" dominant-baseline="central">O</text>
+</g>
+<g transform="translate(72.0,-2.204364238465236e-15)">
+<text x="0" y="0" font-size="80" font-family="Comfortaa" font-weight="lighter" fill="rgb(253,190,2)" text-anchor="middle" letter-spacing="0" dominant-baseline="central">D</text>
+</g>
+<g transform="translate(8.817456953860943e-15,36.0)">
+<text x="0" y="0" font-size="80" font-family="Comfortaa" font-weight="lighter" fill="rgb(253,190,2)" text-anchor="middle" letter-spacing="0" dominant-baseline="central">O</text>
+</g>
+</g>
+</svg>
