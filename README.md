@@ -1,7 +1,7 @@
 # Vood
 
-<img src="docs/images/logo-128.svg" 
-     alt="Vood Library Logo" 
+<img src="docs/images/logo-128.svg"
+     alt="Vood Library Logo"
      style="max-width: 128px; display: block; margin: 10px auto;" />
 
 Vood is a Python library for programmatically generating SVG graphics and animations. While Vood relies on the excellent [DrawSvg](https://github.com/cduck/drawsvg) for creating the base SVG elements, it features a specialized animation engine built around a clear state and visual element separation. This architecture enables detailed control over transitions, such as property-level easing.
@@ -177,10 +177,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### [0.1.0] - 2025-10-26
+### [0.1.0] - 2025-10-28
 
-#### Added
+* Vood Example Gallery published
 
-- Initial release
-- Core functionality
-- Basic examples
+### [0.1.0] - 2025-10-27
+
+* Initial release
