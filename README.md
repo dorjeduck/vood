@@ -69,7 +69,7 @@ elements = [
 # (6) Add all elements to the scene
 scene.add_elements(elements)
 
-# (7) Export to PNG file
+# (7) Export to PNG 
 exporter = VSceneExporter(
     scene=scene,
     converter=ConverterType.PLAYWRIGHT,
@@ -134,7 +134,7 @@ elements = [
 # Add all elements to the scene
 scene.add_elements(elements)
 
-# Export to PNG file
+# Export to MP4 
 exporter = VSceneExporter(
     scene=scene,
     converter=ConverterType.PLAYWRIGHT,
@@ -163,9 +163,9 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 
 * **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves) to individual properties for nuanced motion control.
 
-## Documentation
+## Example Gallery
 
-Vood is in active early development with frequent design changes. Instead of maintaining documentation that quickly becomes outdated, we for now offer an evolving Examples Gallery showcasing Vood's core functionality and design patterns.
+See [https://vood.wectar.com/](https://vood.wectar.com/) for an evolving collection of examples that showcase Vood’s capabilities.
 
 ## Contributing
 

@@ -12,7 +12,7 @@ configure_logging(level="INFO")
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=192, background="#000017")
+    scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
     states = [

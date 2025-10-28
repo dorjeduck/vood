@@ -35,9 +35,18 @@ class BaseVElement(ABC):
         self.easing_overrides = easing or {}
         self.keyframes: List[Tuple[float, State]] = []
         if state is not None:
+            if isinstance(state, List):
+                raise ValueError("state must be a single State instance, not a list")
             self.set_state(state)
         elif states is not None:
-            self.set_states(states)
+            if isinstance(states, List):
+
+                for s in states:
+                    if not isinstance(s, State):
+                        raise ValueError("states must be a list of State instances")
+                self.set_states(states)
+            else:
+                raise ValueError("states must be a list of State instances")
         elif keyframes is not None:
             self.set_keyframes(keyframes)
 
