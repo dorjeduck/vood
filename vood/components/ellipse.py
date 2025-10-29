@@ -22,11 +22,7 @@ class EllipseState(State):
     stroke_width: float = 0
 
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
-        "scale": Easing.in_out,
-        "rotation": Easing.in_out,
-        "opacity": Easing.linear,
+        **State.DEFAULT_EASING,
         "rx": Easing.in_out,
         "ry": Easing.in_out,
         "color": Easing.linear,

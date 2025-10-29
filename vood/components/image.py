@@ -41,13 +41,9 @@ class ImageState(State):
     fit_mode: ImageFitMode = ImageFitMode.FIT  # How to fit the image
 
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
+        **State.DEFAULT_EASING,
         "width": Easing.in_out,
         "height": Easing.in_out,
-        "scale": Easing.in_out,
-        "rotation": Easing.in_out,
-        "opacity": Easing.linear,
         "stroke_color": Easing.linear,
         "stroke_width": Easing.in_out,
     }

@@ -23,12 +23,8 @@ class LineState(State):
     stroke_linecap: str = "round"  # "butt", "round", "square"
 
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
+        **State.DEFAULT_EASING,
         "length": Easing.in_out,
-        "scale": Easing.in_out,
-        "rotation": Easing.in_out,
-        "opacity": Easing.linear,
         "color": Easing.linear,
         "stroke_width": Easing.in_out,
         "stroke_dasharray": Easing.linear,  # Stepped animation for strings

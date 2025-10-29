@@ -22,10 +22,7 @@ class PathState(State):
     fill_rule: str = "evenodd"  # "evenodd" or "nonzero"
 
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
-        "scale": Easing.in_out,
-        "rotation": Easing.in_out,
+        **State.DEFAULT_EASING,
         "opacity": Easing.linear,
         "path_data": Easing.linear,  # Stepped animation for strings
         "color": Easing.linear,

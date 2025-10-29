@@ -1,7 +1,7 @@
 from vood.components.text import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import circle_layout, grid_layout, line_layout
-from vood.state_functions.enums import ElementAlignment
+from vood.state_functions import line_layout
+from vood.transitions.easing import Easing
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
@@ -9,40 +9,51 @@ from vood.vscene.vscene_exporter import VSceneExporter
 
 configure_logging(level="INFO")
 
+
 def main():
 
     # Create the scene
     scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
-    start_states = [
+    states = [
         TextState(
-            text=f"{num:02}",
+            text=str(num),
             font_family="Courier",
             font_size=20,
             color="#FDBE02",
         )
-        for num in range(1, 20)
+        for num in range(1, 10)
     ]
 
-    # grid and circle layout for the transition
-    middle_states = grid_layout(start_states, cols=3, spacing_h=20, spacing_v=20)
-    end_states = circle_layout(
-        start_states, radius=80, alignment=ElementAlignment.LAYOUT
-    )
+    # Arrange the numbers along a line for start and end positions
+    start_states = line_layout(states, center_x=-100, spacing=20, rotation=90)
+    end_states = line_layout(states, center_x=100, spacing=20, rotation=90)
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    # Create visual elements from states
-    # VElements in Vood are the combination of one renderer and one or more states
+    easing_overrides = [
+        Easing.linear,
+        Easing.in_out,
+        Easing.in_out_bounce,
+        Easing.in_bounce,
+        Easing.out_bounce,
+        Easing.in_out_quad,
+        Easing.out_quad,
+        Easing.in_out_cubic,
+        Easing.out_cubic,
+    ]
+
+    # overriding the default easing for the x property for each element
     elements = [
         VElement(
             renderer=renderer,
-            states=[start_state, middle_state, end_state],
+            states=[start_state, end_state],
+            easing={"x": easing},
         )
-        for start_state, middle_state, end_state in zip(
-            start_states, middle_states, end_states
+        for start_state, end_state, easing in zip(
+            start_states, end_states, easing_overrides
         )
     ]
 
@@ -58,11 +69,10 @@ def main():
 
     # Export to MP4 file
     exporter.to_mp4(
-        filename="05_two_step_transition.mp4",
+        filename="08_easing_variety.mp4",
         total_frames=90,
         framerate=30,
         width_px=512,
-        num_thumbnails=20,
     )
 
 

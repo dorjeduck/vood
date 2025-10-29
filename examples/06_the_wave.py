@@ -1,7 +1,6 @@
 from vood.components.text import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import circle_layout, grid_layout, line_layout
-from vood.state_functions.enums import ElementAlignment
+from vood.state_functions import line_layout, wave_layout
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
@@ -9,41 +8,51 @@ from vood.vscene.vscene_exporter import VSceneExporter
 
 configure_logging(level="INFO")
 
+
 def main():
+
+    ROUNDS = 10
+    BASE_AMPLITUDE = 10
 
     # Create the scene
     scene = VScene(width=256, height=256, background="#000017")
 
+    checkpoints = []
+
     # Create text states for each number with consistent styling
-    start_states = [
+    base_states = [
         TextState(
             text=f"{num:02}",
             font_family="Courier",
-            font_size=20,
+            font_size=8,
             color="#FDBE02",
         )
         for num in range(1, 20)
     ]
 
-    # grid and circle layout for the transition
-    middle_states = grid_layout(start_states, cols=3, spacing_h=20, spacing_v=20)
-    end_states = circle_layout(
-        start_states, radius=80, alignment=ElementAlignment.LAYOUT
-    )
+    bases_states = line_layout(base_states, spacing=10)
+
+    checkpoints.append(bases_states)
+
+    checkpoints += [
+        wave_layout(
+            bases_states,
+            spacing=10,
+            wavelength=80,
+            amplitude=(-1 if i % 2 else 1) * BASE_AMPLITUDE * (1 + 3 * i / ROUNDS),
+        )
+        for i in range(1, ROUNDS)
+    ]
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    # Create visual elements from states
-    # VElements in Vood are the combination of one renderer and one or more states
     elements = [
         VElement(
             renderer=renderer,
-            states=[start_state, middle_state, end_state],
+            states=[*element_checkpoints],
         )
-        for start_state, middle_state, end_state in zip(
-            start_states, middle_states, end_states
-        )
+        for element_checkpoints in zip(*checkpoints)
     ]
 
     # Add all elements to the scene
@@ -58,11 +67,11 @@ def main():
 
     # Export to MP4 file
     exporter.to_mp4(
-        filename="05_two_step_transition.mp4",
-        total_frames=90,
+        filename="06_the_wave.mp4",
+        total_frames=30 * ROUNDS,
         framerate=30,
         width_px=512,
-        num_thumbnails=20,
+        num_thumbnails=10,
     )
 
 

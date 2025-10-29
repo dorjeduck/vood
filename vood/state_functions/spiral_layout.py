@@ -64,8 +64,8 @@ def spiral_layout(
         if alignment == ElementAlignment.PRESERVE:
             element_angle = state.rotation
         elif alignment == ElementAlignment.LAYOUT:
-            # Tangent to spiral at this angle (approximate by using angle + 90)
-            element_angle = angle + 90 + additional_rotation
+            # upright to the center
+            element_angle = angle + additional_rotation
         elif alignment == ElementAlignment.UPRIGHT:
             element_angle = additional_rotation
         else:

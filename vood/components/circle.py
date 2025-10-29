@@ -25,10 +25,7 @@ class CircleState(State):
 
     # Default easing functions for each property
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
-        "scale": Easing.in_out,
-        "opacity": Easing.linear,
+        **State.DEFAULT_EASING,
         "radius": Easing.in_out,
         "color": Easing.linear,
         "stroke_color": Easing.linear,

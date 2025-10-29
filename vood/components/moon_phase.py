@@ -24,11 +24,7 @@ class MoonPhaseState(State):
     northern_hemisphere: bool = True  # True if in northern hemisphere
 
     DEFAULT_EASING = {
-        "x": Easing.in_out,
-        "y": Easing.in_out,
-        "scale": Easing.in_out,
-        "rotation": Easing.in_out,
-        "opacity": Easing.linear,
+        **State.DEFAULT_EASING,
         "size": Easing.in_out,
         "color": Easing.linear,
         "stroke_color": Easing.linear,

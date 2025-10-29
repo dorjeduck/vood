@@ -162,9 +162,9 @@ exporter.to_mp4(
 
 While this example uses a simple two-state interpolation, Vood's animation engine supports fine grained timing control:
 
-* **Multi-keyframe sequencing** — Define states with explicit frame_time values for complex choreography.
+* **Multi-keyframe sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - Keyframses](https://vood.wectar.com/circus/006-keyframes/)
 
-* **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves) to individual properties for nuanced motion control.
+* **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves etc) to individual properties for nuanced motion control. See [SVG Circus - Easing Variety](https://vood.wectar.com/circus/007-easing/)
 
 ## SVG Circus
 

@@ -6,6 +6,8 @@ from dataclasses import Field, dataclass
 
 import drawsvg as dw
 
+from vood.transitions.easing import Easing
+
 
 @dataclass
 class State(ABC):
@@ -20,6 +22,14 @@ class State(ABC):
     scale: float = 1.0
     opacity: float = 1.0
     rotation: float = 0
+
+    DEFAULT_EASING = {
+        "x": Easing.in_out,
+        "y": Easing.in_out,
+        "scale": Easing.in_out,
+        "opacity": Easing.linear,
+        "rotation": Easing.in_out,
+    }
 
     # can be overridden by subclasses to add further angle fields
     # used in interpolation (shortest angle distance)
