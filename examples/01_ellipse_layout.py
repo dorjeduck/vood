@@ -56,7 +56,9 @@ def main():
     )
 
     # Export to PNG file
-    exporter.to_png(filename="01_ellipse_layout.png", width_px=512)
+    exporter.export(
+        filename="01_ellipse_layout", formats=["svg", "png"], png_width_px=512
+    )
 
 
 if __name__ == "__main__":

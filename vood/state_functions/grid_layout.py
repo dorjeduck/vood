@@ -10,8 +10,8 @@ def grid_layout(
     states: List[State],
     rows: Optional[int] = None,
     cols: Optional[int] = None,
-    spacing_x: float = 100,
-    spacing_y: float = 100,
+    spacing_h: float = 100,
+    spacing_v: float = 100,
     center_x: float = 0,
     center_y: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
@@ -29,8 +29,8 @@ def grid_layout(
         states: List of states to arrange
         rows: Number of rows in the grid (optional)
         cols: Number of columns in the grid (optional)
-        spacing_x: Horizontal spacing between elements
-        spacing_y: Vertical spacing between elements
+        spacing_h: Horizontal spacing between elements
+        spacing_v: Vertical spacing between elements
         center_x: X coordinate of grid center
         center_y: Y coordinate of grid center
         alignment: How to align each element relative to the grid.
@@ -61,10 +61,10 @@ def grid_layout(
         col = idx % cols
 
         # Calculate position relative to grid center
-        grid_width = (cols - 1) * spacing_x
-        grid_height = (rows - 1) * spacing_y
-        x = center_x + (col * spacing_x - grid_width / 2)
-        y = center_y + (row * spacing_y - grid_height / 2)
+        grid_width = (cols - 1) * spacing_h
+        grid_height = (rows - 1) * spacing_v
+        x = center_x + (col * spacing_h - grid_width / 2)
+        y = center_y + (row * spacing_v - grid_height / 2)
 
         # Calculate element rotation based on alignment mode
         if alignment == ElementAlignment.PRESERVE:

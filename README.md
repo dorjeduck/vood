@@ -76,7 +76,10 @@ exporter = VSceneExporter(
     output_dir="output/",
 )
 
-exporter.to_png(filename="01_ellipse_layout.png", width_px=1024)
+# Export to SVG and PNG
+exporter.export(
+    filename="01_ellipse_layout", formats=["svg", "png"], png_width_px=512
+)
 ```
 
 *Complete code*: [01_ellipse_layout.py](./examples/01_ellipse_layout.py)

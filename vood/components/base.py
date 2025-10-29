@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import Field, dataclass
 
 import drawsvg as dw
 
@@ -20,6 +20,12 @@ class State(ABC):
     scale: float = 1.0
     opacity: float = 1.0
     rotation: float = 0
+
+    # can be overridden by subclasses to add further angle fields
+    # used in interpolation (shortest angle distance)
+
+    def is_angle(self, field: Field):
+        return field.name == "rotation"
 
 
 class Renderer(ABC):

@@ -212,6 +212,11 @@ class BaseVElement(ABC):
                 interpolated_values[field_name] = Interpolation.color(
                     start_value, end_value, eased_t
                 )
+            elif start_state.is_angle(field):
+                # Angle interpolation
+                interpolated_values[field_name] = Interpolation.angle(
+                    start_value, end_value, eased_t
+                )
             elif isinstance(start_value, (int, float)):
                 # Numeric interpolation
                 interpolated_values[field_name] = Interpolation.lerp(
