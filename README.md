@@ -166,9 +166,10 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 
 * **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves) to individual properties for nuanced motion control.
 
-## Example Gallery
+## SVG Circus
 
-See [https://vood.wectar.com/](https://vood.wectar.com/) for an evolving collection of examples that showcase Vood’s capabilities.
+Rather than writing full-fledged documentation for Vood at this early stage of development, we’re focusing on building an evolving collection of examples. SVG Circus is meant to highlight Vood’s capabilities and gives users a hands-on way to explore what it can do — complete with the Python source code used to generate and animate each SVG.
+See [https://vood.wectar.com/](https://vood.wectar.com/).
 
 ## Contributing
 
