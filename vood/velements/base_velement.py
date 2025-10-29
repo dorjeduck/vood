@@ -32,6 +32,24 @@ class BaseVElement(ABC):
             keyframes: List of (frame_time, state) tuples for precise timing
             easing: Optional dict to override default easing functions
         """
+
+        # --- 1. Input Validation: Ensure ONLY ONE source is provided ---
+        provided_inputs = [arg for arg in [state, states, keyframes] if arg is not None]
+        count = len(provided_inputs)
+
+        if count == 0:
+            # Enforce that a state must be provided.
+            raise ValueError(
+                "VElement requires configuration: provide 'state', 'states', or 'keyframes'."
+            )
+
+        if count > 1:
+            # CRITICAL CHECK: Block conflicting definitions
+            raise ValueError(
+                f"Conflicting inputs provided ({count} specified). "
+                "Please specify only one of 'state', 'states', or 'keyframes'."
+            )
+
         self.easing_overrides = easing or {}
         self.keyframes: List[Tuple[float, State]] = []
         if state is not None:
