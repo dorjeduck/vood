@@ -173,7 +173,7 @@ See [https://vood.wectar.com/](https://vood.wectar.com/).
 
 <img src="docs/images/svg_circus.png"
      alt="SVG Circus"
-     style="max-width: 128px; display: block; margin: 10px auto;" />
+     style="max-width: 128px; width: 100%; margin: 10px auto;" />
 
 ## Contributing
 
