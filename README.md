@@ -177,7 +177,7 @@ See [https://vood.wectar.com/](https://vood.wectar.com/).
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Vood is still in an early stage and has so far been developed primarily to support the needs of a specific project. That said, it was always intended to evolve into a general-purpose library. We deeply appreciate your feedback and would love to hear your ideas for improving Vood — be it bug reports, feature requests, pull requests, or anything else you’d like to share.
 
 ## License
 
