@@ -171,9 +171,9 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 Rather than writing full-fledged documentation for Vood at this early stage of development, we’re focusing on building an evolving collection of examples. SVG Circus is meant to highlight Vood’s capabilities and gives users a hands-on way to explore what it can do — complete with the Python source code used to generate and animate each SVG.
 See [https://vood.wectar.com/](https://vood.wectar.com/).
 
-<img src="docs/images/svg_circus.png"
+<img src="docs/images/svg_circus_400.png"
      alt="SVG Circus"
-     style="max-width: 128px; width: 100%; margin: 10px auto;" />
+     style="width: 50%; margin: 10px auto;" />
 
 ## Contributing
 
