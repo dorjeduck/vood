@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Optional, Tuple, Callable, Dict, Any
+from typing import List, Optional, Tuple, Callable, Dict
 from dataclasses import fields, replace
 
 import drawsvg as dw
@@ -22,7 +22,6 @@ class BaseVElement(ABC):
         state: Optional[State] = None,
         states: Optional[List[State]] = None,
         keyframes: Optional[List[Tuple[float, State]]] = None,
-        global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
         easing: Optional[Dict[str, Callable[[float], float]]] = None,
     ) -> None:
         """Initialize keyframe animation system
@@ -31,9 +30,6 @@ class BaseVElement(ABC):
             state: Single state for static element
             states: List of states for evenly-timed animation
             keyframes: List of (frame_time, state) tuples for precise timing
-            global_transitions: Dict of property_name -> (start_value, end_value) 
-                for properties that should transition linearly across entire animation
-                independent of keyframe structure
             easing: Optional dict to override default easing functions
         """
 
@@ -55,16 +51,14 @@ class BaseVElement(ABC):
             )
 
         self.easing_overrides = easing or {}
-        self.global_transitions = global_transitions or {}
         self.keyframes: List[Tuple[float, State]] = []
-        self._current_global_t: float = 0.0  # Track global animation time
-        
         if state is not None:
             if isinstance(state, List):
                 raise ValueError("state must be a single State instance, not a list")
             self.set_state(state)
         elif states is not None:
             if isinstance(states, List):
+
                 for s in states:
                     if not isinstance(s, State):
                         raise ValueError("states must be a list of State instances")
@@ -131,9 +125,9 @@ class BaseVElement(ABC):
         """Check if this element can be animated
 
         Returns:
-            True if element has multiple keyframes or has global transitions
+            True if element has multiple keyframes
         """
-        return len(self.keyframes) > 1 or bool(self.global_transitions)
+        return len(self.keyframes) > 1
 
     def _get_state_at_time(self, t: float) -> State:
         """Get the interpolated state at a specific time
@@ -144,16 +138,12 @@ class BaseVElement(ABC):
         Returns:
             Interpolated State at time t
         """
-        # Store global time for global_transitions
-        self._current_global_t = max(0.0, min(1.0, t))
+        # Clamp t to valid range
+        t = max(0.0, min(1.0, t))
 
         # Handle static rendering (t == 0.0) or single keyframe
         if t == 0.0 or len(self.keyframes) == 1:
-            base_state = self.keyframes[0][1]
-            # Apply global transitions even for static/single keyframe
-            if self.global_transitions:
-                return self._apply_global_transitions(base_state, self._current_global_t)
-            return base_state
+            return self.keyframes[0][1]
 
         # Find the two keyframes to interpolate between
         for i in range(len(self.keyframes) - 1):
@@ -163,8 +153,6 @@ class BaseVElement(ABC):
             if t1 <= t <= t2:
                 # Found the right segment
                 if t1 == t2:  # Same time (shouldn't happen with valid keyframes)
-                    if self.global_transitions:
-                        return self._apply_global_transitions(state1, self._current_global_t)
                     return state1
 
                 # Calculate segment progress
@@ -175,57 +163,7 @@ class BaseVElement(ABC):
                 return interpolated_state
 
         # If we get here, t is beyond the last keyframe
-        final_state = self.keyframes[-1][1]
-        if self.global_transitions:
-            return self._apply_global_transitions(final_state, self._current_global_t)
-        return final_state
-
-    def _apply_global_transitions(self, base_state: State, global_t: float) -> State:
-        """Apply global transitions to a state
-        
-        Args:
-            base_state: The base state to modify
-            global_t: Global animation time (0.0 to 1.0)
-            
-        Returns:
-            New state with global transitions applied
-        """
-        if not self.global_transitions:
-            return base_state
-            
-        # Get the default easing functions from the state class
-        default_easing = getattr(base_state, "DEFAULT_EASING", {})
-        
-        updates = {}
-        
-        for field_name, (start_value, end_value) in self.global_transitions.items():
-            # Get the easing function for this property
-            easing_func = self.easing_overrides.get(
-                field_name, default_easing.get(field_name)
-            )
-            
-            # Apply easing to global time
-            eased_t = easing_func(global_t) if easing_func else global_t
-            
-            # Determine interpolation method based on value type
-            if isinstance(start_value, tuple) and len(start_value) == 3:
-                # Color interpolation
-                updates[field_name] = Interpolation.color(start_value, end_value, eased_t)
-            elif hasattr(base_state, 'is_angle'):
-                # Check if this field is an angle
-                field_obj = next((f for f in fields(base_state) if f.name == field_name), None)
-                if field_obj and base_state.is_angle(field_obj):
-                    updates[field_name] = Interpolation.angle(start_value, end_value, eased_t)
-                else:
-                    updates[field_name] = Interpolation.lerp(start_value, end_value, eased_t)
-            elif isinstance(start_value, (int, float)):
-                # Numeric interpolation
-                updates[field_name] = Interpolation.lerp(start_value, end_value, eased_t)
-            else:
-                # For non-numeric values, switch at t=0.5
-                updates[field_name] = start_value if eased_t < 0.5 else end_value
-        
-        return replace(base_state, **updates)
+        return self.keyframes[-1][1]
 
     def _create_eased_state(
         self, start_state: State, end_state: State, t: float
@@ -235,7 +173,7 @@ class BaseVElement(ABC):
         Args:
             start_state: Starting state
             end_state: Ending state
-            t: Time factor from 0.0 to 1.0 (segment time, not global time)
+            t: Time factor from 0.0 to 1.0
 
         Returns:
             New state with interpolated values using appropriate easing per property
@@ -249,11 +187,6 @@ class BaseVElement(ABC):
         # Interpolate each field
         for field in fields(start_state):
             field_name = field.name
-            
-            # Skip properties that have global transitions - they'll be applied later
-            if field_name in self.global_transitions:
-                continue
-            
             start_value = getattr(start_state, field_name)
             end_value = getattr(end_state, field_name)
 
@@ -276,6 +209,7 @@ class BaseVElement(ABC):
             # Interpolate the value using the eased time
             if isinstance(start_value, tuple) and len(start_value) == 3:
                 # Color interpolation
+                
                 interpolated_values[field_name] = Interpolation.color(
                     start_value, end_value, eased_t
                 )
@@ -296,12 +230,4 @@ class BaseVElement(ABC):
                 )
 
         # Create new state with interpolated values
-        interpolated_state = replace(start_state, **interpolated_values)
-        
-        # Apply global transitions on top of keyframe interpolation
-        if self.global_transitions:
-            interpolated_state = self._apply_global_transitions(
-                interpolated_state, self._current_global_t
-            )
-        
-        return interpolated_state
+        return replace(start_state, **interpolated_values)

@@ -44,6 +44,21 @@ def color_to_hex(color: Tuple[int, int, int]) -> str:
     """
     return f"#{color[0]:02X}{color[1]:02X}{color[2]:02X}"
 
+def hex_to_color(hex_str: str) -> Tuple[int, int, int]:
+    """Convert hex color string to RGB color tuple
+
+    Args:
+        hex_str: Hex color string (e.g., "#FF0000" or "FF0000")
+
+    Returns:
+        RGB color tuple
+    """
+    hex_str = hex_str.lstrip("#")
+    r = int(hex_str[0:2], 16)
+    g = int(hex_str[2:4], 16)
+    b = int(hex_str[4:6], 16)
+    return (r, g, b)
+
 
 def get_average_color(
     filename: str, crop_percent: float, as_hex_string: bool = False

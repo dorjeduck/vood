@@ -2,20 +2,21 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Tuple, Union
 
 import drawsvg as dw
 
 from vood.components import Renderer, State
 from vood.utils import to_rgb_string
 from vood.transitions import Easing
+from vood.utils.colors import hex_to_color
 
 
 @dataclass
 class TextState(State):
     """State class for text elements"""
 
-    color: Tuple[int, int, int] = (0, 0, 0)
+    color: Union[str, Tuple[int, int, int]] = (0, 0, 0)
     font_size: float = 16
 
     letter_spacing: float = 0  # Additional spacing between letters
@@ -44,6 +45,10 @@ class TextState(State):
         "dominant_baseline": Easing.none,
         # Stepped animation for text changes
     }
+
+    def __post_init__(self):
+        if isinstance(self.color, str):
+            self.color = hex_to_color(self.color)
 
 
 class TextRenderer(Renderer):

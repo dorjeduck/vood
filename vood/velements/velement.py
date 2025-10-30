@@ -1,7 +1,7 @@
 """Element class - the central object that combines renderers and states"""
 
 from __future__ import annotations
-from typing import Optional, Dict, Callable, List, Union, Tuple
+from typing import Any, Optional, Dict, Callable, List, Union, Tuple
 
 import drawsvg as dw
 
@@ -22,6 +22,7 @@ class VElement(BaseVElement):
         state: Optional[State] = None,
         states: Optional[List[State]] = None,
         keyframes: Optional[List[Tuple[float, State]]] = None,
+        global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
         easing: Optional[Dict[str, Callable[[float], float]]] = None,
     ) -> None:
         """Initialize an element
@@ -31,12 +32,21 @@ class VElement(BaseVElement):
             state: Single state for static element
             states: List of states for evenly-timed animation
             keyframes: List of (frame_time, state) tuples for precise timing
+            global_transitions: Dict of property_name -> (start_value, end_value)
+                for properties that should transition linearly across entire animation
+                independent of keyframe structure
             easing: Optional dict to override default easing functions
         """
         self.renderer = renderer
 
         # Call parent constructor with keyframe parameters
-        super().__init__(state=state, states=states, keyframes=keyframes, easing=easing)
+        super().__init__(
+            state=state,
+            states=states,
+            keyframes=keyframes,
+            global_transitions=global_transitions,
+            easing=easing,
+        )
 
     def render(self) -> dw.DrawingElement:
         """Render the element in its current state (static rendering)

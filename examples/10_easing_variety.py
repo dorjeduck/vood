@@ -1,3 +1,4 @@
+from dataclasses import replace
 from vood.components.text import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
 from vood.state_functions import line_layout
@@ -29,6 +30,9 @@ def main():
     # Arrange the numbers along a line for start and end positions
     start_states = line_layout(states, center_x=-100, spacing=20, rotation=90)
     end_states = line_layout(states, center_x=100, spacing=20, rotation=90)
+
+    # lets animate also a change of color
+    end_states = [replace(state, color="#AA0000") for state in end_states]
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
@@ -69,10 +73,11 @@ def main():
 
     # Export to MP4 file
     exporter.to_mp4(
-        filename="08_easing_variety.mp4",
+        filename="10_easing_variety.mp4",
         total_frames=90,
         framerate=30,
         width_px=512,
+        num_thumbnails=20,
     )
 
 

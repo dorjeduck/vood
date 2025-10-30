@@ -1,6 +1,6 @@
 # Vood
 
-<img src="docs/images/logo-128.svg"
+<img src="docs/images/logo_128.svg"
      alt="Vood Library Logo"
      style="max-width: 128px; display: block; margin: 10px auto;" />
 
@@ -162,7 +162,7 @@ exporter.to_mp4(
 
 While this example uses a simple two-state interpolation, Vood's animation engine supports fine grained timing control:
 
-* **Multi-keyframe sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - Keyframses](https://vood.wectar.com/circus/006-keyframes/)
+* **Multi-keyframe sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - Keyframes](https://vood.wectar.com/circus/006-keyframes/)
 
 * **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves etc) to individual properties for nuanced motion control. See [SVG Circus - Easing Variety](https://vood.wectar.com/circus/007-easing/)
 
@@ -170,6 +170,10 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 
 Rather than writing full-fledged documentation for Vood at this early stage of development, we’re focusing on building an evolving collection of examples. SVG Circus is meant to highlight Vood’s capabilities and gives users a hands-on way to explore what it can do — complete with the Python source code used to generate and animate each SVG.
 See [https://vood.wectar.com/](https://vood.wectar.com/).
+
+<img src="docs/images/svg_circus.png"
+     alt="SVG Circus"
+     style="max-width: 128px; display: block; margin: 10px auto;" />
 
 ## Contributing
 
@@ -181,9 +185,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
+### [0.1.0] - 2025-10-30
+
+* Global transitions
+
 ### [0.1.0] - 2025-10-28
 
-* Vood Example Gallery published
+* SVG Circus published
 
 ### [0.1.0] - 2025-10-27
 

@@ -32,6 +32,7 @@ class Interpolation:
 
     @staticmethod
     def color(start: Color, end: Color, t: float) -> Color:
+       
         """Interpolate between RGB colors"""
         r = int(Interpolation.lerp(start[0], end[0], t))
         g = int(Interpolation.lerp(start[1], end[1], t))
