@@ -93,15 +93,14 @@ def ellipse_layout(
             element_rotation_fn(angle) if element_rotation_fn else element_rotation
         )
 
+
         if alignment == ElementAlignment.PRESERVE:
-            element_angle = state.rotation
+            element_angle = state.rotation + additional_rotation
         elif alignment == ElementAlignment.LAYOUT:
-            # upright to the center
-            element_angle = angle + additional_rotation
+            # Tangent to ellipse includes the ellipse's rotation
+            element_angle = angle + rotation + additional_rotation
         elif alignment == ElementAlignment.UPRIGHT:
             element_angle = additional_rotation
-        else:
-            element_angle = state.rotation
 
         new_state = replace(state, x=x, y=y, rotation=element_angle)
         result.append(new_state)
