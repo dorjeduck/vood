@@ -1,13 +1,18 @@
+from dataclasses import replace
+
 from vood.components.text import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import ellipse_layout
-from vood.state_functions.enums import ElementAlignment
+from vood.state_functions import line_layout
+from vood.transitions.easing import Easing
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
 
 configure_logging(level="INFO")
+
+START_COLOR = "#FDBE02"
+END_COLOR = "#AA0000"
 
 
 def main():
@@ -16,46 +21,40 @@ def main():
     scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
-    # These states will be the starting point of the animation
-    start_states = [
+    states = [
         TextState(
-            x=0,  # centered horizontally (default but explicit for clarity)
-            y=0,  # centered vertically (...)
             text=str(num),
             font_family="Courier",
             font_size=20,
-            color="#FDBE02",
         )
         for num in range(1, 10)
     ]
 
-    start_states = ellipse_layout(
-        start_states,
-        radius_x=96,
-        radius_y=64,
-        rotation=0,
-        alignment=ElementAlignment.LAYOUT,
-    )
+    x_shifts = [-100, -40, 40, 100]
 
-    end_states = ellipse_layout(
-        start_states,
-        radius_x=96,
-        radius_y=64,
-        rotation=0,
-        alignment=ElementAlignment.UPRIGHT,
-    )
+    all_states = [
+        line_layout(states, center_x=x_shift, spacing=20, rotation=90)
+        for x_shift in x_shifts
+    ]
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    # Create visual elements from states by
-    # pairing each start state with its corresponding end state
+    # overriding the default easing for the x property for each element
     elements = [
         VElement(
             renderer=renderer,
-            states=[start_state, end_state],
+            keyframes=[
+                (0, state_a),
+                (0.25, state_b),
+                (0.5, state_b if i % 2 == 0 else state_c),
+                (0.75, state_c),
+                (1, state_d),
+            ],
+            easing={"x": Easing.linear},
+            global_transitions={"color": (START_COLOR, END_COLOR)},
         )
-        for start_state, end_state in zip(start_states, end_states)
+        for i, (state_a, state_b, state_c, state_d) in enumerate(zip(*all_states))
     ]
 
     # Add all elements to the scene
@@ -68,12 +67,13 @@ def main():
         output_dir="output/",
     )
 
-    # Export to mp4
+    # Export to MP4 file
     exporter.to_mp4(
-        filename="11_element_alignment",
-        total_frames=20,
-        framerate=10,
+        filename="12_give_me_a_break.mp4",
+        total_frames=90,
+        framerate=30,
         width_px=512,
+        num_thumbnails=20,
     )
 
 

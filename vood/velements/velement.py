@@ -24,6 +24,7 @@ class VElement(BaseVElement):
         keyframes: Optional[List[Tuple[float, State]]] = None,
         global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
         easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        segment_easing: Optional[Dict[int, Dict[str, Callable[[float], float]]]] = None,
     ) -> None:
         """Initialize an element
 
@@ -46,6 +47,7 @@ class VElement(BaseVElement):
             keyframes=keyframes,
             global_transitions=global_transitions,
             easing=easing,
+            segment_easing=segment_easing,
         )
 
     def render(self) -> dw.DrawingElement:

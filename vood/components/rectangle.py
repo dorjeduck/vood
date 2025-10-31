@@ -9,6 +9,7 @@ import drawsvg as dw
 from vood.components import Renderer, State
 from vood.utils import to_rgb_string
 from vood.transitions import Easing
+from vood.utils.colors import hex_to_color
 
 
 @dataclass
@@ -36,6 +37,12 @@ class RectangleState(State):
         "corner_radius": Easing.in_out,
         "rotation": Easing.in_out,
     }
+
+    def __post_init__(self):
+        if isinstance(self.color, str):
+            self.color = hex_to_color(self.color)
+        if isinstance(self.stroke_color, str):
+            self.stroke_color = hex_to_color(self.stroke_color)
 
 
 class RectangleRenderer(Renderer):

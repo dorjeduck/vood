@@ -5,7 +5,7 @@ from typing import List, Tuple, Optional
 from dataclasses import dataclass, field
 import drawsvg as dw
 from vood.components import Renderer, State
-from vood.utils.colors import to_rgb_string
+from vood.utils.colors import hex_to_color, to_rgb_string
 
 
 @dataclass
@@ -19,6 +19,13 @@ class RadialSegmentsState(State):
     stroke_color: Optional[Tuple[int, int, int]] = (0, 0, 0)
     stroke_width: float = 1.0
     segments_fn: Optional[callable] = None
+
+
+    def __post_init__(self):
+      
+        if isinstance(self.stroke_color, str):
+            self.stroke_color = hex_to_color(self.stroke_color)
+
 
 
 class RadialSegmentsRenderer(Renderer):

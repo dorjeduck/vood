@@ -7,6 +7,7 @@ import drawsvg as dw
 from vood.components import Renderer, State
 from vood.utils import to_rgb_string
 from vood.transitions import Easing
+from vood.utils.colors import hex_to_color
 
 
 @dataclass
@@ -32,6 +33,13 @@ class MoonPhaseState(State):
         "illumination": Easing.in_out,
         "waxing": Easing.linear,
     }
+
+    def __post_init__(self):
+        if isinstance(self.color, str):
+            self.color = hex_to_color(self.color)
+        if isinstance(self.stroke_color, str):
+            self.stroke_color = hex_to_color(self.stroke_color)
+
 
 
 class MoonPhaseRenderer(Renderer):

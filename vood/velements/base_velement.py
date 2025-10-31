@@ -9,6 +9,7 @@ import drawsvg as dw
 
 from vood.components import State
 from vood.transitions import Interpolation
+from vood.utils.colors import hex_to_color
 
 
 class BaseVElement(ABC):
@@ -24,6 +25,7 @@ class BaseVElement(ABC):
         keyframes: Optional[List[Tuple[float, State]]] = None,
         global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
         easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        segment_easing: Optional[Dict[int, Dict[str, Callable[[float], float]]]] = None,
     ) -> None:
         """Initialize keyframe animation system
 
@@ -31,10 +33,13 @@ class BaseVElement(ABC):
             state: Single state for static element
             states: List of states for evenly-timed animation
             keyframes: List of (frame_time, state) tuples for precise timing
-            global_transitions: Dict of property_name -> (start_value, end_value) 
+            global_transitions: Dict of property_name -> (start_value, end_value)
                 for properties that should transition linearly across entire animation
                 independent of keyframe structure
-            easing: Optional dict to override default easing functions
+            easing: Optional dict to override default easing functions for all segments
+            segment_easing: Optional dict of segment_index -> {property: easing_func}
+                to override easing for specific segments. Segment 0 is between keyframe[0]
+                and keyframe[1], segment 1 is between keyframe[1] and keyframe[2], etc.
         """
 
         # --- 1. Input Validation: Ensure ONLY ONE source is provided ---
@@ -55,10 +60,12 @@ class BaseVElement(ABC):
             )
 
         self.easing_overrides = easing or {}
+        self.segment_easing = segment_easing or {}
         self.global_transitions = global_transitions or {}
         self.keyframes: List[Tuple[float, State]] = []
         self._current_global_t: float = 0.0  # Track global animation time
-        
+        self._current_segment_index: int = 0  # Track which segment we're in
+
         if state is not None:
             if isinstance(state, List):
                 raise ValueError("state must be a single State instance, not a list")
@@ -73,6 +80,18 @@ class BaseVElement(ABC):
                 raise ValueError("states must be a list of State instances")
         elif keyframes is not None:
             self.set_keyframes(keyframes)
+
+            # Normalize global_transitions colors
+        if global_transitions:
+            self.global_transitions = {}
+            for key, (start, end) in global_transitions.items():
+                if isinstance(start, str) and start.startswith("#"):
+                    start = hex_to_color(start)
+                if isinstance(end, str) and end.startswith("#"):
+                    end = hex_to_color(end)
+                self.global_transitions[key] = (start, end)
+        else:
+            self.global_transitions = {}
 
     def set_state(self, state: State) -> None:
         """Set a single static state"""
@@ -152,7 +171,9 @@ class BaseVElement(ABC):
             base_state = self.keyframes[0][1]
             # Apply global transitions even for static/single keyframe
             if self.global_transitions:
-                return self._apply_global_transitions(base_state, self._current_global_t)
+                return self._apply_global_transitions(
+                    base_state, self._current_global_t
+                )
             return base_state
 
         # Find the two keyframes to interpolate between
@@ -162,16 +183,22 @@ class BaseVElement(ABC):
 
             if t1 <= t <= t2:
                 # Found the right segment
+                self._current_segment_index = i  # Store segment index
+
                 if t1 == t2:  # Same time (shouldn't happen with valid keyframes)
                     if self.global_transitions:
-                        return self._apply_global_transitions(state1, self._current_global_t)
+                        return self._apply_global_transitions(
+                            state1, self._current_global_t
+                        )
                     return state1
 
                 # Calculate segment progress
                 segment_t = (t - t1) / (t2 - t1)
 
                 # Create interpolated state
-                interpolated_state = self._create_eased_state(state1, state2, segment_t)
+                interpolated_state = self._create_eased_state(
+                    state1, state2, segment_t, i
+                )
                 return interpolated_state
 
         # If we get here, t is beyond the last keyframe
@@ -182,53 +209,63 @@ class BaseVElement(ABC):
 
     def _apply_global_transitions(self, base_state: State, global_t: float) -> State:
         """Apply global transitions to a state
-        
+
         Args:
             base_state: The base state to modify
             global_t: Global animation time (0.0 to 1.0)
-            
+
         Returns:
             New state with global transitions applied
         """
         if not self.global_transitions:
             return base_state
-            
+
         # Get the default easing functions from the state class
         default_easing = getattr(base_state, "DEFAULT_EASING", {})
-        
+
         updates = {}
-        
+
         for field_name, (start_value, end_value) in self.global_transitions.items():
             # Get the easing function for this property
             easing_func = self.easing_overrides.get(
                 field_name, default_easing.get(field_name)
             )
-            
+
             # Apply easing to global time
             eased_t = easing_func(global_t) if easing_func else global_t
-            
+
             # Determine interpolation method based on value type
             if isinstance(start_value, tuple) and len(start_value) == 3:
                 # Color interpolation
-                updates[field_name] = Interpolation.color(start_value, end_value, eased_t)
-            elif hasattr(base_state, 'is_angle'):
+                updates[field_name] = Interpolation.color(
+                    start_value, end_value, eased_t
+                )
+            elif hasattr(base_state, "is_angle"):
                 # Check if this field is an angle
-                field_obj = next((f for f in fields(base_state) if f.name == field_name), None)
+                field_obj = next(
+                    (f for f in fields(base_state) if f.name == field_name), None
+                )
                 if field_obj and base_state.is_angle(field_obj):
-                    updates[field_name] = Interpolation.angle(start_value, end_value, eased_t)
+                    updates[field_name] = Interpolation.angle(
+                        start_value, end_value, eased_t
+                    )
                 else:
-                    updates[field_name] = Interpolation.lerp(start_value, end_value, eased_t)
+                    updates[field_name] = Interpolation.lerp(
+                        start_value, end_value, eased_t
+                    )
             elif isinstance(start_value, (int, float)):
                 # Numeric interpolation
-                updates[field_name] = Interpolation.lerp(start_value, end_value, eased_t)
+                updates[field_name] = Interpolation.lerp(
+                    start_value, end_value, eased_t
+                )
             else:
                 # For non-numeric values, switch at t=0.5
                 updates[field_name] = start_value if eased_t < 0.5 else end_value
-        
+
         return replace(base_state, **updates)
 
     def _create_eased_state(
-        self, start_state: State, end_state: State, t: float
+        self, start_state: State, end_state: State, t: float, segment_index: int
     ) -> State:
         """Create an interpolated state using per-property easing functions
 
@@ -236,6 +273,7 @@ class BaseVElement(ABC):
             start_state: Starting state
             end_state: Ending state
             t: Time factor from 0.0 to 1.0 (segment time, not global time)
+            segment_index: Index of the current segment (0-based)
 
         Returns:
             New state with interpolated values using appropriate easing per property
@@ -243,17 +281,20 @@ class BaseVElement(ABC):
         # Get the default easing functions from the state class
         default_easing = getattr(start_state, "DEFAULT_EASING", {})
 
+        # Get segment-specific easing overrides if available
+        segment_overrides = self.segment_easing.get(segment_index, {})
+
         # Start with the start state values
         interpolated_values = {}
 
         # Interpolate each field
         for field in fields(start_state):
             field_name = field.name
-            
+
             # Skip properties that have global transitions - they'll be applied later
             if field_name in self.global_transitions:
                 continue
-            
+
             start_value = getattr(start_state, field_name)
             end_value = getattr(end_state, field_name)
 
@@ -262,9 +303,14 @@ class BaseVElement(ABC):
                 interpolated_values[field_name] = start_value
                 continue
 
-            # Get the easing function for this property
-            easing_func = self.easing_overrides.get(
-                field_name, default_easing.get(field_name)
+            # Get the easing function for this property with priority:
+            # 1. Segment-specific override
+            # 2. Global property override
+            # 3. Default easing from state
+            easing_func = (
+                segment_overrides.get(field_name)
+                or self.easing_overrides.get(field_name)
+                or default_easing.get(field_name)
             )
 
             # Apply easing to time parameter
@@ -297,11 +343,11 @@ class BaseVElement(ABC):
 
         # Create new state with interpolated values
         interpolated_state = replace(start_state, **interpolated_values)
-        
+
         # Apply global transitions on top of keyframe interpolation
         if self.global_transitions:
             interpolated_state = self._apply_global_transitions(
                 interpolated_state, self._current_global_t
             )
-        
+
         return interpolated_state

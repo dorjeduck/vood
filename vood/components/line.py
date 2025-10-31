@@ -10,6 +10,7 @@ import drawsvg as dw
 from vood.components import Renderer, State
 from vood.utils import to_rgb_string
 from vood.transitions import Easing
+from vood.utils.colors import hex_to_color
 
 
 @dataclass
@@ -30,6 +31,11 @@ class LineState(State):
         "stroke_dasharray": Easing.linear,  # Stepped animation for strings
         "stroke_linecap": Easing.linear,  # Stepped animation for strings
     }
+
+    def __post_init__(self):
+        if isinstance(self.color, str):
+            self.color = hex_to_color(self.color)
+     
 
 
 class LineRenderer(Renderer):

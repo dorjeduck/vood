@@ -10,13 +10,12 @@ from vood.components import Renderer, State
 from vood.transitions import Easing
 
 from vood.utils import to_rgb_string
+from vood.utils.colors import hex_to_color
 
 
 @dataclass
 class CircleState(State):
-    """State class for circle elements
-
-    """
+    """State class for circle elements"""
 
     radius: float = 50
     color: Optional[Tuple[int, int, int]] = (255, 0, 0)
@@ -31,6 +30,12 @@ class CircleState(State):
         "stroke_color": Easing.linear,
         "stroke_width": Easing.in_out,
     }
+
+    def __post_init__(self):
+        if isinstance(self.color, str):
+            self.color = hex_to_color(self.color)
+        if isinstance(self.stroke_color, str):
+            self.stroke_color = hex_to_color(self.stroke_color)
 
 
 class CircleRenderer(Renderer):
