@@ -82,7 +82,7 @@ def main():
     # Export to mp4
     exporter.to_mp4(
         filename="13_element_alignment",
-        total_frames=120,
+        total_frames=210,
         framerate=30,
         width_px=512,
         num_thumbnails=20,

@@ -10,6 +10,7 @@ Vood is a Python library for programmatically generating SVG graphics and animat
 
 ### From Source (Development)
 
+
 Clone the repository and install in editable mode:
 
 ```bash
@@ -18,6 +19,28 @@ cd vood
 pip install -e .
 ```
 
+Install the required dependency [DrawSvg](https://github.com/cduck/drawsvg):
+
+```bash
+pip install drawsvg
+```
+
+### Rasterization
+
+Vood currently offers three ways to create PNGs and PDFs from generated SVGs. Each relies on external libraries that must be installed separately.
+
+* **ConverterType.CAIROSVG**
+  - Install: `pip install cairosvg`
+  - Fastest rendering but may have font rendering limitations
+
+* **ConverterType.INKSCAPE**
+  - Install: Download from [inkscape.org](https://inkscape.org) and ensure it's in your PATH
+  - Moderate speed with good quality, though text-on-path features may have issues
+
+* **ConverterType.PLAYWRIGHT**
+  - Install: `pip install playwright` then `playwright install chromium`
+  - Most accurate rendering but slowest performance and largest installation size
+  - 
 ## 🚀 Quick Start
 
 ### 🖼️ Static Scene
