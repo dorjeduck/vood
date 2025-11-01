@@ -82,19 +82,17 @@ def line_layout(
     else:
         # Calculate automatic distribution
         num_elements = len(states)
-        line_positions = []
 
         if num_elements % 2 == 1:
             # Odd number of elements - one at center
             center_index = num_elements // 2
-            for i in range(num_elements):
-                offset = (i - center_index) * spacing
-                line_positions.append(offset)
+            line_positions = [(i - center_index) * spacing for i in range(num_elements)]
         else:
             # Even number of elements - symmetric around center
-            for i in range(num_elements):
-                offset = (i - (num_elements - 1) / 2) * spacing
-                line_positions.append(offset)
+            line_positions = [
+                (i - (num_elements - 1) / 2) * spacing
+                for i in range(num_elements)
+            ]
 
     # Convert line positions to 2D coordinates
     rotation_rad = math.radians(rotation)

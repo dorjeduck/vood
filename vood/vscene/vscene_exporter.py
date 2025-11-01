@@ -369,7 +369,7 @@ class VSceneExporter:
 
         # Generate thumbnails if requested
         if num_thumbnails > 0:
-            thumbnail_indices = []
+           
             if num_thumbnails == 1:
                 thumbnail_indices = [total_frames // 2]
             else:

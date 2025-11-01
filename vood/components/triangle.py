@@ -74,9 +74,7 @@ class TriangleRenderer(Renderer):
         # Remove manual rotation, let base class handle it
 
         # Flatten coordinates
-        coords = []
-        for px, py in points:
-            coords.extend([px, py])
+        coords = [coord for px, py in points for coord in (px, py)]
 
         # Create lines with triangle points (flattened coordinates)
         lines_kwargs = {"fill": fill_color, "close": True}  # Close the polygon

@@ -101,13 +101,13 @@ class BaseVElement(ABC):
         """Set evenly-timed states"""
         if len(states) < 1:
             raise ValueError("states must contain at least one state")
-        self.keyframes = []
+
         if len(states) == 1:
             self.keyframes = [(0.0, states[0])]
         else:
-            for i, state in enumerate(states):
-                t = i / (len(states) - 1)
-                self.keyframes.append((t, state))
+            self.keyframes = [
+                (i / (len(states) - 1), state) for i, state in enumerate(states)
+            ]
 
     def set_keyframes(self, keyframes: List[Tuple[float, State]]) -> None:
         """Set explicit keyframes"""

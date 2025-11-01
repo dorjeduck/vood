@@ -38,10 +38,10 @@ def circle_layout(
         # Calculate even distribution
         num_elements = len(states)
         angle_step = 360 / num_elements
-        element_angles = []
-        for i in range(num_elements):
-            angle = i * angle_step if clockwise else -i * angle_step
-            element_angles.append(angle)
+        element_angles = [
+            i * angle_step if clockwise else -i * angle_step
+            for i in range(num_elements)
+        ]
 
     # Position each element at its calculated angle
     for i, state in enumerate(states):

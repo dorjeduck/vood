@@ -40,7 +40,7 @@ Vood currently offers three ways to create PNGs and PDFs from generated SVGs. Ea
 * **ConverterType.PLAYWRIGHT**
   - Install: `pip install playwright` then `playwright install chromium`
   - Most accurate rendering but slowest performance and largest installation size
-  - 
+  
 ## 🚀 Quick Start
 
 ### 🖼️ Static Scene
@@ -200,7 +200,7 @@ See [https://vood.wectar.com/](https://vood.wectar.com/).
      style="width: 50%; margin: 10px auto;" />
 </a>
 
-## Contributing
+## Contribution
 
 Vood is still in an early stage and has so far been developed primarily to support the needs of a specific project. That said, it was always intended to evolve into a general-purpose library. We deeply appreciate your feedback and would love to hear your ideas for improving Vood — be it bug reports, feature requests, pull requests, or anything else you’d like to share.
 
