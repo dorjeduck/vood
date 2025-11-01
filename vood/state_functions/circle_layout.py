@@ -17,57 +17,11 @@ def circle_layout(
     clockwise: bool = True,
     angles: Optional[List[float]] = None,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
-    element_rotation_fn: Optional[Callable[[float], float]] = None,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
     radius_fn: Optional[Callable[[int, float], float]] = None,
 ) -> List[State]:
-    """
-    Arrange states in a circular formation.
 
-    Positions elements around a circle, either evenly distributed or at specific angles.
-    Preserves all other state properties (color, scale, opacity, etc.) while only
-    modifying x and y positions.
-
-    Args:
-        states: List of states to arrange
-        radius: Distance from center to each element
-        rotation: Rotation in degrees (0° = top, 90° = right).
-        center_x: X coordinate of circle center
-        center_y: Y coordinate of circle center
-        clockwise: If True, arrange clockwise; if False, counterclockwise.
-                  Only used when angles is None.
-        angles: Optional list of specific angles in degrees for each element.
-               If provided, overrides automatic distribution and clockwise parameter.
-               List length should match states length.
-        alignment: How to align each element relative to the circle.
-                  PRESERVE keeps original rotation, LAYOUT aligns tangent to circle,
-                  UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
-        element_rotation_fn: Function that takes position angle (degrees) and returns rotation offset.
-                           If provided, this overrides element_rotation parameter.
-
-    Returns:
-        New list of states with circular positions
-
-    Examples:
-        # Even distribution (full circle)
-        >>> states = [CircleState(), CircleState(), CircleState()]
-        >>> circle_layout(states, radius=100)
-
-        # Half circle arrangement
-        >>> half_circle = circle_layout(states, angles=[180, 225, 270])
-
-        # Custom angles for specific positioning
-        >>> custom = circle_layout(states, angles=[0, 45, 180])
-
-        # Position-aware rotation (elements lean inward)
-        >>> def lean_inward(angle):
-        ...     if 270 <= angle <= 360 or 0 <= angle < 90:  # Right side
-        ...         return -90
-        ...     else:  # Left side
-        ...         return 90
-        >>> leaning = circle_layout(states, element_rotation_fn=lean_inward)
-    """
     if not states:
         return []
 
@@ -105,7 +59,9 @@ def circle_layout(
 
         # Calculate additional rotation (function-based or static)
         additional_rotation = (
-            element_rotation_fn(angle) if element_rotation_fn else element_rotation
+            element_rotation_offset_fn(angle)
+            if element_rotation_offset_fn
+            else element_rotation_offset
         )
 
         # Calculate element rotation based on alignment mode

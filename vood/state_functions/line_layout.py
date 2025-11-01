@@ -16,7 +16,7 @@ def line_layout(
     center_y: float = 0,
     distances: Optional[List[float]] = None,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
+    element_rotation_offset: float = 0,
 ) -> List[State]:
     """
     Arrange states in a straight line formation.
@@ -40,7 +40,7 @@ def line_layout(
         alignment: How to align each element relative to the line.
                   PRESERVE keeps original rotation, LAYOUT aligns parallel to line,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
 
     Returns:
         New list of states with line positions
@@ -56,16 +56,16 @@ def line_layout(
         >>> line_layout(states, distances=[-50, -45, 0, 100, 200])
 
         # Elements aligned with line direction
-        >>> line_layout(states, rotation=45, element_rotation=ElementRotation.ALIGN)
+        >>> line_layout(states, rotation=45, element_rotation_offset=ElementRotation.ALIGN)
 
         # Elements kept upright regardless of line rotation
-        >>> line_layout(states, rotation=45, element_rotation=ElementRotation.UPRIGHT)
+        >>> line_layout(states, rotation=45, element_rotation_offset=ElementRotation.UPRIGHT)
 
         # Elements upside down (useful for text hanging from a line)
-        >>> line_layout(states, element_rotation=ElementRotation.HEADS_DOWN)
+        >>> line_layout(states, element_rotation_offset=ElementRotation.HEADS_DOWN)
 
         # Elements aligned opposite to line direction (pointing backward)
-        >>> line_layout(states, rotation=45, element_rotation=ElementRotation.ALIGN_REVERSE)
+        >>> line_layout(states, rotation=45, element_rotation_offset=ElementRotation.ALIGN_REVERSE)
     """
     if not states:
         return []
@@ -113,10 +113,10 @@ def line_layout(
             element_rot = state.rotation
         elif alignment == ElementAlignment.LAYOUT:
             # Align with line direction + additional rotation
-            element_rot = rotation + element_rotation
+            element_rot = rotation + element_rotation_offset
         elif alignment == ElementAlignment.UPRIGHT:
             # Start from upright position + additional rotation
-            element_rot = element_rotation
+            element_rot = element_rotation_offset
         else:
             element_rot = state.rotation
 

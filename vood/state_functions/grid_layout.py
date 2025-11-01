@@ -15,7 +15,7 @@ def grid_layout(
     center_x: float = 0,
     center_y: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
+    element_rotation_offset: float = 0,
 ) -> List[State]:
     """
     Arrange states in a rectangular grid formation.
@@ -36,7 +36,7 @@ def grid_layout(
         alignment: How to align each element relative to the grid.
                   PRESERVE keeps original rotation, LAYOUT aligns with grid axes,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
 
     Returns:
         New list of states with grid positions
@@ -70,7 +70,7 @@ def grid_layout(
         if alignment == ElementAlignment.PRESERVE:
             element_angle = state.rotation
         elif alignment == ElementAlignment.LAYOUT:
-            element_angle = element_rotation
+            element_angle = element_rotation_offset
         elif alignment == ElementAlignment.UPRIGHT:
             element_angle = 0
         else:

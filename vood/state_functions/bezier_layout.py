@@ -11,8 +11,8 @@ def bezier_layout(
     states: List[State],
     control_points: Sequence[tuple],
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
-    element_rotation_fn: Optional[Callable[[float], float]] = None,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
 ) -> List[State]:
     """
     Arrange states along a Bezier curve (quadratic or cubic).
@@ -27,9 +27,9 @@ def bezier_layout(
         alignment: How to align each element relative to the curve.
                   PRESERVE keeps original rotation, LAYOUT aligns tangent to curve,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
-        element_rotation_fn: Function that takes position t (0-1) and returns rotation offset.
-                           If provided, this overrides element_rotation parameter.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset_fn: Function that takes position t (0-1) and returns rotation offset.
+                           If provided, this overrides element_rotation_offset parameter.
 
     Returns:
         New list of states with positions along the Bezier curve
@@ -74,7 +74,9 @@ def bezier_layout(
         tangent_angle = bezier_tangent_angle(t, control_points)
 
         additional_rotation = (
-            element_rotation_fn(t) if element_rotation_fn else element_rotation
+            element_rotation_offset_fn(t)
+            if element_rotation_offset_fn
+            else element_rotation_offset
         )
 
         if alignment == ElementAlignment.PRESERVE:

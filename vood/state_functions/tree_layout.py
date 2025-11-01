@@ -15,8 +15,8 @@ def tree_layout(
     center_x: float = 0,
     top_y: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
-    element_rotation_fn: Optional[Callable[[int, int], float]] = None,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[int, int], float]] = None,
 ) -> List[State]:
     """
     Arrange states in a tree (hierarchy) layout.
@@ -34,11 +34,11 @@ def tree_layout(
         center_x: X coordinate of tree center
         top_y: Y coordinate of top level
         alignment: How to align each element relative to the tree.
-                  PRESERVE keeps original rotation, LAYOUT applies element_rotation,
+                  PRESERVE keeps original rotation, LAYOUT applies element_rotation_offset,
                   UPRIGHT sets rotation to 0.
-        element_rotation: Additional rotation in degrees added to the alignment base.
-        element_rotation_fn: Function that takes (level, index) and returns rotation offset.
-                           If provided, this overrides element_rotation parameter.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset_fn: Function that takes (level, index) and returns rotation offset.
+                           If provided, this overrides element_rotation_offset parameter.
 
     Returns:
         New list of states with tree positions
@@ -80,10 +80,10 @@ def tree_layout(
         x = center_x + (idx_in_level * horizontal_spacing - total_width / 2)
         y = top_y + lvl * vertical_spacing
 
-        if element_rotation_fn:
-            additional_rotation = element_rotation_fn(lvl, idx_in_level)
+        if element_rotation_offset_fn:
+            additional_rotation = element_rotation_offset_fn(lvl, idx_in_level)
         else:
-            additional_rotation = element_rotation
+            additional_rotation = element_rotation_offset
 
         if alignment == ElementAlignment.PRESERVE:
             element_angle = state.rotation

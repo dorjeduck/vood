@@ -1,9 +1,7 @@
-from dataclasses import replace
-
 from vood.components.text import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import line_layout
-from vood.transitions.easing import Easing
+from vood.state_functions import circle_layout
+from vood.state_functions.enums import ElementAlignment
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
@@ -21,40 +19,54 @@ def main():
     scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
-    states = [
+    # These states will be the starting point of the animation
+    base_states = [
         TextState(
-            text=str(num),
+            text=f"{num:02}",
             font_family="Courier",
             font_size=20,
+            color="#FDBE02",
         )
-        for num in range(1, 10)
+        for num in range(1, 20)
     ]
 
-    x_shifts = [-100, -40, 40, 100]
+    def east_west(angle):
+        if angle == 0:
+            return 0
+        elif angle > 180:
+            return 90
+        else:
+            return -90
 
     all_states = [
-        line_layout(states, center_x=x_shift, spacing=20, rotation=90)
-        for x_shift in x_shifts
+        circle_layout(base_states, radius=100, alignment=ElementAlignment.UPRIGHT),
+        circle_layout(base_states, radius=100, alignment=ElementAlignment.LAYOUT),
+        circle_layout(
+            base_states,
+            radius=100,
+            alignment=ElementAlignment.LAYOUT,
+            element_rotation_offset=90,
+        ),
+        circle_layout(
+            base_states,
+            radius=100,
+            alignment=ElementAlignment.LAYOUT,
+            element_rotation_offset_fn=east_west,
+        ),
     ]
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    # overriding the default easing for the x property for each element
+    # Create visual elements
+
     elements = [
         VElement(
             renderer=renderer,
-            keyframes=[
-                (0, state_a),
-                (0.25, state_b),
-                (0.5, state_c if i % 2 else state_b),
-                (0.75, state_c),
-                (1, state_d),
-            ],
-            easing={"x": Easing.linear},
+            keyframes=[(i / 7, [a, b, c, d][i // 2]) for i in range(8)],
             global_transitions={"color": (START_COLOR, END_COLOR)},
         )
-        for i, (state_a, state_b, state_c, state_d) in enumerate(zip(*all_states))
+        for a, b, c, d in zip(*all_states)
     ]
 
     # Add all elements to the scene
@@ -67,10 +79,10 @@ def main():
         output_dir="output/",
     )
 
-    # Export to MP4 file
+    # Export to mp4
     exporter.to_mp4(
-        filename="12_give_me_a_break.mp4",
-        total_frames=90,
+        filename="13_element_alignment",
+        total_frames=120,
         framerate=30,
         width_px=512,
         num_thumbnails=20,

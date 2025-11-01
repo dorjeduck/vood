@@ -12,7 +12,7 @@ def random_layout(
     x_range: Tuple[float, float] = (-100, 100),
     y_range: Tuple[float, float] = (-100, 100),
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
+    element_rotation_offset: float = 0,
     seed: Optional[int] = None,
 ) -> List[State]:
     """
@@ -27,9 +27,9 @@ def random_layout(
         x_range: Tuple (min_x, max_x) for horizontal bounds
         y_range: Tuple (min_y, max_y) for vertical bounds
         alignment: How to align each element relative to the layout.
-                  PRESERVE keeps original rotation, LAYOUT applies element_rotation,
+                  PRESERVE keeps original rotation, LAYOUT applies element_rotation_offset,
                   UPRIGHT sets rotation to 0.
-        element_rotation: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
         seed: Optional random seed for reproducibility
 
     Returns:
@@ -49,7 +49,7 @@ def random_layout(
         if alignment == ElementAlignment.PRESERVE:
             element_angle = state.rotation
         elif alignment == ElementAlignment.LAYOUT:
-            element_angle = element_rotation
+            element_angle = element_rotation_offset
         elif alignment == ElementAlignment.UPRIGHT:
             element_angle = 0
         else:

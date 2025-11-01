@@ -16,8 +16,8 @@ def spiral_layout(
     start_angle: float = 0,
     angle_step: float = 30,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
-    element_rotation_fn: Optional[Callable[[float], float]] = None,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
 ) -> List[State]:
     """
     Arrange states in a spiral formation (Archimedean spiral).
@@ -37,9 +37,9 @@ def spiral_layout(
         alignment: How to align each element relative to the spiral.
                   PRESERVE keeps original rotation, LAYOUT aligns tangent to spiral,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
-        element_rotation_fn: Function that takes position angle (degrees) and returns rotation offset.
-                           If provided, this overrides element_rotation parameter.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset_fn: Function that takes position angle (degrees) and returns rotation offset.
+                           If provided, this overrides element_rotation_offset parameter.
 
     Returns:
         New list of states with spiral positions
@@ -58,7 +58,9 @@ def spiral_layout(
         y = center_y - radius * math.cos(angle_rad)
 
         additional_rotation = (
-            element_rotation_fn(angle) if element_rotation_fn else element_rotation
+            element_rotation_offset_fn(angle)
+            if element_rotation_offset_fn
+            else element_rotation_offset
         )
 
         if alignment == ElementAlignment.PRESERVE:

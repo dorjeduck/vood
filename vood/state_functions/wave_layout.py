@@ -18,7 +18,7 @@ def wave_layout(
     middle_y: float = 0,
     rotation: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
+    element_rotation_offset: float = 0,
     distances: Optional[List[float]] = None,
 ) -> List[State]:
     """Arrange elements along a sine wave.
@@ -42,7 +42,7 @@ def wave_layout(
         alignment: How to align each element relative to the wave base line.
                   PRESERVE keeps original rotation, LAYOUT aligns parallel to base line,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
         distances: Optional list of specific distances from center for each element.
                   If provided, overrides automatic spacing calculation.
                   List length should match states length.
@@ -120,10 +120,10 @@ def wave_layout(
             element_angle = state.rotation
         elif alignment == ElementAlignment.LAYOUT:
             # Align with base line direction + additional rotation
-            element_angle = rotation + element_rotation
+            element_angle = rotation + element_rotation_offset
         elif alignment == ElementAlignment.UPRIGHT:
             # Start from upright position + additional rotation
-            element_angle = element_rotation
+            element_angle = element_rotation_offset
         else:
             element_angle = state.rotation
 

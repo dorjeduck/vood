@@ -15,8 +15,8 @@ def polygon_layout(
     center_x: float = 0,
     center_y: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
-    element_rotation: float = 0,
-    element_rotation_fn: Optional[Callable[[float], float]] = None,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
     vertices_only: bool = True,
 ) -> List[State]:
     """
@@ -32,9 +32,9 @@ def polygon_layout(
         alignment: How to align each element relative to the polygon.
                   PRESERVE keeps original rotation, LAYOUT aligns tangent to edge,
                   UPRIGHT starts from vertical position.
-        element_rotation: Additional rotation in degrees added to the alignment base.
-        element_rotation_fn: Function that takes position angle (degrees) and returns rotation offset.
-                           If provided, this overrides element_rotation parameter.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        element_rotation_offset_fn: Function that takes position angle (degrees) and returns rotation offset.
+                           If provided, this overrides element_rotation_offset parameter.
         vertices_only: If True, place elements only at vertices; if False, distribute along edges.
 
     Returns:
@@ -55,7 +55,9 @@ def polygon_layout(
             y = center_y - radius * math.cos(angle_rad)
 
             additional_rotation = (
-                element_rotation_fn(angle) if element_rotation_fn else element_rotation
+                element_rotation_offset_fn(angle)
+                if element_rotation_offset_fn
+                else element_rotation_offset
             )
 
             if alignment == ElementAlignment.PRESERVE:
@@ -90,7 +92,9 @@ def polygon_layout(
 
             angle = angle1 + t * (angle2 - angle1)
             additional_rotation = (
-                element_rotation_fn(angle) if element_rotation_fn else element_rotation
+                element_rotation_offset_fn(angle)
+                if element_rotation_offset_fn
+                else element_rotation_offset
             )
 
             if alignment == ElementAlignment.PRESERVE:
