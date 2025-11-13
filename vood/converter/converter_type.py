@@ -1,8 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConverterType(Enum):
+class ConverterType(StrEnum):
     PLAYWRIGHT_HTTP = "playwright_http"
     PLAYWRIGHT = "playwright"
     CAIROSVG = "cairosvg"
     INKSCAPE = "inkscape"
+    IMAGEMAGICK = "imagemagick"

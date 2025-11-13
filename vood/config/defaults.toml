@@ -1,0 +1,77 @@
+# Vood System Default Configuration
+# This file contains the default values for all configurable parameters in vood.
+# Users can override these by creating their own vood.toml file.
+
+[scene]
+# Default scene dimensions
+width = 800
+height = 800
+
+# Scene background
+background_color = "none"  # Color.NONE - transparent background
+background_opacity = 1.0
+
+# Origin mode: "center" or "top-left"
+origin_mode = "center"
+
+[state]
+# Common properties for all states (x, y, scale, opacity, rotation)
+# These are inherited by all state subclasses
+x = 0.0
+y = 0.0
+scale = 1.0
+opacity = 1.0
+rotation = 0.0
+
+[state.visual]
+# Visual properties for vertex-based shapes
+# Inherited by: CircleState, EllipseState, StarState, PolygonState, SquareState,
+#               RingState, ArrowState, CrossState, LineState, ArcState, etc.
+fill_color = "none"  # Color.NONE - no fill
+fill_opacity = 1.0
+stroke_color = "none"  # Color.NONE - no stroke
+stroke_opacity = 1.0
+stroke_width = 1.0
+
+# Vertex resolution for morphing
+num_vertices = 128
+
+# Whether shapes are closed by default
+closed = true
+
+[morphing]
+# Morphing/interpolation settings
+
+# Hole matching strategy for shapes with different hole counts
+# Options (ordered by sophistication):
+#   "clustering" - Balanced k-means clustering (default, best for visual quality)
+#   "hungarian"  - Optimal assignment (globally minimal distance, requires scipy)
+#   "greedy"     - Fast greedy nearest-centroid matching (simpler, may be unbalanced)
+#   "discrete"   - Discrete transitions (some holes move, others appear/disappear)
+#   "simple"     - All old holes disappear, all new holes appear (simplest)
+hole_mapper = "clustering"
+
+[morphing.clustering]
+# Clustering-specific settings (only used when hole_mapper = "clustering")
+balance_clusters = true      # Balance cluster sizes to avoid extreme imbalances (e.g., 4-1 splits)
+max_iterations = 50          # Maximum k-means iterations
+random_seed = 42             # Random seed for reproducible clustering
+
+[export]
+# Export defaults
+default_framerate = 30
+default_converter = "playwright"
+png_width_px = 1920
+
+[playwright_server]
+# Playwright HTTP render server settings
+# Used by PlaywrightHttpSvgConverter for SVG to PNG/PDF conversion
+
+host = "localhost"       # Server host
+port = 4000             # Server port
+auto_start = false      # Automatically start server if not running (default: false)
+log_level = "INFO"      # Server log level: "DEBUG", "INFO", "WARNING", "ERROR"
+
+[logging]
+# Default logging level: "DEBUG", "INFO", "WARNING", "ERROR"
+level = "INFO"

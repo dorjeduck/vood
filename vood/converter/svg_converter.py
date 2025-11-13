@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from pathlib import Path
 
-from vood.utils.logger import get_logger
+from vood.core.logger import get_logger
 from PIL import Image
 
 from typing import TYPE_CHECKING
@@ -173,13 +173,38 @@ class SVGConverter(ABC):
         pass
 
     def svg_html(self, svg_content):
+        """
+        Wrap SVG in HTML with optimized text rendering.
+        """
         return f"""
         <!DOCTYPE html>
         <html>
         <head>
             <style>
-                body {{ margin: 0; padding: 0; background: white; }}
-                svg {{ display: block; }}
+                * {{ 
+                    margin: 0; 
+                    padding: 0; 
+                    box-sizing: border-box;
+                    -webkit-font-smoothing: antialiased;
+                    -moz-osx-font-smoothing: grayscale;
+                }}
+                html, body {{ 
+                    width: 100%; 
+                    height: 100%; 
+                    overflow: hidden;
+                }}
+                body {{ 
+                    margin: 0; 
+                    padding: 0; 
+                    background: white; 
+                }}
+                svg {{ 
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    shape-rendering: crispEdges;
+                    text-rendering: geometricPrecision;
+                }}
             </style>
         </head>
         <body>
@@ -209,14 +234,24 @@ class SVGConverter(ABC):
         filename: Optional[str] = None,
         log: bool = True,
     ):
+        """
+        Generate scaled SVG content that fits within the target dimensions.
 
-        scale = max(
+        Uses 'min' instead of 'max' to ensure content fits within bounds
+        without overflow, maintaining aspect ratio.
+
+        The scale factor is calculated as the minimum ratio needed to fit
+        the scene within the target dimensions. This prevents content from
+        being cut off or overflowing the viewport.
+        """
+        # Use MIN to fit content within bounds (not MAX which causes overflow)
+        scale = min(
             width / scene.width,
             height / scene.height,
         )
 
         return scene.to_svg(
-            scale=scale,
+            render_scale=scale,
             frame_time=frame_time,
             width=width,
             height=height,

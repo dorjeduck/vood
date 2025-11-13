@@ -4,7 +4,7 @@ from typing import Optional
 from vood.converter.svg_converter import SVGConverter
 from playwright.sync_api import sync_playwright
 
-from vood.utils.logger import get_logger
+from vood.core.logger import get_logger
 
 from typing import TYPE_CHECKING
 
@@ -47,7 +47,6 @@ class PlaywrightSvgConverter(SVGConverter):
                     return page
 
                 # PNG
-
                 if "png" in formats:
                     t0 = time.time()
                     width_px, height_px = self._infer_dimensions(
@@ -96,7 +95,7 @@ class PlaywrightSvgConverter(SVGConverter):
                     elapsed = time.time() - t0
                     ret["pdf"] = outputs["pdf"]
                     logger.debug(
-                        f"PNG exported to {outputs['pdf']} (PlaywrightSvgConverter) in {elapsed:.4f} seconds"
+                        f"PDF exported to {outputs['pdf']} (PlaywrightSvgConverter) in {elapsed:.4f} seconds"
                     )
 
                 browser.close()

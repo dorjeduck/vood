@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PDFPageSizeInch(Enum):
+class PDFPageSizeInch(StrEnum):
     # page size in inches (calculated from 300 DPI)
     A0 = {"width": 33.11, "height": 46.81}
     A1 = {"width": 23.39, "height": 33.11}

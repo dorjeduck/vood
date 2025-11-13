@@ -1,0 +1,22 @@
+"""Main CLI entry point for Vood
+
+Provides commands for managing the Playwright render server and other utilities.
+"""
+
+import click
+from vood.cli.playwright_server_commands import playwright_server
+
+
+@click.group()
+@click.version_option(package_name="vood")
+def cli():
+    """Vood - Programmatic SVG graphics and animation library"""
+    pass
+
+
+# Register command groups
+cli.add_command(playwright_server)
+
+
+if __name__ == "__main__":
+    cli()

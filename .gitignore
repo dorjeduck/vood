@@ -112,3 +112,11 @@ Icon?
 
 lab/
 output/
+vood/paths/_internal
+benchmarks/
+park/
+.claude
+
+# ---- Claude Code session notes ----
+CLAUDE.md
+vood.toml

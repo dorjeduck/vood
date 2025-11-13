@@ -1,14 +1,22 @@
 # Vood
 
-<img src="docs/images/logo-128.svg" 
-     alt="Vood Library Logo" 
+## ⚠️ Project Status Notice
+We are currently evaluating a major redesign of the library’s architecture.
+Because of this, the current version is in flux and not stable. Feel free to explore, but do not rely on the current API.
+
+
+<img src="docs/images/logo_128.svg"
+     alt="Vood Library Logo"
      style="max-width: 128px; display: block; margin: 10px auto;" />
+
+
 
 Vood is a Python library for programmatically generating SVG graphics and animations. While Vood relies on the excellent [DrawSvg](https://github.com/cduck/drawsvg) for creating the base SVG elements, it features a specialized animation engine built around a clear state and visual element separation. This architecture enables detailed control over transitions, such as property-level easing.
 
 ## Installation
 
 ### From Source (Development)
+
 
 Clone the repository and install in editable mode:
 
@@ -18,6 +26,35 @@ cd vood
 pip install -e .
 ```
 
+Install the required dependency [DrawSvg](https://github.com/cduck/drawsvg):
+
+```bash
+pip install drawsvg
+```
+
+### Rasterization
+
+Vood offers multiple ways to convert SVG graphics to PNG and PDF formats. Each has different trade-offs in terms of quality, speed, and setup complexity.
+
+* **ConverterType.CAIROSVG**
+  - Install: `pip install cairosvg`
+  - Fast rendering but may have font rendering limitations.
+
+* **ConverterType.INKSCAPE**
+  - Install: Download from [inkscape.org](https://inkscape.org) and ensure it's in your PATH
+  - Moderate speed with good quality, though text-on-path features may have issues.
+
+* **ConverterType.PLAYWRIGHT**
+  - Install: `pip install playwright` then `playwright install chromium`
+  - Most accurate rendering but slowest performance and largest installation size.
+
+* **ConverterType.PLAYWRIGHT_HTTP** (Recommended for high-quality batch rendering)
+  - Install: `pip install vood[playwright-server]` then `playwright install chromium`
+  - Highest quality (same as PLAYWRIGHT), runs as background service
+  - Start server: `vood playwright-server start`
+  - Best for: batch rendering, long-running processes, production workflows
+  - See **[PLAYWRIGHT_SERVER.md](PLAYWRIGHT_SERVER.md)** for complete setup guide and features
+  
 ## 🚀 Quick Start
 
 ### 🖼️ Static Scene
@@ -34,24 +71,24 @@ In this example we arrange the numbers 1 to 9 in an elliptical layout. The core 
 
 ```python
 # (1) Create scene with square dimensions and defined background color
-scene = VScene(width=256, height=192, background="#000017")
+scene = VScene(width=256, height=192, background=Color("#000017"))
 
 # (2) Define text states for each number with consistent styling
 states = [
     TextState(
         text=str(num),
-        font_family="Courier",
+        font_family="Courier New",
         font_size=20,
-        color="#FDBE02",
+        fill_color=Color("#FDBE02"),
     )
     for num in range(1, 10)
 ]
 
 # (3) Arrange numbers in an elliptical layout
-states_layout = ellipse_layout(
+states_layout = layout.ellipse(
     states,
-    radius_x=96,
-    radius_y=64,
+    rx=96,
+    ry=64,
 )
 
 # (4) Create a text renderer for all numbers
@@ -69,14 +106,17 @@ elements = [
 # (6) Add all elements to the scene
 scene.add_elements(elements)
 
-# (7) Export to PNG file
+# (7) Export to PNG 
 exporter = VSceneExporter(
     scene=scene,
     converter=ConverterType.PLAYWRIGHT,
     output_dir="output/",
 )
 
-exporter.to_png(filename="01_ellipse_layout.png", width_px=1024)
+# Export to SVG and PNG
+exporter.export(
+    filename="01_ellipse_layout", formats=["svg", "png"], png_width_px=1024
+)
 ```
 
 *Complete code*: [01_ellipse_layout.py](./examples/01_ellipse_layout.py)
@@ -95,7 +135,7 @@ The key distinction here is that each `VElement` is now defined as a combination
 
 ```python
 # Create the scene 
-scene = VScene(width=256, height=192, background="#000017")
+scene = VScene(width=256, height=192, background=Color("#000017"))
 
 # Create text states for each number with consistent styling
 # These states will be the starting point of the animation
@@ -104,18 +144,18 @@ start_states = [
         x=0,  # centered horizontally (default but explicit for clarity)
         y=0,  # centered vertically (...)
         text=str(num),
-        font_family="Courier",
+        font_family="Courier New",
         font_size=20,
-        color="#FDBE02",
+        fill_color=Color("#FDBE02"),
     )
     for num in range(1, 10)
 ]
 
 # Arrange the numbers in an elliptical layout for the end states
-end_states = ellipse_layout(
+end_states = layout.ellipse(
     start_states,
-    radius_x=96,
-    radius_y=64,
+    rx=96,
+    ry=64,
 )
 
 # Create a text renderer for all numbers
@@ -126,15 +166,15 @@ renderer = TextRenderer()
 elements = [
     VElement(
         renderer=renderer,
-        states=[start_state, end_state],
+        keystates=states,
     )
-    for start_state, end_state in zip(start_states, end_states)
+    for states in zip(start_states, end_states)
 ]
 
 # Add all elements to the scene
 scene.add_elements(elements)
 
-# Export to PNG file
+# Export to MP4 
 exporter = VSceneExporter(
     scene=scene,
     converter=ConverterType.PLAYWRIGHT,
@@ -145,7 +185,7 @@ exporter.to_mp4(
     filename="number_animation",
     total_frames=60,
     framerate=30,
-    width_px=512,
+    png_width_px=1024,
 )
 ```
 
@@ -159,17 +199,32 @@ exporter.to_mp4(
 
 While this example uses a simple two-state interpolation, Vood's animation engine supports fine grained timing control:
 
-* **Multi-keyframe sequencing** — Define states with explicit frame_time values for complex choreography.
+* **Multi-keystate sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - timed keystates](https://vood.wectar.com/circus/timed-keystates/)
 
-* **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves) to individual properties for nuanced motion control.
+* **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves etc) to individual properties for nuanced motion control. See [SVG Circus - Easing Variety](https://vood.wectar.com/circus/easing-variety/)
 
-## Documentation
+* **Segment Easing** - Customize easing between keystates. See [SVG Circus - Segment Easing](https://vood.wectar.com/circus/segment-easing/)
 
-Vood is in active early development with frequent design changes. Instead of maintaining documentation that quickly becomes outdated, we for now offer an evolving Examples Gallery showcasing Vood's core functionality and design patterns.
+* **Global Transitions** - Apply property transitions beyond keystates - See [SVG Circus - Global Transitions](https://vood.wectar.com/circus/global-transitions/)
 
-## Contributing
+## ⚙️ Configuration
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Vood supports TOML-based configuration for customizing default values. Create a `vood.toml` file in your project directory to set scene dimensions, colors, logging levels, and more. For a complete documentation, see **[CONFIG.md](CONFIG.md)**.
+
+## SVG Circus
+
+Rather than writing full-fledged documentation for Vood at this early stage of development, we’re focusing on building an evolving collection of examples. SVG Circus is meant to highlight Vood’s capabilities and to give users a hands-on way to explore what it can do — complete with the Python source code used to generate and animate each SVG.
+See [https://vood.wectar.com/](https://vood.wectar.com/).
+
+<a href="https://vood.wectar.com/">
+<img src="docs/images/svg_circus.png"
+     alt="SVG Circus"
+     style="width: 50%; margin: 10px auto;" />
+</a>
+
+## Contribution
+
+Vood is still in an early stage and has so far been developed primarily to support the needs of a specific project. That said, it was always intended to evolve into a general-purpose library. We deeply appreciate your feedback and would love to hear your ideas for improving Vood — be it bug reports, feature requests, pull requests, or anything else you’d like to share.
 
 ## License
 
@@ -177,10 +232,33 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### [0.1.0] - 2025-10-26
+### [0.2.0] - 2025-11-15
 
-#### Added
+* Mandatory `Color` usage
+* states/keyframes combined into keystates
 
-- Initial release
-- Core functionality
-- Basic examples
+### [0.2.0] - 2025-11-13
+
+* Version 0.2.0 - approaching beta
+
+### [0.1.0] - 2025-11-02
+
+* Partial timelines
+* `vood.animations`
+
+### [0.1.0] - 2025-11-01
+
+* VElementGroup refinement
+* States as Iterable
+
+### [0.1.0] - 2025-10-30
+
+* Global transitions
+
+### [0.1.0] - 2025-10-28
+
+* SVG Circus published
+
+### [0.1.0] - 2025-10-27
+
+* Initial release
