@@ -1,55 +1,56 @@
-"""Renderers package - contains all renderer implementations"""
+"""Component system for vood - renderers and states for various shapes and elements"""
 
-from .base import Renderer, State
-from .variants.path_variants import PathVariantRenderer, PathVariantState
-from .variants.path_text_variants import MultiPathTextRenderer, MultiPathTextState
-from .text import TextRenderer, TextState
-from .circle import CircleRenderer, CircleState
-from .rectangle import RectangleRenderer, RectangleState
-from .ellipse import EllipseRenderer, EllipseState
-from .line import LineRenderer, LineState
-from .triangle import TriangleRenderer, TriangleState
-from .star import StarRenderer, StarState
-from .path import PathRenderer, PathState
-from .moon_phase import MoonPhaseRenderer, MoonPhaseRenderer2, MoonPhaseState
-from .circle_text import CircleTextRenderer, CircleTextState
-from .image import ImageRenderer, ImageState, ImageFitMode
-from .double_circle import DoubleCircleState, DoubleCircleRenderer
-from .raw_svg import RawSvgRenderer, RawSvgState
+# Import submodules
+from . import renderer
+from . import states
+
+# Import all states
+from .states import *
+
+# Import all renderers
+from .renderer import *
 
 __all__ = [
+    # Submodules
+    "renderer",
+    "states",
+    # Base classes
     "Renderer",
     "State",
-    "RawSvgRenderer",
-    "RawSvgState",
-    "PathVariantRenderer",
-    "PathVariantState",
-    "MultiPathTextRenderer",
-    "MultiPathTextState",
-    "TextRenderer",
-    "TextState",
-    "CircleRenderer",
+    # States (alphabetically sorted)
     "CircleState",
-    "RectangleRenderer",
-    "RectangleState",
-    "EllipseRenderer",
-    "EllipseState",
-    "LineRenderer",
-    "LineState",
-    "TriangleRenderer",
-    "TriangleState",
-    "StarRenderer",
-    "StarState",
-    "PathRenderer",
-    "PathState",
-    "MoonPhaseRenderer",
-    "MoonPhaseRenderer2",
-    "MoonPhaseState",
-    "CircleTextRenderer",
     "CircleTextState",
-    "ImageRenderer",
-    "ImageState",
-    "ImageFitMode",
     "DoubleCircleState",
+    "EllipseState",
+    "ImageState",
+    "LineState",
+    "MoonPhaseState",
+    "PathState",
+    "PathTextState",
+    "PathAndTextVariantsState",
+    "PathVariantsState",
+    "RadialSegmentsState",
+    "RawSvgState",
+    "RectangleState",
+    "StarState",
+    "TextState",
+    "TriangleState",
+    # Renderers (alphabetically sorted)
+    "CircleRenderer",
+    "CircleTextRenderer",
     "DoubleCircleRenderer",
+    "EllipseRenderer",
+    "ImageRenderer",
+    "LineRenderer",
+    "MoonPhaseRenderer",
+    "PathRenderer",
+    "PathTextRenderer",
+    "PathAndTextVariantsRenderer",
+    "PathVariantsRenderer",
+    "RadialSegmentsRenderer",
+    "RawSvgRenderer",
+    "RectangleRenderer",
+    "StarRenderer",
+    "TextRenderer",
+    "TriangleRenderer",
 ]

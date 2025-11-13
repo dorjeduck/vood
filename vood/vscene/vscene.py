@@ -127,7 +127,8 @@ class VScene:
         # Add all elements at specified time
         for element in self.elements:
             rendered = element.render_at_frame_time(frame_time)
-            group.append(rendered)
+            if rendered is not None:
+                group.append(rendered)
 
         drawing.append(group)
         return drawing

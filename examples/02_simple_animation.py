@@ -1,6 +1,6 @@
-from vood.components.text import TextRenderer, TextState
+from vood.components import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import ellipse_layout
+from vood.magic import layouts
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
@@ -12,7 +12,7 @@ configure_logging(level="INFO")
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=192, background="#000017")
+    scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
     # These states will be the starting point of the animation
@@ -21,7 +21,7 @@ def main():
             x=0,  # centered horizontally (default but explicit for clarity)
             y=0,  # centered vertically (...)
             text=str(num),
-            font_family="Courier",
+            font_family="Courier New",
             font_size=20,
             color="#FDBE02",
         )
@@ -29,7 +29,7 @@ def main():
     ]
 
     # Arrange the numbers in an elliptical layout for the end states
-    end_states = ellipse_layout(
+    end_states = layouts.ellipse(
         start_states,
         radius_x=96,
         radius_y=64,
@@ -43,9 +43,9 @@ def main():
     elements = [
         VElement(
             renderer=renderer,
-            states=[start_state, end_state],
+            states=states,
         )
-        for start_state, end_state in zip(start_states, end_states)
+        for states in zip(start_states, end_states)
     ]
 
     # Add all elements to the scene
@@ -63,7 +63,7 @@ def main():
         filename="02_simple_animation",
         total_frames=60,
         framerate=30,
-        width_px=512,
+        width_px=1024,
     )
 
 

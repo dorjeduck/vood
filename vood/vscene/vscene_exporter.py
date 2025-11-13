@@ -15,6 +15,7 @@ from vood.converter.inkscape_svg_converter import InkscapeSvgConverter
 from vood.converter.playwright_svg_converter import PlaywrightSvgConverter
 from vood.converter.converter_type import ConverterType
 from vood.utils.logger import get_logger
+#from vood.transitions.interpolation import cleanup_shape_interpolator
 
 logger = get_logger()
 
@@ -160,6 +161,7 @@ class VSceneExporter:
                 results.update(conv_results)
 
         results["success"] = True
+
         return results
 
     def to_png(
@@ -181,6 +183,7 @@ class VSceneExporter:
             png_height_px=height_px,
         )
         logger.info(f"PNG exported to: \"{result.get('png')}\"")
+
         return result.get("png")
 
     def to_pdf(
@@ -305,8 +308,9 @@ class VSceneExporter:
         height_px: Optional[int] = None,
         cleanup_intermediate_files: bool = True,
         codec: str = "libx264",
+        num_thumbnails: int = 0,
     ) -> str:
-        """Export scene as video file.
+        """Export scene as video file, with optional thumbnail generation.
 
         Args:
             filename: Output video filename (without extension)
@@ -317,6 +321,7 @@ class VSceneExporter:
             png_height_px: Height for video frames
             cleanup_intermediate_files: Whether to delete frame images after encoding
             codec: Video codec (default: libx264 for MP4)
+            thumbnails: Number of thumbnails to generate (0 = none, 1 = middle, 2 = start/end, etc.)
 
         Returns:
             Path to the exported video file
@@ -365,10 +370,32 @@ class VSceneExporter:
         logger.debug("Encoding video with ffmpeg...")
         self._create_video_from_pngs(frames_dir, output_path, framerate, codec)
 
+        # Generate thumbnails if requested
+        if num_thumbnails > 0:
+
+            if num_thumbnails == 1:
+                thumbnail_indices = [total_frames // 2]
+            else:
+                # Evenly spaced thumbnails: start, end, and in between
+                thumbnail_indices = [
+                    int(i * (total_frames - 1) / (num_thumbnails - 1))
+                    for i in range(num_thumbnails)
+                ]
+            thumb_dir = self.output_dir / f"{final_filename}_thumbnails"
+            thumb_dir.mkdir(parents=True, exist_ok=True)
+            for idx in thumbnail_indices:
+                src = frames_dir / f"frame_{idx:04d}.png"
+                dst = thumb_dir / f"thumbnail_{idx:04d}.png"
+                if src.exists():
+                    shutil.copy(src, dst)
+            logger.info(f"Thumbnails saved to {thumb_dir}")
+
         # Cleanup
         if cleanup_intermediate_files:
             logger.debug("Cleaning up intermediate files...")
             shutil.rmtree(temp_dir)
+
+        #cleanup_shape_interpolator()
 
         logger.info(f'Video exported to "{output_path}"')
         return str(output_path)

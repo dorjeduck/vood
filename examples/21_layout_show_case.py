@@ -1,0 +1,207 @@
+"""
+Comprehensive showcase of all vood layout functions
+Demonstrates each layout's unique characteristics with animated transitions
+"""
+
+from vood.components import TextRenderer, TextState
+from vood.converter.converter_type import ConverterType
+from vood.magic import layouts
+from vood.utils.logger import configure_logging
+from vood.velements import VElement
+from vood.vscene import VScene
+from vood.vscene.vscene_exporter import VSceneExporter
+from dataclasses import replace
+
+from vood.magic.animations.atomic import sequential_transition, fade, trim
+
+configure_logging(level="INFO")
+
+
+def main():
+    # Create the scene
+    scene = VScene(width=256, height=256, background="#000017")
+
+    # Create text states for numbers 1-20 with consistent styling
+    base_states = [
+        TextState(
+            text=f"{num:02}",
+            font_family="Courier New",
+            font_size=10,
+            color="#FDBE02",
+        )
+        for num in range(1, 21)
+    ]
+
+    base_name_state = TextState(
+        text="",
+        font_family="Courier New",
+        font_size=10,
+        color="#AA0000",
+        y=110,
+    )
+
+    # Define all layout transitions
+    layout_states = []
+    layout_name_states = []
+
+    # 1. Start: Grid layout
+    layout_states.append(layouts.grid(base_states, cols=5, spacing_h=20, spacing_v=20))
+    layout_name_states.append(replace(base_name_state, text="Grid Layout"))
+
+    # 2. Circle layout
+    layout_states.append(
+        layouts.circle(
+            base_states, radius=100, alignment=layouts.ElementAlignment.LAYOUT
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Circle Layout"))
+
+    # 3. Spiral layout
+    layout_states.append(
+        layouts.spiral(
+            base_states,
+            start_radius=20,
+            radius_step=5,
+            angle_step=40,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Spiral Layout"))
+
+    # 4. Line layout (horizontal)
+    layout_states.append(
+        layouts.line(
+            base_states,
+            spacing=13,
+            rotation=40,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Line Layout"))
+
+    # 5. Wave layout
+    layout_states.append(
+        layouts.wave(
+            base_states,
+            amplitude=25,
+            wavelength=80,
+            spacing=12,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Wave Layout"))
+
+    # 6. Ellipse layout
+    layout_states.append(
+        layouts.ellipse(
+            base_states,
+            radius_x=110,
+            radius_y=70,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Ellipse Layout"))
+
+    # 7. Polygon layout (hexagon)
+    layout_states.append(
+        layouts.polygon(
+            base_states,
+            sides=5,
+            radius=100,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Polygon Layout"))
+
+    # 8. Bezier curve layout
+    layout_states.append(
+        layouts.bezier(
+            base_states,
+            control_points=[(-110, -80), (-60, 80), (60, -80), (110, 80)],
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Bezier Layout"))
+
+    # 9. Random scatter layout
+    layout_states.append(
+        layouts.scatter(
+            base_states,
+            x_range=(-115, 115),
+            y_range=(-115, 115),
+            seed=42,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Scatter Layout"))
+
+    # 10. Path Points layout
+    layout_states.append(
+        layouts.path_points(
+            base_states,
+            points=[(-110, -100), (-60, 0), (0, 60), (60, 0), (110, 100)],
+            smooth=True,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Path Points Layout"))
+
+    # 11. Radial grid layout
+    layout_states.append(
+        layouts.radial_grid(
+            base_states,
+            rings=4,
+            segments=5,
+            ring_spacing=25,
+            inner_radius=15,
+            alignment=layouts.ElementAlignment.LAYOUT,
+        )
+    )
+    layout_name_states.append(replace(base_name_state, text="Radial Grid Layout"))
+
+    # 12. Back to grid (closing the loop)
+    layout_states.append(layouts.grid(base_states, cols=5, spacing_h=20, spacing_v=20))
+    layout_name_states.append(replace(base_name_state, text="Grid Layout"))
+
+    # Create a text renderer
+    renderer = TextRenderer()
+
+    layout_keyframes = [
+        sequential_transition(states, trim, 0.8) for states in zip(*layout_states)
+    ]
+
+    elements = [
+        VElement(
+            renderer=renderer,
+            keyframes=keyframes,
+        )
+        for keyframes in layout_keyframes
+    ]
+
+    # Add all elements to the scene
+    scene.add_elements(elements)
+
+    text_keyframes = sequential_transition(layout_name_states, fade, 0.5)
+
+    texts = VElement(renderer=renderer, keyframes=text_keyframes)
+    scene.add_element(texts)
+
+    # Create the exporter
+    exporter = VSceneExporter(
+        scene=scene,
+        converter=ConverterType.PLAYWRIGHT,
+        output_dir="output/",
+    )
+
+    # Export to MP4 file
+    # With 16 layouts and 20 frames per transition = 320 frames total
+    exporter.to_mp4(
+        filename="21_layout_showcase.mp4",
+        total_frames=len(layout_states) * 60,  # 16 transitions × 20 frames each
+        framerate=30,
+        width_px=1024,
+    )
+
+
+if __name__ == "__main__":
+    main()

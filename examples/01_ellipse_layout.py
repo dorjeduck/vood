@@ -1,6 +1,6 @@
-from vood.components.text import TextRenderer, TextState
+from vood.components import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.state_functions import ellipse_layout
+from vood.magic import layouts
 from vood.utils.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
@@ -12,13 +12,13 @@ configure_logging(level="INFO")
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=192, background="#000017")
+    scene = VScene(width=256, height=256, background="#000017")
 
     # Create text states for each number with consistent styling
     states = [
         TextState(
             text=str(num),
-            font_family="Courier",
+            font_family="Courier New",
             font_size=20,
             color="#FDBE02",
         )
@@ -26,7 +26,7 @@ def main():
     ]
 
     # Arrange the numbers in an elliptical layout
-    states_layout = ellipse_layout(
+    states_layout = layouts.ellipse(
         states,
         radius_x=96,
         radius_y=64,
@@ -56,7 +56,9 @@ def main():
     )
 
     # Export to PNG file
-    exporter.to_png(filename="01_ellipse_layout.png", width_px=512)
+    exporter.export(
+        filename="01_ellipse_layout", formats=["svg", "png"], png_width_px=1024
+    )
 
 
 if __name__ == "__main__":

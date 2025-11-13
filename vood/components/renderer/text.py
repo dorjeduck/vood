@@ -1,0 +1,33 @@
+"""Text renderer implementation for new architecture"""
+
+from __future__ import annotations
+from dataclasses import dataclass
+from typing import Tuple, Union
+
+import drawsvg as dw
+
+from .base import Renderer
+from vood.utils import to_rgb_string
+
+
+from vood.components.states import TextState
+
+
+class TextRenderer(Renderer):
+    """Renderer class for rendering text elements"""
+
+    def _render_core(self, state: TextState) -> dw.Text:
+        fill_color = to_rgb_string(state.color)
+        text_kwargs = {
+            "text": state.text,
+            "x": 0,
+            "y": 0,
+            "font_family": state.font_family,
+            "font_size": state.font_size,
+            "font_weight": state.font_weight,
+            "fill": fill_color,
+            "text_anchor": state.text_anchor,
+            "letter_spacing": state.letter_spacing,
+            "dominant_baseline": state.dominant_baseline,
+        }
+        return dw.Text(**text_kwargs)

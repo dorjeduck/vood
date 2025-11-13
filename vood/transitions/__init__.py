@@ -1,4 +1,4 @@
-from .easing import Easing
-from .interpolation import Interpolation
+from . import easing
+from . import interpolation
 
-__all__ = ["Easing", "Interpolation"]
+__all__ = ["easing", "interpolation"]

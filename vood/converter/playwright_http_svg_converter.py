@@ -65,13 +65,15 @@ class PlaywrightHttpSvgConverter(SVGConverter):
             if "pdf" in formats and pdf_inch_width and pdf_inch_height:
                 width_px = int(pdf_inch_width * 96)
                 height_px = int(pdf_inch_height * 96)
+                width_px, height_px = self._infer_dimensions(
+                    scene, width_px, height_px
+                )
                 svg_content = self._get_write_scaled_svg_content(
                     scene, frame_time, width_px, height_px
                 )
                 ok = self._render(
                     svg_content,
                     outputs["pdf"],
-                    frame_time,
                     "pdf",
                     width=width_px,
                     height=height_px,
