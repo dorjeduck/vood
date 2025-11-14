@@ -2,20 +2,18 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Tuple, Union
-
-
+from typing import Optional
 
 from .base import State
 from vood.transitions import easing
-from vood.utils.colors import hex_to_color
+from vood.core.color import Color, ColorInput
 
 
 @dataclass
 class TextState(State):
     """State class for text elements"""
 
-    color: Union[str, Tuple[int, int, int]] = (0, 0, 0)
+    color: Optional[ColorInput] = (255, 0, 0)
     font_size: float = 16
 
     letter_spacing: float = 0  # Additional spacing between letters
@@ -43,5 +41,5 @@ class TextState(State):
     }
 
     def __post_init__(self):
-        if isinstance(self.color, str):
-            self.color = hex_to_color(self.color)
+        if self.color is not None:
+            self.color = Color.from_any(self.color)

@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from typing import Union, List, Optional
 
 from .text import TextState
-from vood import paths
 from vood.paths import SVGPath
 from vood.transitions import easing
 

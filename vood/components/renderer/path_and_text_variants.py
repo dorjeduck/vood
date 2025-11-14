@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 from abc import ABC
-from dataclasses import dataclass
 from typing import Dict, Any
 
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 from vood.components.states import PathAndTextVariantsState
 
@@ -58,9 +56,11 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
         Returns:
             drawsvg Group containing both path(s) and text
         """
-        fill_color = to_rgb_string(state.color)
-        text_color = to_rgb_string(
-            state.text_color if state.text_color else state.color
+        fill_color = state.color.to_rgb_string()
+        text_color = (
+            state.text_color.to_rgb_string()
+            if state.text_color
+            else state.color.to_rgb_string()
         )
 
         # Get the path variant data - can be single path or list of paths
@@ -91,7 +91,7 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
 
                 # Add stroke if specified
                 if state.stroke_color and state.stroke_width > 0:
-                    path_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+                    path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
                     path_kwargs["stroke_width"] = state.stroke_width
 
                 # Set opacity
@@ -112,7 +112,7 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
 
             # Add stroke if specified
             if state.stroke_color and state.stroke_width > 0:
-                path_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+                path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
                 path_kwargs["stroke_width"] = state.stroke_width
 
             # Set opacity

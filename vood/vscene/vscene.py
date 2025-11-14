@@ -4,7 +4,7 @@ from typing import List, Optional, Union, TYPE_CHECKING
 
 import drawsvg as dw
 
-from vood.utils import get_logger
+from vood.core import get_logger
 
 if TYPE_CHECKING:
     from vood.velements import VElement, VElementGroup

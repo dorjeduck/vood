@@ -3,7 +3,6 @@ from __future__ import annotations
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 from vood.components.states import CircleTextState
 
@@ -118,7 +117,7 @@ class CircleTextRenderer(Renderer):
             drawsvg Text element
         """
 
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
 
         # Map offset to path coordinates
         mapped_offset = 0.25 + (offset * 0.5)

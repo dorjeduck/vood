@@ -4,7 +4,7 @@ from vood.components import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
 from vood.magic import layouts
 from vood.transitions import easing
-from vood.utils.logger import configure_logging
+from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.velements.velement_group import VElementGroup, VElementGroupState
 from vood.vscene import VScene

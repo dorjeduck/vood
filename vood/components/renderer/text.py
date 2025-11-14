@@ -7,7 +7,6 @@ from typing import Tuple, Union
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 
 from vood.components.states import TextState
@@ -17,7 +16,7 @@ class TextRenderer(Renderer):
     """Renderer class for rendering text elements"""
 
     def _render_core(self, state: TextState) -> dw.Text:
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
         text_kwargs = {
             "text": state.text,
             "x": 0,

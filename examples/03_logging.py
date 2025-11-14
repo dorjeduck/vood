@@ -1,4 +1,4 @@
-from vood.utils.logger import configure_logging, get_logger
+from vood.core.logger import configure_logging, get_logger
 
 if __name__ == "__main__":
     # Test different configurations

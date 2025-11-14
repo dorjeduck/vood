@@ -3,7 +3,7 @@ from dataclasses import replace
 from vood.components.renderer.path import PathRenderer
 from vood.components.states.path import PathState
 from vood.converter.converter_type import ConverterType
-from vood.utils.logger import configure_logging
+from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter

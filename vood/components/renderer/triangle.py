@@ -1,14 +1,12 @@
 """Triangle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, Optional
+
 import math
 
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 
 from vood.components.states import TriangleState
@@ -29,7 +27,7 @@ class TriangleRenderer(Renderer):
         Returns:
             drawsvg Lines object for the triangle renderer
         """
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
 
         # Calculate equilateral triangle points with scaling
 
@@ -53,7 +51,7 @@ class TriangleRenderer(Renderer):
 
         # Add stroke if specified
         if state.stroke_color and state.stroke_width > 0:
-            lines_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+            lines_kwargs["stroke"] = state.stroke_color.to_rgb_string()
             lines_kwargs["stroke_width"] = state.stroke_width
 
         # Create Lines with flattened coordinates

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from pathlib import Path
 
-from vood.utils.logger import get_logger
+from vood.core.logger import get_logger
 from PIL import Image
 
 from typing import TYPE_CHECKING

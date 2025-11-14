@@ -1,7 +1,7 @@
 from vood.magic import animations
 from vood.components import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
-from vood.utils.logger import configure_logging
+from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter

@@ -1,15 +1,10 @@
 """Rectangle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
-from vood.transitions import easing
-from vood.utils.colors import hex_to_color
 
 from vood.components.states import RectangleState
 
@@ -26,7 +21,7 @@ class RectangleRenderer(Renderer):
         Returns:
             dw.Rectangle: The drawsvg rectangle object
         """
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
 
         # Create rectangle centered at origin with scaled dimensions
         rect_kwargs = {
@@ -44,7 +39,7 @@ class RectangleRenderer(Renderer):
 
         # Add stroke if specified
         if state.stroke_color and state.stroke_width > 0:
-            rect_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+            rect_kwargs["stroke"] = state.stroke_color.to_rgb_string()
             rect_kwargs["stroke_width"] = state.stroke_width
 
         return dw.Rectangle(**rect_kwargs)

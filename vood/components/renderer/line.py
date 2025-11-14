@@ -1,15 +1,12 @@
 """Line renderer implementation using new architecture"""
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, Optional
+
 
 import math
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
-
 
 from vood.components.states import LineState
 
@@ -43,7 +40,7 @@ class LineRenderer(Renderer):
             drawsvg Line object representing the line renderer
         """
 
-        stroke_color = to_rgb_string(state.color)
+        stroke_color = state.color.to_rgb_string()
 
         # Create line with basic properties
         line_kwargs = {

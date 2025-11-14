@@ -1,16 +1,14 @@
 """Interpolation functions for smooth transitions"""
 
 from .lerp import lerp
-from .color import color
+from .color_interpolation import color_interpolation
 from .angle import angle
 from .step import step
 from .morpher import FlubberMorpher, NativeMorpher
-#from .morpher.svg_path import svg_path
-#from .morpher.flubber_morpher import svg_shape, cleanup_shape_interpolator
 
 __all__ = [
     "lerp",
-    "color",
+    "color_interpolation",
     "angle",
     "step",
     "FlubberMorpher",

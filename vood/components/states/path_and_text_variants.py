@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Optional
 
 from .base import State
 from vood.transitions import easing
+
+from vood.core.color import Color, ColorInput
 
 
 @dataclass
@@ -14,8 +16,8 @@ class PathAndTextVariantsState(State):
     """Base state class for multi-path renderers with text labels"""
 
     size: float = 500
-    color: Tuple[int, int, int] = (255, 0, 0)
-    stroke_color: Optional[Tuple[int, int, int]] = None
+    color: Optional[ColorInput] = (255, 0, 0)
+    stroke_color: Optional[ColorInput] = None
     stroke_width: float = 0
 
     # Text properties
@@ -24,9 +26,7 @@ class PathAndTextVariantsState(State):
     font_family: str = "Comfortaa"
     text_align: str = "left"
     font_weight: str = "normal"
-    text_color: Optional[Tuple[int, int, int]] = (
-        None  # If None, uses same as renderer color
-    )
+    text_color: Optional[ColorInput] = None
 
     DEFAULT_EASING = {
         **State.DEFAULT_EASING,
@@ -41,3 +41,11 @@ class PathAndTextVariantsState(State):
         "font_weight": easing.linear,
         "text_color": easing.linear,
     }
+
+    def __post_init__(self):
+        if self.color is not None:
+            self.color = Color.from_any(self.color)
+        if self.stroke_color is not None:
+            self.stroke_color = Color.from_any(self.stroke_color)
+        if self.text_color is not None:
+            self.text_color = Color.from_any(self.text_color)

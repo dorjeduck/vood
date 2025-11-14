@@ -1,8 +1,4 @@
-from .colors import (
-    to_rgb_string,
-    color_to_hex,
-)
-
+from .color import Color, ColorTuple, ColorInput
 from .logger import (
     configure_logging,
     get_logger,
@@ -10,8 +6,9 @@ from .logger import (
 
 
 __all__ = [
+    "Color",
+    "ColorTuple",
+    "ColorInput",
     "configure_logging",
     "get_logger",
-    "color_to_hex",
-    "to_rgb_string",
 ]

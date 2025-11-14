@@ -4,7 +4,6 @@ import math
 
 import drawsvg as dw
 from .base import Renderer
-from vood.utils import to_rgb_string
 from vood.components.states import RadialSegmentsState
 
 
@@ -22,7 +21,7 @@ class RadialSegmentsRenderer(Renderer):
         ]
 
         group = dw.Group()
-        stroke = to_rgb_string(state.stroke_color) if state.stroke_color else "black"
+        stroke = state.stroke_color.to_rgb_string() if state.stroke_color else "black"
 
         for idx, angle in enumerate(angles):
             # Make 0 degrees point north and 90 east

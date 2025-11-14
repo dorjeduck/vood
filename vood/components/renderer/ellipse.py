@@ -1,13 +1,10 @@
 """Ellipse renderer implementation using new architecture"""
 
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Tuple, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 from vood.components.states import EllipseState
 
@@ -28,7 +25,7 @@ class EllipseRenderer(Renderer):
         Returns:
             drawsvg Ellipse object
         """
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
 
         # Create ellipse centered at origin with scaled radii
         ellipse_kwargs = {
@@ -41,7 +38,7 @@ class EllipseRenderer(Renderer):
 
         # Add stroke if specified
         if state.stroke_color and state.stroke_width > 0:
-            ellipse_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+            ellipse_kwargs["stroke"] = state.stroke_color.to_rgb_string()
             ellipse_kwargs["stroke_width"] = state.stroke_width
 
         return dw.Ellipse(**ellipse_kwargs)

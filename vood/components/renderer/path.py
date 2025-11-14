@@ -8,7 +8,6 @@ import drawsvg as dw
 from vood.paths.svg_path import SVGPath
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 from vood.components.states import PathState
 
@@ -29,10 +28,10 @@ class PathRenderer(Renderer):
                 if isinstance(state.data, SVGPath)
                 else state.data
             ),
-            "fill": to_rgb_string(state.fill_color),
+            "fill": state.fill_color.to_rgb_string(),
             "fill-rule": state.fill_rule,
             "fill-opacity": state.fill_opacity,
-            "stroke": to_rgb_string(state.stroke_color),
+            "stroke": state.stroke_color.to_rgb_string(),
             "stroke-width": state.stroke_width,
             "stroke-opacity": state.stroke_opacity,
             "stroke-dasharray": state.stroke_dasharray,

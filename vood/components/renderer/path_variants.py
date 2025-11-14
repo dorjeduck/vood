@@ -7,7 +7,6 @@ from abc import ABC
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
 
 from vood.components.states import PathVariantState
 
@@ -48,7 +47,7 @@ class PathVariantsRenderer(Renderer, ABC):
 
     def _render_core(self, state: PathVariantState) -> dw.Group:
         """Render the renderer geometry centered at (0,0), no scaling or transforms"""
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
         data = self.data["path"]
 
         center_x, center_y = self.data["center"]
@@ -66,7 +65,7 @@ class PathVariantsRenderer(Renderer, ABC):
                 "fill": fill_color,
             }
             if state.stroke_color and state.stroke_width > 0:
-                path_kwargs["stroke"] = to_rgb_string(state.stroke_color)
+                path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
                 path_kwargs["stroke_width"] = state.stroke_width
 
             group.append(dw.Path(**path_kwargs))

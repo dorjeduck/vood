@@ -12,8 +12,6 @@ import io
 
 from .base import Renderer
 
-from vood.utils import to_rgb_string
-
 from vood.components.states import ImageState, ImageFitMode
 
 
@@ -289,7 +287,7 @@ class ImageRenderer(Renderer):
 
         # Apply stroke if specified
         if state.stroke_color and state.stroke_width > 0:
-            stroke_color = to_rgb_string(state.stroke_color)
+            stroke_color = state.stroke_color.to_rgb_string()
             image_kwargs["stroke"] = stroke_color
             image_kwargs["stroke_width"] = state.stroke_width
 

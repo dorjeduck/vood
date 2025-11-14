@@ -9,8 +9,6 @@ import drawsvg as dw
 
 from .base import Renderer
 
-from vood.utils import to_rgb_string
-
 from vood.components.states import PathTextState
 
 
@@ -117,7 +115,7 @@ class PathTextRenderer(Renderer):
         Returns:
             drawsvg Text element
         """
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
 
         text_kwargs = {
             "text": text_content,

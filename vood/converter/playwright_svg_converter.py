@@ -4,7 +4,7 @@ from typing import Optional
 from vood.converter.svg_converter import SVGConverter
 from playwright.sync_api import sync_playwright
 
-from vood.utils.logger import get_logger
+from vood.core.logger import get_logger
 
 from typing import TYPE_CHECKING
 

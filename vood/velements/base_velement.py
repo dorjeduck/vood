@@ -10,7 +10,6 @@ import drawsvg as dw
 from vood.components import State
 from vood.components.states.path import MorphMethod
 from vood.paths import SVGPath
-from vood.utils.colors import hex_to_color
 from vood.transitions import interpolation
 from vood.transitions.interpolation import NativeMorpher, FlubberMorpher
 
@@ -88,14 +87,11 @@ class BaseVElement(ABC):
         elif keyframes is not None:
             self.set_keyframes(keyframes)
 
-            # Normalize global_transitions colors
+        # Normalize global_transitions colors
         if global_transitions:
             self.global_transitions = {}
             for key, (start, end) in global_transitions.items():
-                if isinstance(start, str) and start.startswith("#"):
-                    start = hex_to_color(start)
-                if isinstance(end, str) and end.startswith("#"):
-                    end = hex_to_color(end)
+
                 self.global_transitions[key] = (start, end)
         else:
             self.global_transitions = {}
@@ -279,13 +275,11 @@ class BaseVElement(ABC):
             # Determine interpolation method based on value type
             if isinstance(start_value, SVGPath):
                 # SVG Path interpolation
-                updates[field_name] = NativeMorpher(
-                    start_value, end_value
-                )(eased_t)
+                updates[field_name] = NativeMorpher(start_value, end_value)(eased_t)
 
             elif isinstance(start_value, tuple) and len(start_value) == 3:
                 # Color interpolation
-                updates[field_name] = interpolation.color(
+                updates[field_name] = interpolation.color_interpolation(
                     start_value, end_value, eased_t
                 )
             elif hasattr(base_state, "is_angle"):
@@ -376,35 +370,27 @@ class BaseVElement(ABC):
 
                 # Choose interpolation method
                 if morph_method == MorphMethod.SHAPE or morph_method == "shape":
-                    interpolated_values[field_name] = (
-                        FlubberMorpher.for_paths(start_value, end_value)(
-                            eased_t
-                        )
-                    )
+                    interpolated_values[field_name] = FlubberMorpher.for_paths(
+                        start_value, end_value
+                    )(eased_t)
                 elif morph_method == MorphMethod.STROKE or morph_method == "stroke":
-                    interpolated_values[field_name] = (
-                        NativeMorpher.for_paths(start_value, end_value)(
-                            eased_t
-                        )
-                    )
+                    interpolated_values[field_name] = NativeMorpher.for_paths(
+                        start_value, end_value
+                    )(eased_t)
                 else:  # None or AUTO
                     # Auto-detect based on path
                     if self._path_is_closed(start_value):
-                        interpolated_values[field_name] = (
-                            FlubberMorpher.for_paths(
-                                start_value, end_value
-                            )(eased_t)
-                        )
+                        interpolated_values[field_name] = FlubberMorpher.for_paths(
+                            start_value, end_value
+                        )(eased_t)
                     else:
-                        interpolated_values[field_name] = (
-                            NativeMorpher.for_paths(
-                                start_value, end_value
-                            )(eased_t)
-                        )
+                        interpolated_values[field_name] = NativeMorpher.for_paths(
+                            start_value, end_value
+                        )(eased_t)
 
             elif isinstance(start_value, tuple) and len(start_value) == 3:
                 # Color interpolation
-                interpolated_values[field_name] = interpolation.color(
+                interpolated_values[field_name] = interpolation.color_interpolation(
                     start_value, end_value, eased_t
                 )
             elif start_state.is_angle(field):

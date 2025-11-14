@@ -4,8 +4,6 @@ from __future__ import annotations
 import drawsvg as dw
 
 from .base import Renderer
-from vood.utils import to_rgb_string
-
 
 from vood.components.states import MoonPhaseState
 
@@ -24,9 +22,9 @@ class MoonPhaseRenderer(Renderer):
         Returns:
             drawsvg Group containing the moon phase geometry
         """
-        fill_color = to_rgb_string(state.color)
+        fill_color = state.color.to_rgb_string()
         stroke_color = (
-            to_rgb_string(state.stroke_color) if state.stroke_color else fill_color
+            state.stroke_color.to_rgb_string() if state.stroke_color else fill_color
         )
 
         # Center geometry at (0, 0); base class handles positioning

@@ -7,7 +7,7 @@ from typing import Tuple, Optional
 from .base import State
 
 from vood.transitions import easing
-from vood.utils.colors import hex_to_color
+from vood.core.color import Color, ColorInput
 
 
 @dataclass
@@ -15,8 +15,8 @@ class TriangleState(State):
     """State class for triangle elements"""
 
     size: float = 50  # Size of the triangle (distance from center to vertex)
-    color: Tuple[int, int, int] = (255, 255, 0)
-    stroke_color: Optional[Tuple[int, int, int]] = None
+    color: Optional[ColorInput] = (255, 0, 0)
+    stroke_color: Optional[ColorInput] = None
     stroke_width: float = 0
 
     DEFAULT_EASING = {
@@ -28,7 +28,7 @@ class TriangleState(State):
     }
 
     def __post_init__(self):
-        if isinstance(self.color, str):
-            self.color = hex_to_color(self.color)
-        if isinstance(self.stroke_color, str):
-            self.stroke_color = hex_to_color(self.stroke_color)
+        if self.color is not None:
+            self.color = Color.from_any(self.color)
+        if self.stroke_color is not None:
+            self.stroke_color = Color.from_any(self.stroke_color)

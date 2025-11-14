@@ -14,7 +14,7 @@ from vood.converter.cairo_svg_converter import CairoSvgConverter
 from vood.converter.inkscape_svg_converter import InkscapeSvgConverter
 from vood.converter.playwright_svg_converter import PlaywrightSvgConverter
 from vood.converter.converter_type import ConverterType
-from vood.utils.logger import get_logger
+from vood.core.logger import get_logger
 #from vood.transitions.interpolation import cleanup_shape_interpolator
 
 logger = get_logger()
