@@ -12,6 +12,7 @@ from vood.components.states.path import MorphMethod
 from vood.paths import SVGPath
 from vood.transitions import interpolation
 from vood.transitions.interpolation import NativeMorpher, FlubberMorpher
+from vood.core.color import Color
 
 
 class BaseVElement(ABC):
@@ -277,11 +278,10 @@ class BaseVElement(ABC):
                 # SVG Path interpolation
                 updates[field_name] = NativeMorpher(start_value, end_value)(eased_t)
 
-            elif isinstance(start_value, tuple) and len(start_value) == 3:
+            elif isinstance(start_value, Color):
                 # Color interpolation
-                updates[field_name] = interpolation.color_interpolation(
-                    start_value, end_value, eased_t
-                )
+                updates[field_name] = start_value.interpolate(end_value, eased_t)
+
             elif hasattr(base_state, "is_angle"):
                 # Check if this field is an angle
                 field_obj = next(
@@ -388,11 +388,12 @@ class BaseVElement(ABC):
                             start_value, end_value
                         )(eased_t)
 
-            elif isinstance(start_value, tuple) and len(start_value) == 3:
+            elif isinstance(start_value, Color):
                 # Color interpolation
-                interpolated_values[field_name] = interpolation.color_interpolation(
-                    start_value, end_value, eased_t
+                interpolated_values[field_name] = start_value.interpolate(
+                    end_value, eased_t
                 )
+
             elif start_state.is_angle(field):
                 # Angle interpolation
                 interpolated_values[field_name] = interpolation.angle(
