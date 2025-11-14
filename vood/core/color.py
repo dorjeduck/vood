@@ -5,7 +5,7 @@
 
 import colorsys
 import math
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 from dataclasses import dataclass
 from enum import Enum
 
