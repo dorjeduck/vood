@@ -54,13 +54,11 @@ class BaseVElement(ABC):
         count = len(provided_inputs)
 
         if count == 0:
-            # Enforce that a state must be provided.
             raise ValueError(
                 "VElement requires configuration: provide 'state', 'states', or 'keyframes'."
             )
 
         if count > 1:
-            # CRITICAL CHECK: Block conflicting definitions
             raise ValueError(
                 f"Conflicting inputs provided ({count} specified). "
                 "Please specify only one of 'state', 'states', or 'keyframes'."
@@ -71,7 +69,6 @@ class BaseVElement(ABC):
         self.global_transitions = global_transitions or {}
         self.keyframes: List[Tuple[float, State]] = []
         self._current_global_t: float = 0.0  # Track global animation time
-        self._current_segment_index: int = 0  # Track which segment we're in
 
         if state is not None:
             if isinstance(state, Iterable):
@@ -87,15 +84,6 @@ class BaseVElement(ABC):
                 raise ValueError("states must be a list of State instances")
         elif keyframes is not None:
             self.set_keyframes(keyframes)
-
-        # Normalize global_transitions colors
-        if global_transitions:
-            self.global_transitions = {}
-            for key, (start, end) in global_transitions.items():
-
-                self.global_transitions[key] = (start, end)
-        else:
-            self.global_transitions = {}
 
     def set_state(self, state: State) -> None:
         """Set a single static state
@@ -154,7 +142,6 @@ class BaseVElement(ABC):
         """
         if not self.keyframes:
             raise ValueError("No state, states, or keyframes set for rendering.")
-        # Subclass should implement rendering logic
         pass
 
     @abstractmethod
@@ -170,7 +157,6 @@ class BaseVElement(ABC):
         """
         if not self.keyframes:
             raise ValueError("No state, states, or keyframes set for rendering.")
-        # Subclass should implement rendering logic
         pass
 
     def is_animatable(self) -> bool:
@@ -207,12 +193,7 @@ class BaseVElement(ABC):
         # Handle exact match with first keyframe or single keyframe
         if t == first_time or len(self.keyframes) == 1:
             base_state = self.keyframes[0][1]
-            # Apply global transitions even for static/single keyframe
-            if self.global_transitions:
-                return self._apply_global_transitions(
-                    base_state, self._current_global_t
-                )
-            return base_state
+            return self._apply_global_transitions(base_state, self._current_global_t)
 
         # Find the two keyframes to interpolate between
         for i in range(len(self.keyframes) - 1):
@@ -221,30 +202,23 @@ class BaseVElement(ABC):
 
             if t1 <= t <= t2:
                 # Found the right segment
-                self._current_segment_index = i  # Store segment index
-
                 if t1 == t2:  # Instant transition at same time
-                    # Return state2 (the "after" state) for instant transitions
-                    if self.global_transitions:
-                        return self._apply_global_transitions(
-                            state2, self._current_global_t
-                        )
-                    return state2
+                    return self._apply_global_transitions(
+                        state2, self._current_global_t
+                    )
 
                 # Calculate segment progress
                 segment_t = (t - t1) / (t2 - t1)
 
                 # Create interpolated state
                 interpolated_state = self._create_eased_state(
-                    state1, state2, segment_t, i
+                    state1, state2, segment_t, segment_index=i
                 )
                 return interpolated_state
 
         # If we get here, t equals the last keyframe time exactly
         final_state = self.keyframes[-1][1]
-        if self.global_transitions:
-            return self._apply_global_transitions(final_state, self._current_global_t)
-        return final_state
+        return self._apply_global_transitions(final_state, self._current_global_t)
 
     def _apply_global_transitions(self, base_state: State, global_t: float) -> State:
         """Apply global transitions to a state
@@ -259,51 +233,18 @@ class BaseVElement(ABC):
         if not self.global_transitions:
             return base_state
 
-        # Get the default easing functions from the state class
-        default_easing = getattr(base_state, "DEFAULT_EASING", {})
-
         updates = {}
-
         for field_name, (start_value, end_value) in self.global_transitions.items():
-            # Get the easing function for this property
-            easing_func = self.easing_overrides.get(
-                field_name, default_easing.get(field_name)
+            # Get easing function
+            easing_func = self._get_easing_for_field(
+                base_state, field_name, segment_index=None
             )
-
-            # Apply easing to global time
             eased_t = easing_func(global_t) if easing_func else global_t
 
-            # Determine interpolation method based on value type
-            if isinstance(start_value, SVGPath):
-                # SVG Path interpolation
-                updates[field_name] = NativeMorpher(start_value, end_value)(eased_t)
-
-            elif isinstance(start_value, Color):
-                # Color interpolation
-                updates[field_name] = start_value.interpolate(end_value, eased_t)
-
-            elif hasattr(base_state, "is_angle"):
-                # Check if this field is an angle
-                field_obj = next(
-                    (f for f in fields(base_state) if f.name == field_name), None
-                )
-                if field_obj and base_state.is_angle(field_obj):
-                    updates[field_name] = interpolation.angle(
-                        start_value, end_value, eased_t
-                    )
-                else:
-                    updates[field_name] = interpolation.lerp(
-                        start_value, end_value, eased_t
-                    )
-            elif isinstance(start_value, (int, float)):
-                # Numeric interpolation
-                updates[field_name] = interpolation.lerp(
-                    start_value, end_value, eased_t
-                )
-            else:
-
-                # For non-numeric values, switch at t=0.5
-                updates[field_name] = start_value if eased_t < 0.5 else end_value
+            # Interpolate value
+            updates[field_name] = self._interpolate_value(
+                base_state, field_name, start_value, end_value, eased_t
+            )
 
         return replace(base_state, **updates)
 
@@ -321,13 +262,6 @@ class BaseVElement(ABC):
         Returns:
             New state with interpolated values using appropriate easing per property
         """
-        # Get the default easing functions from the state class
-        default_easing = getattr(start_state, "DEFAULT_EASING", {})
-
-        # Get segment-specific easing overrides if available
-        segment_overrides = self.segment_easing.get(segment_index, {})
-
-        # Start with the start state values
         interpolated_values = {}
 
         # Interpolate each field
@@ -346,70 +280,16 @@ class BaseVElement(ABC):
                 interpolated_values[field_name] = start_value
                 continue
 
-            # Get the easing function for this property with priority:
-            # 1. Segment-specific override
-            # 2. Global property override
-            # 3. Default easing from state
-            easing_func = (
-                segment_overrides.get(field_name)
-                or self.easing_overrides.get(field_name)
-                or default_easing.get(field_name)
+            # Get easing function for this property
+            easing_func = self._get_easing_for_field(
+                start_state, field_name, segment_index
             )
+            eased_t = easing_func(t) if easing_func else t
 
-            # Apply easing to time parameter
-            if easing_func:
-                eased_t = easing_func(t)
-            else:
-                eased_t = t  # Default to linear if no easing function specified
-
-            # Interpolate the value using the eased time
-
-            if isinstance(start_value, SVGPath):
-
-                morph_method = getattr(start_state, "morph_method", None)
-
-                # Choose interpolation method
-                if morph_method == MorphMethod.SHAPE or morph_method == "shape":
-                    interpolated_values[field_name] = FlubberMorpher.for_paths(
-                        start_value, end_value
-                    )(eased_t)
-                elif morph_method == MorphMethod.STROKE or morph_method == "stroke":
-                    interpolated_values[field_name] = NativeMorpher.for_paths(
-                        start_value, end_value
-                    )(eased_t)
-                else:  # None or AUTO
-                    # Auto-detect based on path
-                    if self._path_is_closed(start_value):
-                        interpolated_values[field_name] = FlubberMorpher.for_paths(
-                            start_value, end_value
-                        )(eased_t)
-                    else:
-                        interpolated_values[field_name] = NativeMorpher.for_paths(
-                            start_value, end_value
-                        )(eased_t)
-
-            elif isinstance(start_value, Color):
-                # Color interpolation
-                interpolated_values[field_name] = start_value.interpolate(
-                    end_value, eased_t
-                )
-
-            elif start_state.is_angle(field):
-                # Angle interpolation
-                interpolated_values[field_name] = interpolation.angle(
-                    start_value, end_value, eased_t
-                )
-            elif isinstance(start_value, (int, float)):
-                # Numeric interpolation
-                interpolated_values[field_name] = interpolation.lerp(
-                    start_value, end_value, eased_t
-                )
-            else:
-
-                # For non-numeric values, just switch at t=0.5 (stepped animation)
-                interpolated_values[field_name] = interpolation.step(
-                    start_value, end_value, eased_t
-                )
+            # Interpolate the value
+            interpolated_values[field_name] = self._interpolate_value(
+                start_state, field_name, start_value, end_value, eased_t
+            )
 
         # Create new state with interpolated values
         interpolated_state = replace(start_state, **interpolated_values)
@@ -422,14 +302,138 @@ class BaseVElement(ABC):
 
         return interpolated_state
 
+    def _get_easing_for_field(
+        self, state: State, field_name: str, segment_index: Optional[int]
+    ) -> Optional[Callable[[float], float]]:
+        """Get the easing function for a field with proper priority
+
+        Priority:
+        1. Segment-specific override (if segment_index provided)
+        2. Global property override
+        3. Default easing from state
+
+        Args:
+            state: The state to get default easing from
+            field_name: Name of the field
+            segment_index: Optional segment index for segment-specific easing
+
+        Returns:
+            Easing function or None
+        """
+        # Get default easing from state
+        default_easing = getattr(state, "DEFAULT_EASING", {})
+
+        # Priority 1: Segment-specific override
+        if segment_index is not None:
+            segment_overrides = self.segment_easing.get(segment_index, {})
+            if field_name in segment_overrides:
+                return segment_overrides[field_name]
+
+        # Priority 2: Global property override
+        if field_name in self.easing_overrides:
+            return self.easing_overrides[field_name]
+
+        # Priority 3: Default easing from state
+        return default_easing.get(field_name)
+
+    def _interpolate_value(
+        self,
+        state: State,
+        field_name: str,
+        start_value: Any,
+        end_value: Any,
+        eased_t: float,
+    ) -> Any:
+        """Interpolate a single value based on its type
+
+        Args:
+            state: The state (for accessing metadata like is_angle)
+            field_name: Name of the field being interpolated
+            start_value: Starting value
+            end_value: Ending value
+            eased_t: Eased time value (0.0 to 1.0)
+
+        Returns:
+            Interpolated value
+        """
+        # SVG Path interpolation
+        if isinstance(start_value, SVGPath):
+            return self._interpolate_path(state, start_value, end_value, eased_t)
+
+        # Color interpolation
+        if isinstance(start_value, Color):
+            return start_value.interpolate(end_value, eased_t)
+
+        # Angle interpolation
+        if self._is_angle_field(state, field_name):
+            return interpolation.angle(start_value, end_value, eased_t)
+
+        # Numeric interpolation
+        if isinstance(start_value, (int, float)):
+            return interpolation.lerp(start_value, end_value, eased_t)
+
+        # Non-numeric values: step at t=0.5
+        return interpolation.step(start_value, end_value, eased_t)
+
+    def _interpolate_path(
+        self, state: State, start_path: SVGPath, end_path: SVGPath, eased_t: float
+    ) -> SVGPath:
+        """Interpolate between two SVG paths
+
+        Args:
+            state: The state (for accessing morph_method)
+            start_path: Starting path
+            end_path: Ending path
+            eased_t: Eased time value (0.0 to 1.0)
+
+        Returns:
+            Interpolated path
+        """
+        morph_method = getattr(state, "morph_method", None)
+
+        # Choose interpolation method
+        if morph_method == MorphMethod.SHAPE or morph_method == "shape":
+            return FlubberMorpher.for_paths(start_path, end_path)(eased_t)
+
+        if morph_method == MorphMethod.STROKE or morph_method == "stroke":
+            return NativeMorpher.for_paths(start_path, end_path)(eased_t)
+
+        # None or AUTO: auto-detect based on path
+        if self._path_is_closed(start_path):
+            return FlubberMorpher.for_paths(start_path, end_path)(eased_t)
+        else:
+            return NativeMorpher.for_paths(start_path, end_path)(eased_t)
+
+    def _is_angle_field(self, state: State, field_name: str) -> bool:
+        """Check if a field represents an angle
+
+        Args:
+            state: The state to check
+            field_name: Name of the field
+
+        Returns:
+            True if field is an angle
+        """
+        if not hasattr(state, "is_angle"):
+            return False
+
+        field_obj = next((f for f in fields(state) if f.name == field_name), None)
+        if field_obj:
+            return state.is_angle(field_obj)
+        return False
+
     def _path_is_closed(self, path: SVGPath, tolerance: float = 0.01) -> bool:
-        """Check if path is closed (ends with Z or returns to start point)"""
+        """Check if path is closed (ends with Z or returns to start point)
 
-        # Check if path string ends with Z (covers ClosePath command)
-        # print with type path is
+        Args:
+            path: The SVG path to check
+            tolerance: Distance tolerance for considering endpoints equal
 
+        Returns:
+            True if path is closed
+        """
+        # Check if path string ends with Z
         path_str = path.to_string().strip().upper()
-
         if path_str.endswith("Z"):
             return True
 
@@ -437,7 +441,6 @@ class BaseVElement(ABC):
         if len(path.commands) < 2:
             return False
 
-        # Get start and end points
         start_cmd = path.commands[0]
         end_cmd = path.commands[-1]
 
