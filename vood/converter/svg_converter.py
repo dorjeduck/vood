@@ -251,7 +251,7 @@ class SVGConverter(ABC):
         )
 
         return scene.to_svg(
-            scale=scale,
+            render_scale=scale,
             frame_time=frame_time,
             width=width,
             height=height,

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import List, Optional, Union, TYPE_CHECKING, Literal
 
 import drawsvg as dw
 
-from vood.core import get_logger
+from vood.core import get_logger, Color, ColorInput
 
 if TYPE_CHECKING:
     from vood.velements import VElement, VElementGroup
@@ -12,117 +12,179 @@ if TYPE_CHECKING:
 # Type alias for any renderable element
 RenderableElement = Union["VElement", "VElementGroup"]
 
-# Note: Legacy classes removed - only Element is supported now
-
 logger = get_logger()
-# ============================================================================
-# SCENE GENERATOR
-# ============================================================================
 
 
 class VScene:
-    """Manages multiple animated elements and generates frames for animation"""
+    """Manages multiple animated elements and generates frames for animation
+
+    A scene coordinates the rendering of multiple elements at specific time points,
+    with support for global transforms and styling.
+    """
 
     def __init__(
         self,
         width: float = 800,
         height: float = 800,
-        background: str = "white",
+        background: ColorInput = "white",
         background_opacity: float = 1.0,
+        origin: Literal["center", "top-left"] = "center",
         offset_x: float = 0.0,
         offset_y: float = 0.0,
         scale: float = 1.0,
         rotation: float = 0.0,
     ) -> None:
-        """Initialize a new scene with given dimensions and background
+        """Initialize a new scene with given dimensions and styling
 
         Args:
             width: Width of the scene in pixels
             height: Height of the scene in pixels
-            background: Background color as CSS color string
+            background: Background color (Color, tuple, hex, or name). Use "none" for transparent.
             background_opacity: Opacity of the background (0.0 to 1.0)
+            origin: Coordinate origin ("center" or "top-left")
+            offset_x: Global X offset for entire scene
+            offset_y: Global Y offset for entire scene
+            scale: Global scale factor for entire scene
+            rotation: Global rotation in degrees for entire scene
         """
+        # Validation
+        if width <= 0 or height <= 0:
+            raise ValueError(f"Width and height must be positive, got {width}x{height}")
+        if not 0.0 <= background_opacity <= 1.0:
+            raise ValueError(
+                f"background_opacity must be 0.0-1.0, got {background_opacity}"
+            )
+
         self.width = width
         self.height = height
-        self.background = background
+        self.origin = origin
+
+        # Parse background color
+        if isinstance(background, str) and background.lower() == "none":
+            self.background = None
+        else:
+            self.background = Color.from_any(background)
+
         self.background_opacity = background_opacity
 
-        self.elements: List[RenderableElement] = []
+        # Global transforms
         self.offset_x = offset_x
         self.offset_y = offset_y
         self.scale = scale
         self.rotation = rotation
 
+        # Elements list
+        self.elements: List[RenderableElement] = []
+
+    # ========================================================================
+    # Element Management
+    # ========================================================================
+
     def add_element(self, element: RenderableElement) -> None:
-        """Add an element or container to the scene
+        """Add an element or group to the scene
 
         Args:
-            element: The element or container to add to the scene
+            element: The element or group to add to the scene
         """
         self.elements.append(element)
 
     def add_elements(self, elements: List[RenderableElement]) -> None:
-        """Add elements or ElementTransformGroups to the scene
+        """Add multiple elements or groups to the scene
 
         Args:
-            elements: The element or ElementTransformGroups to add to the scene
+            elements: List of elements or groups to add to the scene
         """
-        for element in elements:
-            self.elements.append(element)
+        self.elements.extend(elements)
+
+    def remove_element(self, element: RenderableElement) -> bool:
+        """Remove specific element from scene
+
+        Args:
+            element: The element to remove
+
+        Returns:
+            True if element was found and removed, False otherwise
+        """
+        try:
+            self.elements.remove(element)
+            return True
+        except ValueError:
+            return False
+
+    def clear_elements(self) -> None:
+        """Remove all elements from scene"""
+        self.elements.clear()
+
+    def element_count(self) -> int:
+        """Get total number of elements in scene"""
+        return len(self.elements)
+
+    def animatable_element_count(self) -> int:
+        """Get number of elements that have animation"""
+        return sum(1 for e in self.elements if e.is_animatable())
+
+    # ========================================================================
+    # Rendering
+    # ========================================================================
 
     def to_drawing(
         self,
         frame_time: float = 0.0,
-        scale: float = 1.0,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        render_scale: float = 1.0,
+        width: Optional[float] = None,
+        height: Optional[float] = None,
     ) -> dw.Drawing:
-        """
-        Render the scene as a drawsvg Drawing object at specified time.
+        """Render the scene as a drawsvg Drawing object at specified time.
 
         Useful for video encoding or when you need the Drawing object
         directly without converting to SVG string.
 
         Args:
             frame_time: Time point to render (0.0 to 1.0)
-            scale: Scale factor for the scene
-            width: Optional width override
-            height: Optional height override
+            render_scale: Additional scale factor for rendering (multiplies scene scale)
+            width: Optional width override (in pixels)
+            height: Optional height override (in pixels)
 
         Returns:
             dw.Drawing object
-        """
-        ww = width if width is not None else scale * self.width
-        hh = height if height is not None else scale * self.height
 
-        drawing = dw.Drawing(ww, hh, origin="center")
+        Raises:
+            ValueError: If frame_time is outside [0.0, 1.0]
+        """
+        # Validation
+        if not 0.0 <= frame_time <= 1.0:
+            raise ValueError(
+                f"frame_time must be between 0.0 and 1.0, got {frame_time}"
+            )
+
+        # Calculate final dimensions
+        ww = width if width is not None else render_scale * self.width
+        hh = height if height is not None else render_scale * self.height
+
+        drawing = dw.Drawing(ww, hh, origin=self.origin)
 
         # Add background
-        if self.background_opacity > 0.0 and self.background not in (None, "none"):
+        if self.background is not None and self.background_opacity > 0.0:
+            # Calculate background position based on origin
+            if self.origin == "center":
+                bg_x, bg_y = -ww / 2, -hh / 2
+            else:  # top-left
+                bg_x, bg_y = 0, 0
+
             drawing.append(
                 dw.Rectangle(
-                    -ww / 2,
-                    -hh / 2,
+                    bg_x,
+                    bg_y,
                     ww,
                     hh,
-                    fill=self.background,
+                    fill=self.background.to_rgb_string(),
                     fill_opacity=self.background_opacity,
                 )
             )
 
         # Create global transform group
-        transform = ""
-        if self.scale * scale != 1.0:
-            transform += f"scale({self.scale*scale}) "
-        if self.rotation != 0.0:
-            transform += f"rotate({self.rotation}) "
-        if self.offset_x != 0.0 or self.offset_y != 0.0:
-            transform += f"translate({self.offset_x},{self.offset_y}) "
-
-        if transform:
-            group = dw.Group(transform=transform.strip())
-        else:
-            group = dw.Group()
+        transform = self._build_transform(render_scale)
+        group = dw.Group(transform=transform) if transform else dw.Group()
 
         # Add all elements at specified time
         for element in self.elements:
@@ -136,29 +198,33 @@ class VScene:
     def to_svg(
         self,
         frame_time: float = 0.0,
-        scale: float = 1.0,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
+        render_scale: float = 1.0,
+        width: Optional[float] = None,
+        height: Optional[float] = None,
         filename: Optional[str] = None,
         log: bool = True,
     ) -> str:
-        """
-        Render the scene to SVG string at specified time.
+        """Render the scene to SVG string at specified time.
 
         Args:
             frame_time: Time point to render (0.0 to 1.0)
-            scale: Scale factor for the scene
-            width: Optional width override
-            height: Optional height override
+            render_scale: Additional scale factor for rendering
+            width: Optional width override (in pixels)
+            height: Optional height override (in pixels)
             filename: Optional filename to save SVG to
             log: Whether to log the save operation
 
         Returns:
             SVG string
+
+        Raises:
+            ValueError: If frame_time is outside [0.0, 1.0]
         """
-        # Reuse to_drawing to avoid duplication
         drawing = self.to_drawing(
-            frame_time=frame_time, scale=scale, width=width, height=height
+            frame_time=frame_time,
+            render_scale=render_scale,
+            width=width,
+            height=height,
         )
 
         svg_string = drawing.as_svg()
@@ -169,3 +235,78 @@ class VScene:
                 logger.info(f"Scene saved to {filename} at t={frame_time}")
 
         return svg_string
+
+    # ========================================================================
+    # Helper Methods
+    # ========================================================================
+
+    def _build_transform(self, render_scale: float) -> str:
+        """Build SVG transform string from scene transforms
+
+        Args:
+            render_scale: Additional scale factor for rendering
+
+        Returns:
+            SVG transform string, or empty string if no transforms needed
+        """
+        transforms = []
+
+        # Combine scene scale with render scale
+        total_scale = self.scale * render_scale
+        if total_scale != 1.0:
+            transforms.append(f"scale({total_scale})")
+
+        # Add rotation if present
+        if self.rotation != 0.0:
+            transforms.append(f"rotate({self.rotation})")
+
+        # Add translation if present
+        if self.offset_x != 0.0 or self.offset_y != 0.0:
+            transforms.append(f"translate({self.offset_x},{self.offset_y})")
+
+        return " ".join(transforms)
+
+    def get_animation_time_range(self) -> tuple[float, float]:
+        """Get the time range covered by all elements
+
+        Returns the minimum start time and maximum end time across all
+        elements that have keyframes.
+
+        Returns:
+            Tuple of (min_time, max_time). Returns (0.0, 1.0) if no elements have keyframes.
+        """
+        if not self.elements:
+            return (0.0, 1.0)
+
+        times = []
+        for element in self.elements:
+            if hasattr(element, "keyframes") and element.keyframes:
+                times.append(element.keyframes[0][0])  # First keyframe time
+                times.append(element.keyframes[-1][0])  # Last keyframe time
+
+        if not times:
+            return (0.0, 1.0)
+
+        return (min(times), max(times))
+
+    # ========================================================================
+    # Convenience Properties
+    # ========================================================================
+
+    @property
+    def dimensions(self) -> tuple[float, float]:
+        """Get scene dimensions as (width, height)"""
+        return (self.width, self.height)
+
+    @property
+    def aspect_ratio(self) -> float:
+        """Get scene aspect ratio (width / height)"""
+        return self.width / self.height
+
+    def __repr__(self) -> str:
+        """Developer-friendly representation"""
+        return (
+            f"VScene(width={self.width}, height={self.height}, "
+            f"elements={len(self.elements)}, "
+            f"animatable={self.animatable_element_count()})"
+        )
