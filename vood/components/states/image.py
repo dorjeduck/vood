@@ -24,7 +24,7 @@ class ImageFitMode(Enum):
     )
 
 
-@dataclass
+@dataclass(frozen=True)
 class ImageState(State):
     """State class for image elements"""
 
@@ -45,4 +45,4 @@ class ImageState(State):
     }
 
     def __post_init__(self):
-        self.color = self._normalize_color(self.color)
+        self._normalize_color_field("stroke_color")

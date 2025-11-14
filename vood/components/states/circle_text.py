@@ -6,7 +6,7 @@ from .text import TextState
 from vood.transitions import easing
 
 
-@dataclass
+@dataclass(frozen=True)
 class CircleTextState(TextState):
     """State class for text elements"""
 

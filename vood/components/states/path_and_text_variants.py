@@ -11,7 +11,7 @@ from vood.transitions import easing
 from vood.core.color import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class PathAndTextVariantsState(State):
     """Base state class for multi-path renderers with text labels"""
 
@@ -43,6 +43,6 @@ class PathAndTextVariantsState(State):
     }
 
     def __post_init__(self):
-        self.color = self._normalize_color(self.color)
-        self.stroke_color = self._normalize_color(self.stroke_color)
-        self.text_color = self._normalize_color(self.text_color)
+        self._normalize_color_field("color")
+        self._normalize_color_field("stroke_color")
+        self._normalize_color_field("text_color")

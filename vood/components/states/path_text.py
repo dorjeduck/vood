@@ -12,7 +12,7 @@ from vood.paths import SVGPath
 from vood.transitions import easing
 
 
-@dataclass
+@dataclass(frozen=True)
 class PathTextState(TextState):
     """State class for text elements following an SVG path
 

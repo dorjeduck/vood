@@ -1,12 +1,13 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, Field
-from typing import Optional
+from abc import ABC
+from dataclasses import dataclass, fields, Field
+from typing import get_origin, get_args, Union, Any
+
 from vood.transitions import easing
 from vood.core import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class State(ABC):
     """Abstract base class for all state classes
 
@@ -34,19 +35,22 @@ class State(ABC):
     def is_angle(self, field: Field):
         return field.name == "rotation"
 
-    def _normalize_color(self, color: Optional[ColorInput]) -> Color:
-        """Normalize color input to Color object
-
-        Converts None to Color.NONE, and any ColorInput to Color.
+    def _normalize_color_field(self, field_name: str) -> None:
+        """Normalize and set a color field in frozen dataclass
 
         Args:
-            color: Color input (None, tuple, hex, name, or Color)
-
-        Returns:
-            Color object (never None)
+            field_name: Name of the field to set
         """
+        color = getattr(self, field_name)
         if color is None:
-            return Color.NONE
-        if isinstance(color, Color):
-            return color
-        return Color.from_any(color)
+            normalized = Color.NONE
+        elif isinstance(color, Color):
+            normalized = color
+        else:
+            normalized = Color.from_any(color)
+
+        object.__setattr__(self, field_name, normalized)
+
+    def _set_field(self, name: str, value: Any) -> None:
+        """Helper to set fields in frozen dataclass during __post_init__"""
+        object.__setattr__(self, name, value)

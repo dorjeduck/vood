@@ -4,7 +4,7 @@ from vood.transitions import easing
 from .circle import CircleState
 
 
-@dataclass
+@dataclass(frozen=True)
 class DoubleCircleState(CircleState):
     distance: float = 0  # Distance between the two circles
 

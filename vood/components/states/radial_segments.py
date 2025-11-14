@@ -7,7 +7,7 @@ from .base import State
 from vood.core.color import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class RadialSegmentsState(State):
     num_lines: int = 8
     segments: object = field(default_factory=list)
@@ -20,4 +20,5 @@ class RadialSegmentsState(State):
     segments_fn: Optional[callable] = None
 
     def __post_init__(self):
-        self.stroke_color = self._normalize_color(self.stroke_color)
+        self._normalize_color_field("stroke_color")
+    

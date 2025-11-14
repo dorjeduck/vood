@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .velement import VElement
 
 
-@dataclass
+@dataclass(frozen=True)
 class VElementGroupState(State):
     """State class for element transform groups with complete SVG transform capabilities
 
@@ -58,7 +58,7 @@ class VElementGroup(BaseVElement):
     - Complete SVG transform support (translate, rotate, scale, skew)
     - Per-segment and global easing control
     - Hierarchical animation (animates children at synchronized time)
-    - Child elements that don't exist at current time are automatically skipped   
+    - Child elements that don't exist at current time are automatically skipped
     """
 
     def __init__(
@@ -154,7 +154,7 @@ class VElementGroup(BaseVElement):
         Returns:
             drawsvg Group element representing the group at time t
             if group doesn't exist at this time (outside keyframe range)
-            """
+        """
         # Get group's state at time t (using inherited method)
         # This automatically handles keyframe interpolation, easing, and global_transitions
         group_state = self._get_state_at_time(t)

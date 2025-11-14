@@ -10,7 +10,7 @@ from vood.transitions import easing
 from vood.core.color import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class RectangleState(State):
     """State class for rectangle elements"""
 
@@ -34,5 +34,5 @@ class RectangleState(State):
     }
 
     def __post_init__(self):
-        self.color = self._normalize_color(self.color)
-        self.stroke_color = self._normalize_color(self.stroke_color)
+        self._normalize_color_field("color")
+        self._normalize_color_field("stroke_color")

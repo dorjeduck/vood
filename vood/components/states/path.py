@@ -40,7 +40,7 @@ class FillRule(Enum):
     EVENODD = "evenodd"
 
 
-@dataclass
+@dataclass(frozen=True)
 class PathState(State):
     """State for SVG path rendering and morphing"""
 
@@ -81,9 +81,11 @@ class PathState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
 
         if isinstance(self.data, str):
-            self.data = SVGPath.from_string(self.data)
+            self._set_field("data", SVGPath.from_string(self.data))
 
-        self.fill_color = self._normalize_color(self.fill_color)
-        self.stroke_color = self._normalize_color(self.stroke_color)
+    def __post_init__(self):
+        self._normalize_color_field("fill_color")
+        self._normalize_color_field("stroke_color")

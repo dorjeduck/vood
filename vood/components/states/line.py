@@ -11,7 +11,7 @@ from vood.transitions import easing
 from vood.core.color import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class LineState(State):
     """State class for line elements"""
 
@@ -30,5 +30,6 @@ class LineState(State):
         "stroke_linecap": easing.linear,  # Stepped animation for strings
     }
 
+ 
     def __post_init__(self):
-        self.stroke_color = self._normalize_color(self.stroke_color)
+        self._normalize_color_field("stroke_color")

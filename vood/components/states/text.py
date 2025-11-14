@@ -9,7 +9,7 @@ from vood.transitions import easing
 from vood.core.color import Color, ColorInput
 
 
-@dataclass
+@dataclass(frozen=True)
 class TextState(State):
     """State class for text elements"""
 
@@ -41,4 +41,4 @@ class TextState(State):
     }
 
     def __post_init__(self):
-        self.color = self._normalize_color(self.color)
+        self._normalize_color_field("color")
