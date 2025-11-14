@@ -1,20 +1,25 @@
 from dataclasses import replace
+
 from vood.components import TextRenderer, TextState
 from vood.converter.converter_type import ConverterType
 from vood.magic import layouts
-from vood.transitions import easing
 from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
+from vood.core import Color
+from vood.core.color import Color
 
 configure_logging(level="INFO")
+
+START_COLOR = Color("#FDBE02")
+END_COLOR = Color("#AA0000")
 
 
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for each number with consistent styling
     states = [
@@ -22,42 +27,36 @@ def main():
             text=str(num),
             font_family="Courier New",
             font_size=20,
-            color="#FDBE02",
+            color=Color("#FDBE02"),
         )
         for num in range(1, 10)
     ]
 
     # Arrange the numbers along a line for start and end positions
     start_states = layouts.line(states, center_x=-100, spacing=20, rotation=90)
+    middle_states = layouts.line(states, spacing=20, rotation=90)
     end_states = layouts.line(states, center_x=100, spacing=20, rotation=90)
 
     # lets animate also a change of color
-    end_states = [replace(state, color="#AA0000") for state in end_states]
+    middle_states = [replace(state, color="#d88023") for state in end_states]
+    end_states = [replace(state, color=Color("#AA0000")) for state in end_states]
 
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    easing_overrides = [
-        easing.linear,
-        easing.in_out,
-        easing.in_out_bounce,
-        easing.in_bounce,
-        easing.out_bounce,
-        easing.in_out_quad,
-        easing.out_quad,
-        easing.in_out_cubic,
-        easing.out_cubic,
-    ]
-
-    # overriding the default easing for the x property for each element
     elements = [
         VElement(
             renderer=renderer,
-            states=[start_state, end_state],
-            easing={"x": easing},
+            keystates=[(0, start_state), (0.1 * (i + 1), middle_state), (1, end_state)],
+            property_timelines={
+                "color": [
+                    (0, START_COLOR),
+                    (0.3, END_COLOR),
+                ],
+            },
         )
-        for start_state, end_state, easing in zip(
-            start_states, end_states, easing_overrides
+        for i, (start_state, middle_state, end_state) in enumerate(
+            zip(start_states, middle_states, end_states)
         )
     ]
 
@@ -73,7 +72,7 @@ def main():
 
     # Export to MP4 file
     exporter.to_mp4(
-        filename="10_easing_variety",
+        filename="09_global_transitions",
         total_frames=90,
         framerate=30,
         png_width_px=1024,

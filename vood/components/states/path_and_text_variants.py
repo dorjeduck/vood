@@ -8,7 +8,7 @@ from typing import Optional
 from .base import State
 from vood.transitions import easing
 
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -16,8 +16,8 @@ class PathAndTextVariantsState(State):
     """Base state class for multi-path renderers with text labels"""
 
     size: float = 500
-    color: Optional[ColorInput] = (255, 0, 0)
-    stroke_color: Optional[ColorInput] = None
+    color: Optional[Color] = (255, 0, 0)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 0
 
     # Text properties
@@ -26,7 +26,7 @@ class PathAndTextVariantsState(State):
     font_family: str = "Comfortaa"
     text_align: str = "left"
     font_weight: str = "normal"
-    text_color: Optional[ColorInput] = None
+    text_color: Optional[Color] = None
 
     DEFAULT_EASING = {
         **State.DEFAULT_EASING,
@@ -43,6 +43,6 @@ class PathAndTextVariantsState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
-        self._normalize_color_field("stroke_color")
-        self._normalize_color_field("text_color")
+        self._none_color("color")
+        self._none_color("stroke_color")
+        self._none_color("text_color")

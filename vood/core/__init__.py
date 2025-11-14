@@ -1,4 +1,4 @@
-from .color import Color, ColorInput, ColorTuple, ColorSpace
+from .color import Color, ColorTuple, ColorSpace
 from .logger import (
     configure_logging,
     get_logger,
@@ -8,7 +8,6 @@ from .logger import (
 __all__ = [
     "Color",
     "ColorTuple",
-    "ColorInput",
     "ColorSpace",
     "configure_logging",
     "get_logger",

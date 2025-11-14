@@ -25,7 +25,7 @@ def crossfade(
         state2: Ending state (will fade in)
         at_time: Center point of the crossfade (0.0 to 1.0)
         duration: Duration of the crossfade overlap (0.0 to 1.0)
-        extend_timeline: If True, adds keyframes at 0.0 and 1.0 to cover full timeline
+        extend_timeline: If True, adds keystates at 0.0 and 1.0 to cover full timeline
 
     Returns:
         Tuple of (element1_keyframes, element2_keyframes)
@@ -41,8 +41,8 @@ def crossfade(
         ...     duration=0.4
         ... )
         >>>
-        >>> elem1 = VElement(text_renderer, keyframes=kf1)
-        >>> elem2 = VElement(text_renderer, keyframes=kf2)
+        >>> elem1 = VElement(text_renderer, keystates=kf1)
+        >>> elem2 = VElement(text_renderer, keystates=kf2)
         >>> group = VElementGroup(elements=[elem1, elem2])
     """
     half = duration / 2

@@ -1,8 +1,8 @@
-"""Base element class with shared keyframe animation logic"""
+"""Base element class with shared keystate animation logic"""
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Optional, Tuple, Callable, Dict, Any
+from typing import Iterable, List, Optional, Tuple, Callable, Dict, Any, Union
 from dataclasses import fields, replace
 
 import drawsvg as dw
@@ -12,329 +12,427 @@ from vood.components.states.path import MorphMethod
 from vood.paths import SVGPath
 from vood.transitions import interpolation
 from vood.transitions.interpolation import NativeMorpher, FlubberMorpher
+from vood.transitions import easing
 from vood.core.color import Color
+
+# Define the primary keystate types
+# Main keystates (normalized): (time, state, optional_segment_easing_dict)
+SegmentKeystateTuple = Tuple[
+    float, State, Optional[Dict[str, Callable[[float], float]]]
+]
+# Property timelines: (time, value, optional_easing_function)
+PropertyKeyframeTuple = Tuple[float, Any, Optional[Callable[[float], float]]]
+PropertyTimelineConfig = Dict[str, List[PropertyKeyframeTuple]]
+
+# New flexible type for user input, combining states and time anchors
+FlexibleKeystateInput = Union[
+    State,
+    Tuple[float, State],  # (time, state)
+    Tuple[State, Optional[Dict[str, Callable[[float], float]]]],  # (state, easing_dict)
+    SegmentKeystateTuple,  # (time, state, easing_dict)
+]
 
 
 class BaseVElement(ABC):
     """Abstract base class for all animatable elements
 
-    Provides shared keyframe animation logic for Element and ContainerElement.
-
-    Elements only exist (render) within their keyframe time range. Outside this range,
-    render_at_frame_time returns None.
+    Provides shared keystate animation logic using a flexible, layered easing
+    priority system and supporting custom property timelines.
     """
 
     def __init__(
         self,
         state: Optional[State] = None,
-        states: Optional[Iterable[State]] = None,
-        keyframes: Optional[Iterable[Tuple[float, State]]] = None,
-        global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
-        easing: Optional[Dict[str, Callable[[float], float]]] = None,
-        segment_easing: Optional[Dict[int, Dict[str, Callable[[float], float]]]] = None,
+        keystates: Optional[Iterable[FlexibleKeystateInput]] = None,
+        # Level 2 easing override
+        instance_easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        # Level 4 control: custom property timelines
+        property_timelines: Optional[PropertyTimelineConfig] = None,
     ) -> None:
-        """Initialize keyframe animation system
+        """Initialize keystate animation system"""
 
-        Args:
-            state: Single state for static element
-            states: List of states for evenly-timed animation
-            keyframes: List of (frame_time, state) tuples for precise timing.
-                Element will only exist between first and last keyframe times.
-            global_transitions: Dict of property_name -> (start_value, end_value)
-                for properties that should transition linearly across entire animation
-                independent of keyframe structure
-            easing: Optional dict to override default easing functions for all segments
-            segment_easing: Optional dict of segment_index -> {property: easing_func}
-                to override easing for specific segments. Segment 0 is between keyframe[0]
-                and keyframe[1], segment 1 is between keyframe[1] and keyframe[2], etc.
-        """
-
-        # --- 1. Input Validation: Ensure ONLY ONE source is provided ---
-        provided_inputs = [arg for arg in [state, states, keyframes] if arg is not None]
+        # Input validation for mutual exclusivity
+        provided_inputs = [arg for arg in [state, keystates] if arg is not None]
         count = len(provided_inputs)
 
         if count == 0:
             raise ValueError(
-                "VElement requires configuration: provide 'state', 'states', or 'keyframes'."
+                "VElement requires configuration: provide 'state' or 'keystates'."
             )
-
         if count > 1:
             raise ValueError(
                 f"Conflicting inputs provided ({count} specified). "
-                "Please specify only one of 'state', 'states', or 'keyframes'."
+                "Please specify only one of 'state' or 'keystates'."
             )
 
-        self.easing_overrides = easing or {}
-        self.segment_easing = segment_easing or {}
-        self.global_transitions = global_transitions or {}
-        self.keyframes: List[Tuple[float, State]] = []
-        self._current_global_t: float = 0.0  # Track global animation time
+        self.instance_easing = instance_easing or {}
+        self.property_timelines = property_timelines or {}
+        self.keystates: List[SegmentKeystateTuple] = []
 
         if state is not None:
             if isinstance(state, Iterable):
                 raise ValueError("state must be a single State instance, not a list")
             self.set_state(state)
-        elif states is not None:
-            if isinstance(states, Iterable):
-                for s in states:
-                    if not isinstance(s, State):
-                        raise ValueError("states must be a list of State instances")
-                self.set_states(states)
-            else:
-                raise ValueError("states must be a list of State instances")
-        elif keyframes is not None:
-            self.set_keyframes(keyframes)
+        elif keystates is not None:
+            self.set_keystates(keystates)
 
     def set_state(self, state: State) -> None:
-        """Set a single static state
+        """Set a single static state"""
+        self.keystates = [(0.0, state, None)]
 
-        Creates a keyframe at time 0.0, making the element visible for the entire timeline.
+    def set_keystates(self, keystates: List[FlexibleKeystateInput]) -> None:
+        """Set keystates using the flexible combined format, calculating implicit times."""
+        if not keystates:
+            raise ValueError("keystates cannot be empty")
+
+        self.keystates = self._parse_flexible_keystates(keystates)
+
+        if not self.keystates:
+            raise ValueError("Keystates list could not be parsed.")
+
+    def _parse_flexible_keystates(
+        self, flexible_list: List[FlexibleKeystateInput]
+    ) -> List[SegmentKeystateTuple]:
         """
-        self.keyframes = [(0.0, state)]
-
-    def set_states(self, states: List[State]) -> None:
-        """Set evenly-timed states
-
-        Distributes states evenly across the [0.0, 1.0] timeline.
+        Parses a mixed list of States and KeystateTuples into a normalized, time-stamped list.
+        Conditionally enforces 0.0/1.0 boundaries based on whether explicit times were provided.
         """
-        if len(states) < 1:
-            raise ValueError("states must contain at least one state")
 
-        if len(states) == 1:
-            self.keyframes = [(0.0, states[0])]
-        else:
-            self.keyframes = [
-                (i / (len(states) - 1), state) for i, state in enumerate(states)
-            ]
+        # 1. First Pass: Identify and normalize all items, mark explicit times
+        normalized_keystates: List[
+            Tuple[Optional[float], State, Optional[Dict[str, Callable]]]
+        ] = []
+        has_explicit_times = False
 
-    def set_keyframes(self, keyframes: List[Tuple[float, State]]) -> None:
-        """Set explicit keyframes
+        for item in flexible_list:
+            t: Optional[float] = None
+            state: State
+            easing_dict: Optional[Dict] = None
 
-        Element will only exist (be rendered) between the first and last keyframe times.
+            if isinstance(item, State):
+                state = item
+            elif isinstance(item, tuple):
+                if len(item) == 2:
+                    if isinstance(item[0], float) or isinstance(item[0], int):
+                        t = float(item[0])
+                        state = item[1]
+                        has_explicit_times = True
+                    elif isinstance(item[0], State):
+                        state = item[0]
+                        easing_dict = item[1]
+                    else:
+                        raise ValueError(f"Invalid 2-element keystate format: {item}")
+                elif len(item) == 3:
+                    t = float(item[0])
+                    state = item[1]
+                    easing_dict = item[2]
+                    has_explicit_times = True
+                else:
+                    raise ValueError(
+                        f"Keystate tuple length must be 1, 2, or 3, got {len(item)}"
+                    )
+            else:
+                raise ValueError(f"Invalid keystate item type: {type(item)}")
 
-        Args:
-            keyframes: List of (time, state) tuples. Times must be in [0.0, 1.0]
+            if t is not None:
+                if not (0.0 <= t <= 1.0):
+                    raise ValueError(
+                        f"Keystate time must be between 0.0 and 1.0, got {t}"
+                    )
+                has_explicit_times = True  # Redundant, but ensures safety
 
-        Example:
-            >>> # Element appears at 0.3 and disappears after 0.8
-            >>> element.set_keyframes([
-            ...     (0.3, State(x=0)),
-            ...     (0.8, State(x=100))
-            ... ])
-            >>> # At t=0.0-0.3: returns None (not rendered)
-            >>> # At t=0.3-0.8: interpolates normally
-            >>> # At t=0.8-1.0: returns None (not rendered)
-        """
-        if not keyframes:
-            raise ValueError("keyframes cannot be empty")
-        keyframes.sort(key=lambda x: x[0])
-        for t, _ in keyframes:
-            if not (0.0 <= t <= 1.0):
-                raise ValueError(f"Keyframe times must be between 0.0 and 1.0, got {t}")
-        self.keyframes = keyframes
+            normalized_keystates.append((t, state, easing_dict))
+
+        if not normalized_keystates:
+            return []
+
+        # 2. Conditional Boundary Enforcement (The Fix)
+        if not has_explicit_times or (
+            len(normalized_keystates) == 1 and normalized_keystates[0][0] is None
+        ):
+            # Case: Pure [S1, S2, S3] input (old set_states behavior)
+            # Enforce 0.0 and 1.0 anchors to span the full timeline
+            if normalized_keystates[0][0] is None:
+                normalized_keystates[0] = (
+                    0.0,
+                    normalized_keystates[0][1],
+                    normalized_keystates[0][2],
+                )
+            if normalized_keystates[-1][0] is None:
+                normalized_keystates[-1] = (
+                    1.0,
+                    normalized_keystates[-1][1],
+                    normalized_keystates[-1][2],
+                )
+
+        # 3. Calculate Implicit Times
+        final_keystates: List[SegmentKeystateTuple] = []
+
+        # Find the first explicit anchor to start the process
+        i = 0
+        while i < len(normalized_keystates) and normalized_keystates[i][0] is None:
+            # If the list starts with implicit times, those must fall to the first
+            # explicit time, but for Vood's existence logic, we assume the first
+            # keyframe is the start of existence, so we use the first defined time.
+            # If the list starts with [S1, (0.5, S2)], S1 must be assigned t=0.0
+            # IF the first explicit time is also 0.0, which is handled below.
+            i += 1
+
+        # Ensure the very first keystate has a time anchor (this handles [S1, (0.5, S2)])
+        if normalized_keystates[0][0] is None:
+            first_explicit_t = (
+                normalized_keystates[i][0] if i < len(normalized_keystates) else 0.0
+            )
+            # If the first item is implicit, its time is the same as the next explicit time
+            # UNLESS it's the 0.0 enforced case above, which sets the time to 0.0.
+            normalized_keystates[0] = (
+                first_explicit_t,
+                normalized_keystates[0][1],
+                normalized_keystates[0][2],
+            )
+
+        i = 0
+        while i < len(normalized_keystates):
+            t_start, state_start, easing_dict_start = normalized_keystates[i]
+
+            # Find the next explicit time anchor (j)
+            j = i + 1
+            while j < len(normalized_keystates) and normalized_keystates[j][0] is None:
+                j += 1
+
+            # Get the end anchor time
+            t_end = (
+                normalized_keystates[j][0] if j < len(normalized_keystates) else t_start
+            )
+
+            # Number of gaps/segments between i and j (inclusive of both anchors)
+            num_gaps = j - i
+            duration = t_end - t_start
+
+            if num_gaps > 0:
+                step = duration / num_gaps
+            else:
+                step = 0
+
+            # Generate keyframes for the segment [i...j]
+            for k in range(num_gaps + 1):
+                item_index = i + k
+                if item_index >= len(normalized_keystates):
+                    break
+
+                t_current, state_current, easing_dict_current = normalized_keystates[
+                    item_index
+                ]
+
+                # Calculate time for implicit keys
+                final_t = t_start + k * step if t_current is None else t_current
+
+                # Correct rounding errors
+                if k == num_gaps:
+                    final_t = t_end
+
+                final_keystates.append((final_t, state_current, easing_dict_current))
+
+            # Move index to the next anchor point
+            i = j
+
+        # 4. Deduplicate and Final Sort
+        unique_keystates: List[SegmentKeystateTuple] = []
+        last_t = -1.0
+
+        final_keystates.sort(key=lambda x: x[0])
+
+        for t, state, easing_dict in final_keystates:
+            if t > last_t:
+                unique_keystates.append((t, state, easing_dict))
+                last_t = t
+            elif t == last_t:
+                # Replace the previous entry at the same time for the last defined state/easing
+                unique_keystates[-1] = (t, state, easing_dict)
+
+        return unique_keystates
 
     @abstractmethod
     def render(self) -> Optional[dw.DrawingElement]:
-        """Render the element in its initial state (static rendering)
-
-        Returns:
-            drawsvg element representing the element, or None if element doesn't exist at t=0
-        """
-        if not self.keyframes:
-            raise ValueError("No state, states, or keyframes set for rendering.")
+        """Render the element in its initial state (static rendering)"""
+        if not self.keystates:
+            raise ValueError("No state, states, or keystates set for rendering.")
         pass
 
     @abstractmethod
     def render_at_frame_time(self, t: float) -> Optional[dw.DrawingElement]:
-        """Render the element at a specific animation time
-
-        Args:
-            t: Time factor from 0.0 to 1.0
-
-        Returns:
-            drawsvg element representing the element at time t, or None if element
-            doesn't exist at this time (outside keyframe range)
-        """
-        if not self.keyframes:
-            raise ValueError("No state, states, or keyframes set for rendering.")
+        """Render the element at a specific animation time"""
+        if not self.keystates:
+            raise ValueError("No state, states, or keystates set for rendering.")
         pass
 
     def is_animatable(self) -> bool:
-        """Check if this element can be animated
+        """Check if this element can be animated"""
+        return len(self.keystates) > 1 or bool(self.property_timelines)
 
-        Returns:
-            True if element has multiple keyframes or has global transitions
-        """
-        return len(self.keyframes) > 1 or bool(self.global_transitions)
+    def _get_property_value_at_time(self, field_name: str, t: float) -> Any:
+        # ... (rest of _get_property_value_at_time remains unchanged)
+        timeline = self.property_timelines[field_name]
 
-    def _get_state_at_time(self, t: float) -> Optional[State]:
-        """Get the interpolated state at a specific time
+        if t <= timeline[0][0]:
+            return timeline[0][1]
+        if t >= timeline[-1][0]:
+            return timeline[-1][1]
 
-        Args:
-            t: Time factor from 0.0 to 1.0
+        for i in range(len(timeline) - 1):
+            item1 = timeline[i]
+            t1, val1, *rest1 = item1
+            easing1 = rest1[0] if rest1 else None
 
-        Returns:
-            Interpolated State at time t, or None if outside keyframe range
-        """
-        if not self.keyframes:
-            return None
-
-        # Get keyframe time range
-        first_time = self.keyframes[0][0]
-        last_time = self.keyframes[-1][0]
-
-        # Check if time is outside keyframe range
-        if t < first_time or t > last_time:
-            return None  # Element doesn't exist at this time
-
-        # Store global time for global_transitions
-        self._current_global_t = max(0.0, min(1.0, t))
-
-        # Handle exact match with first keyframe or single keyframe
-        if t == first_time or len(self.keyframes) == 1:
-            base_state = self.keyframes[0][1]
-            return self._apply_global_transitions(base_state, self._current_global_t)
-
-        # Find the two keyframes to interpolate between
-        for i in range(len(self.keyframes) - 1):
-            t1, state1 = self.keyframes[i]
-            t2, state2 = self.keyframes[i + 1]
+            item2 = timeline[i + 1]
+            t2, val2, *rest2 = item2
 
             if t1 <= t <= t2:
-                # Found the right segment
-                if t1 == t2:  # Instant transition at same time
-                    return self._apply_global_transitions(
-                        state2, self._current_global_t
-                    )
+                if t1 == t2:
+                    return val2
 
-                # Calculate segment progress
+                segment_duration = t2 - t1
+                segment_t = (t - t1) / segment_duration
+
+                if easing1 is None:
+                    easing_func = self._get_easing_for_field_fallback(field_name)
+                else:
+                    easing_func = easing1
+
+                eased_t = easing_func(segment_t) if easing_func else segment_t
+
+                base_state = self.keystates[0][1] if self.keystates else None
+                if not base_state:
+                    return interpolation.lerp(val1, val2, eased_t)
+
+                return self._interpolate_value(
+                    base_state, field_name, val1, val2, eased_t
+                )
+
+        return timeline[-1][1]
+
+    def _get_easing_for_field_fallback(
+        self, field_name: str
+    ) -> Callable[[float], float]:
+        """Gets the fallback easing (Instance or State Class default) for custom property timelines"""
+
+        if not self.keystates:
+            return easing.linear
+
+        state = self.keystates[0][1]
+
+        if field_name in self.instance_easing:
+            return self.instance_easing[field_name]
+
+        default_easing = getattr(state, "DEFAULT_EASING", {})
+        if field_name in default_easing:
+            return default_easing[field_name]
+
+        return easing.linear
+
+    def _get_state_at_time(self, t: float) -> Optional[State]:
+        """Get the interpolated state at a specific time"""
+        if not self.keystates:
+            return None
+
+        # --- EXISTENCE CHECK (Restored Logic) ---
+        first_time = self.keystates[0][0]
+        last_time = self.keystates[-1][0]
+
+        if t < first_time or t > last_time:
+            return None  # Element does not exist outside its defined keyframe range
+        # ---------------------------------------
+
+        if t == first_time or len(self.keystates) == 1:
+            base_state = self.keystates[0][1]
+            return self._apply_property_timelines(base_state, t)
+
+        for i in range(len(self.keystates) - 1):
+            t1, state1, seg_easing1 = self.keystates[i]
+            t2, state2, seg_easing2 = self.keystates[i + 1]
+
+            if t1 <= t <= t2:
+                if t1 == t2:
+                    return self._apply_property_timelines(state2, t)
+
                 segment_t = (t - t1) / (t2 - t1)
 
-                # Create interpolated state
                 interpolated_state = self._create_eased_state(
-                    state1, state2, segment_t, segment_index=i
+                    state1, state2, segment_t, segment_easing_overrides=seg_easing1
                 )
-                return interpolated_state
 
-        # If we get here, t equals the last keyframe time exactly
-        final_state = self.keyframes[-1][1]
-        return self._apply_global_transitions(final_state, self._current_global_t)
+                return self._apply_property_timelines(interpolated_state, t)
 
-    def _apply_global_transitions(self, base_state: State, global_t: float) -> State:
-        """Apply global transitions to a state
+        final_state = self.keystates[-1][1]
+        return self._apply_property_timelines(final_state, t)
 
-        Args:
-            base_state: The base state to modify
-            global_t: Global animation time (0.0 to 1.0)
-
-        Returns:
-            New state with global transitions applied
-        """
-        if not self.global_transitions:
+    def _apply_property_timelines(self, base_state: State, t: float) -> State:
+        """Applies values from custom property_timelines on top of the base state."""
+        if not self.property_timelines:
             return base_state
 
         updates = {}
-        for field_name, (start_value, end_value) in self.global_transitions.items():
-            # Get easing function
-            easing_func = self._get_easing_for_field(
-                base_state, field_name, segment_index=None
-            )
-            eased_t = easing_func(global_t) if easing_func else global_t
-
-            # Interpolate value
-            updates[field_name] = self._interpolate_value(
-                base_state, field_name, start_value, end_value, eased_t
-            )
+        for field_name in self.property_timelines.keys():
+            updates[field_name] = self._get_property_value_at_time(field_name, t)
 
         return replace(base_state, **updates)
 
     def _create_eased_state(
-        self, start_state: State, end_state: State, t: float, segment_index: int
+        self,
+        start_state: State,
+        end_state: State,
+        t: float,
+        segment_easing_overrides: Optional[Dict[str, Callable[[float], float]]],
     ) -> State:
-        """Create an interpolated state using per-property easing functions
-
-        Args:
-            start_state: Starting state
-            end_state: Ending state
-            t: Time factor from 0.0 to 1.0 (segment time, not global time)
-            segment_index: Index of the current segment (0-based)
-
-        Returns:
-            New state with interpolated values using appropriate easing per property
-        """
+        """Create an interpolated state from main keystates (ignoring fields in property_timelines)"""
         interpolated_values = {}
 
-        # Interpolate each field
         for field in fields(start_state):
             field_name = field.name
 
-            # Skip properties that have global transitions - they'll be applied later
-            if field_name in self.global_transitions:
+            if field_name in self.property_timelines:
                 continue
 
             start_value = getattr(start_state, field_name)
             end_value = getattr(end_state, field_name)
 
-            # Skip if values are the same (no animation needed)
             if start_value == end_value:
                 interpolated_values[field_name] = start_value
                 continue
 
-            # Get easing function for this property
             easing_func = self._get_easing_for_field(
-                start_state, field_name, segment_index
+                start_state, field_name, segment_easing_overrides
             )
             eased_t = easing_func(t) if easing_func else t
 
-            # Interpolate the value
             interpolated_values[field_name] = self._interpolate_value(
                 start_state, field_name, start_value, end_value, eased_t
             )
 
-        # Create new state with interpolated values
-        interpolated_state = replace(start_state, **interpolated_values)
-
-        # Apply global transitions on top of keyframe interpolation
-        if self.global_transitions:
-            interpolated_state = self._apply_global_transitions(
-                interpolated_state, self._current_global_t
-            )
-
-        return interpolated_state
+        return replace(start_state, **interpolated_values)
 
     def _get_easing_for_field(
-        self, state: State, field_name: str, segment_index: Optional[int]
+        self,
+        start_state: State,
+        field_name: str,
+        segment_easing_overrides: Optional[Dict[str, Callable[[float], float]]],
     ) -> Optional[Callable[[float], float]]:
-        """Get the easing function for a field with proper priority
+        """Get the easing function for a field with 4-level priority"""
 
-        Priority:
-        1. Segment-specific override (if segment_index provided)
-        2. Global property override
-        3. Default easing from state
+        if (
+            segment_easing_overrides is not None
+            and field_name in segment_easing_overrides
+        ):
+            return segment_easing_overrides[field_name]
 
-        Args:
-            state: The state to get default easing from
-            field_name: Name of the field
-            segment_index: Optional segment index for segment-specific easing
+        if field_name in self.instance_easing:
+            return self.instance_easing[field_name]
 
-        Returns:
-            Easing function or None
-        """
-        # Get default easing from state
-        default_easing = getattr(state, "DEFAULT_EASING", {})
+        default_easing = getattr(start_state, "DEFAULT_EASING", {})
+        if field_name in default_easing:
+            return default_easing[field_name]
 
-        # Priority 1: Segment-specific override
-        if segment_index is not None:
-            segment_overrides = self.segment_easing.get(segment_index, {})
-            if field_name in segment_overrides:
-                return segment_overrides[field_name]
-
-        # Priority 2: Global property override
-        if field_name in self.easing_overrides:
-            return self.easing_overrides[field_name]
-
-        # Priority 3: Default easing from state
-        return default_easing.get(field_name)
+        return easing.linear
 
     def _interpolate_value(
         self,
@@ -344,110 +442,58 @@ class BaseVElement(ABC):
         end_value: Any,
         eased_t: float,
     ) -> Any:
-        """Interpolate a single value based on its type
+        """Interpolate a single value based on its type and field context (Requires Color objects)"""
 
-        Args:
-            state: The state (for accessing metadata like is_angle)
-            field_name: Name of the field being interpolated
-            start_value: Starting value
-            end_value: Ending value
-            eased_t: Eased time value (0.0 to 1.0)
-
-        Returns:
-            Interpolated value
-        """
-        # SVG Path interpolation
+        # 1. SVG Path interpolation
         if isinstance(start_value, SVGPath):
             return self._interpolate_path(state, start_value, end_value, eased_t)
 
-        # Color interpolation
+        # 2. Color interpolation (User must provide Color objects)
         if isinstance(start_value, Color):
             return start_value.interpolate(end_value, eased_t)
 
-        # Angle interpolation
+        # 3. Angle interpolation
         if self._is_angle_field(state, field_name):
             return interpolation.angle(start_value, end_value, eased_t)
 
-        # Numeric interpolation
+        # 4. Numeric interpolation
         if isinstance(start_value, (int, float)):
             return interpolation.lerp(start_value, end_value, eased_t)
 
-        # Non-numeric values: step at t=0.5
+        # 5. Non-numeric values: step at t=0.5
         return interpolation.step(start_value, end_value, eased_t)
 
     def _interpolate_path(
         self, state: State, start_path: SVGPath, end_path: SVGPath, eased_t: float
     ) -> SVGPath:
-        """Interpolate between two SVG paths
-
-        Args:
-            state: The state (for accessing morph_method)
-            start_path: Starting path
-            end_path: Ending path
-            eased_t: Eased time value (0.0 to 1.0)
-
-        Returns:
-            Interpolated path
-        """
         morph_method = getattr(state, "morph_method", None)
-
-        # Choose interpolation method
         if morph_method == MorphMethod.SHAPE or morph_method == "shape":
             return FlubberMorpher.for_paths(start_path, end_path)(eased_t)
-
         if morph_method == MorphMethod.STROKE or morph_method == "stroke":
             return NativeMorpher.for_paths(start_path, end_path)(eased_t)
-
-        # None or AUTO: auto-detect based on path
         if self._path_is_closed(start_path):
             return FlubberMorpher.for_paths(start_path, end_path)(eased_t)
         else:
             return NativeMorpher.for_paths(start_path, end_path)(eased_t)
 
     def _is_angle_field(self, state: State, field_name: str) -> bool:
-        """Check if a field represents an angle
-
-        Args:
-            state: The state to check
-            field_name: Name of the field
-
-        Returns:
-            True if field is an angle
-        """
         if not hasattr(state, "is_angle"):
             return False
-
         field_obj = next((f for f in fields(state) if f.name == field_name), None)
         if field_obj:
             return state.is_angle(field_obj)
         return False
 
     def _path_is_closed(self, path: SVGPath, tolerance: float = 0.01) -> bool:
-        """Check if path is closed (ends with Z or returns to start point)
-
-        Args:
-            path: The SVG path to check
-            tolerance: Distance tolerance for considering endpoints equal
-
-        Returns:
-            True if path is closed
-        """
-        # Check if path string ends with Z
         path_str = path.to_string().strip().upper()
         if path_str.endswith("Z"):
             return True
-
-        # Check if start and end points are the same
         if len(path.commands) < 2:
             return False
-
         start_cmd = path.commands[0]
         end_cmd = path.commands[-1]
-
         if not (hasattr(start_cmd, "x") and hasattr(end_cmd, "x")):
             return False
-
-        # Check distance
         distance = (
             (end_cmd.x - start_cmd.x) ** 2 + (end_cmd.y - start_cmd.y) ** 2
         ) ** 0.5

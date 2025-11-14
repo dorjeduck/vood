@@ -5,14 +5,15 @@ from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
+from vood.core.color import Color
+
 
 configure_logging(level="INFO")
-
 
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for each number with consistent styling
     # These states will be the starting point of the animation
@@ -23,7 +24,7 @@ def main():
             text=str(num),
             font_family="Courier New",
             font_size=20,
-            color="#FDBE02",
+            color=Color("#FDBE02"),
         )
         for num in range(1, 10)
     ]
@@ -43,7 +44,7 @@ def main():
     elements = [
         VElement(
             renderer=renderer,
-            states=states,
+            keystates=states,
         )
         for states in zip(start_states, end_states)
     ]

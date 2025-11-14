@@ -12,14 +12,14 @@ configure_logging(level="DEBUG")
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for each number with consistent styling
     base_name_state = TextState(
         text="Fun Grid",
         font_family="Courier New",
         font_size=20,
-        color="#AA0000",
+        color=Color("#AA0000"),
         y=110,
     )
 

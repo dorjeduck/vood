@@ -30,22 +30,22 @@ def slide(
         duration: Total duration of slide out + slide in (0.0 to 1.0)
         direction: Direction to slide out (SlideDirection enum or string)
         distance: Distance to slide in pixels
-        extend_timeline: If True, adds keyframes at 0.0 and 1.0 to cover full timeline
+        extend_timeline: If True, adds keystates at 0.0 and 1.0 to cover full timeline
 
     Returns:
-        List of keyframes for single element
+        List of keystates for single element
 
     Example:
         >>> from vood.magic.animations.atomic import slide, SlideDirection
         >>>
         >>> # Element only exists during slide (partial timeline)
-        >>> keyframes = slide(
+        >>> keystates = slide(
         ...     TextState(text="Before", x=100),
         ...     TextState(text="After", x=100),
         ...     direction=SlideDirection.LEFT,
         ...     distance=200
         ... )
-        >>> element = VElement(renderer, keyframes=keyframes)
+        >>> element = VElement(renderer, keystates=keystates)
     """
     # Convert string to enum if needed
     if isinstance(direction, str):
@@ -69,7 +69,7 @@ def slide(
     orig_pos_1 = getattr(state1, prop)
     orig_pos_2 = getattr(state2, prop)
 
-    keyframes = [
+    keystates = [
         (t_start, state1),
         (
             at_time,
@@ -83,10 +83,10 @@ def slide(
     ]
 
     if extend_timeline:
-        keyframes = [
+        keystates = [
             (0.0, state1),
-            *keyframes,
+            *keystates,
             (1.0, state2),
         ]
 
-    return keyframes
+    return keystates

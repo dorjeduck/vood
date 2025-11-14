@@ -11,6 +11,7 @@ from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
 from dataclasses import replace
+from vood.core.color import Color
 
 from vood.magic.animations.atomic import sequential_transition, fade, trim
 
@@ -19,7 +20,7 @@ configure_logging(level="INFO")
 
 def main():
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for numbers 1-20 with consistent styling
     base_states = [
@@ -27,7 +28,7 @@ def main():
             text=f"{num:02}",
             font_family="Courier New",
             font_size=10,
-            color="#FDBE02",
+            color=Color("#FDBE02"),
         )
         for num in range(1, 21)
     ]
@@ -36,7 +37,7 @@ def main():
         text="",
         font_family="Courier New",
         font_size=10,
-        color="#AA0000",
+        color=Color("#AA0000"),
         y=110,
     )
 
@@ -173,9 +174,9 @@ def main():
     elements = [
         VElement(
             renderer=renderer,
-            keyframes=keyframes,
+            keystates=keystates,
         )
-        for keyframes in layout_keyframes
+        for keystates in layout_keyframes
     ]
 
     # Add all elements to the scene
@@ -183,7 +184,7 @@ def main():
 
     text_keyframes = sequential_transition(layout_name_states, fade, 0.5)
 
-    texts = VElement(renderer=renderer, keyframes=text_keyframes)
+    texts = VElement(renderer=renderer, keystates=text_keyframes)
     scene.add_element(texts)
 
     # Create the exporter

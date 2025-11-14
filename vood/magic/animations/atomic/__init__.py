@@ -5,9 +5,9 @@
 Atomic Animations
 =================
 
-Single-element animation patterns that return one keyframe list.
+Single-element animation patterns that return one keystate list.
 
-These functions generate keyframes for animating a single element through
+These functions generate keystates for animating a single element through
 different states. The element changes its properties over time, with instant
 switches or smooth transitions between values.
 

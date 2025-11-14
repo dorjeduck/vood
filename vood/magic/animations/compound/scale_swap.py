@@ -28,7 +28,7 @@ def scale_swap(
         at_time: Center point of the transition (0.0 to 1.0)
         duration: Duration of the scale transition (0.0 to 1.0)
         min_scale: Minimum scale value (0.0 = invisible)
-        extend_timeline: If True, adds keyframes at 0.0 and 1.0 to cover full timeline
+        extend_timeline: If True, adds keystates at 0.0 and 1.0 to cover full timeline
 
     Returns:
         Tuple of (element1_keyframes, element2_keyframes)
@@ -44,9 +44,9 @@ def scale_swap(
         ...     at_time=0.5
         ... )
         >>>
-        >>> elem1 = VElement(circle_renderer, keyframes=kf1)
-        >>> elem2 = VElement(circle_renderer, keyframes=kf2,
-        ...                  easing={"scale": easing.elastic})
+        >>> elem1 = VElement(circle_renderer, keystates=kf1)
+        >>> elem2 = VElement(circle_renderer, keystates=kf2,
+        ...                  instance_easing={"scale": easing.elastic})
         >>> group = VElementGroup(elements=[elem1, elem2])
     """
     half = duration / 2

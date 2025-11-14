@@ -7,7 +7,7 @@ from typing import Optional
 from .base import State
 
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -16,8 +16,8 @@ class RectangleState(State):
 
     width: float = 100
     height: float = 60
-    color: Optional[ColorInput] = (255, 0, 0)
-    stroke_color: Optional[ColorInput] = None
+    color: Optional[Color] = (255, 0, 0)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 0
     corner_radius: float = 0  # For rounded rectangles
 
@@ -34,5 +34,5 @@ class RectangleState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
-        self._normalize_color_field("stroke_color")
+        self._none_color("color")
+        self._none_color("stroke_color")

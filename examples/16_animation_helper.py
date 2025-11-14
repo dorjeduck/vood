@@ -5,17 +5,18 @@ from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
+from vood.core.color import Color
 
 configure_logging(level="INFO")
 
-START_COLOR = "#FDBE02"
-END_COLOR = "#AA0000"
+START_COLOR = Color("#FDBE02")
+END_COLOR = Color("#AA0000")
 
 
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for each number with consistent styling
     # These states will be the starting point of the animation
@@ -36,8 +37,13 @@ def main():
 
     element = VElement(
         renderer=renderer,
-        keyframes=fade_keyframes,
-        global_transitions={"color": (START_COLOR, END_COLOR)},
+        keystates=fade_keyframes,
+        property_timelines={
+            "color": [
+                (0, START_COLOR),
+                (1, END_COLOR),
+            ],
+        },
     )
 
     scene.add_element(element)

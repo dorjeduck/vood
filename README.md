@@ -57,7 +57,7 @@ In this example we arrange the numbers 1 to 9 in an elliptical layout. The core 
 
 ```python
 # (1) Create scene with square dimensions and defined background color
-scene = VScene(width=256, height=192, background="#000017")
+scene = VScene(width=256, height=192, background=Color("#000017"))
 
 # (2) Define text states for each number with consistent styling
 states = [
@@ -65,7 +65,7 @@ states = [
         text=str(num),
         font_family="Courier New",
         font_size=20,
-        color="#FDBE02",
+        color=Color("#FDBE02"),
     )
     for num in range(1, 10)
 ]
@@ -121,7 +121,7 @@ The key distinction here is that each `VElement` is now defined as a combination
 
 ```python
 # Create the scene 
-scene = VScene(width=256, height=192, background="#000017")
+scene = VScene(width=256, height=192, background=Color("#000017"))
 
 # Create text states for each number with consistent styling
 # These states will be the starting point of the animation
@@ -132,7 +132,7 @@ start_states = [
         text=str(num),
         font_family="Courier New",
         font_size=20,
-        color="#FDBE02",
+        color=Color("#FDBE02"),
     )
     for num in range(1, 10)
 ]
@@ -152,7 +152,7 @@ renderer = TextRenderer()
 elements = [
     VElement(
         renderer=renderer,
-        states=states,
+        keystates=states,
     )
     for states in zip(start_states, end_states)
 ]
@@ -185,13 +185,13 @@ exporter.to_mp4(
 
 While this example uses a simple two-state interpolation, Vood's animation engine supports fine grained timing control:
 
-* **Multi-keyframe sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - Keyframes](https://vood.wectar.com/circus/keyframes/)
+* **Multi-keystate sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - keystates](https://vood.wectar.com/circus/keystates/)
 
 * **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves etc) to individual properties for nuanced motion control. See [SVG Circus - Easing Variety](https://vood.wectar.com/circus/easing-variety/)
 
-* **Segment Easing** - Customize easing between keyframes. See [SVG Circus - Segment Easing](https://vood.wectar.com/circus/segment-easing/)
+* **Segment Easing** - Customize easing between keystates. See [SVG Circus - Segment Easing](https://vood.wectar.com/circus/segment-easing/)
 
-* **Global Transitions** - Apply property transitions beyond keyframes - See [SVG Circus - Global Transitions](https://vood.wectar.com/circus/global-transitions/)
+* **Global Transitions** - Apply property transitions beyond keystates - See [SVG Circus - Global Transitions](https://vood.wectar.com/circus/global-transitions/)
 
 ## SVG Circus
 

@@ -7,11 +7,12 @@ from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
 from vood.components import PathState, PathRenderer
+from vood.core.color import Color
 
 configure_logging(level="INFO")
 
-START_COLOR = "#FDBE02"
-END_COLOR = "#AA0000"
+START_COLOR = Color("#FDBE02")
+END_COLOR = Color("#AA0000")
 
 START_PATH = "M -100,0 L 100,0"
 END_PATH = "M -100,0 C -50,-100 50,100 100,0"
@@ -20,7 +21,7 @@ END_PATH = "M -100,0 C -50,-100 50,100 100,0"
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     start_state = PathState(
         data=START_PATH,
@@ -42,7 +43,7 @@ def main():
 
     element = VElement(
         renderer=renderer,
-        states=[start_state, end_state],
+        keystates=[start_state, end_state],
     )
 
     # Add all elements to the scene

@@ -7,7 +7,7 @@ from typing import Optional
 from .base import State
 
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -16,8 +16,8 @@ class EllipseState(State):
 
     rx: float = 60  # Horizontal radius
     ry: float = 40  # Vertical radius
-    color: Optional[ColorInput] = (0, 0, 255)
-    stroke_color: Optional[ColorInput] = None
+    color: Optional[Color] = (0, 0, 255)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 0
 
     DEFAULT_EASING = {
@@ -30,5 +30,5 @@ class EllipseState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
-        self._normalize_color_field("stroke_color")
+        self._none_color("color")
+        self._none_color("stroke_color")

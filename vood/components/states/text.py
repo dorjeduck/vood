@@ -6,14 +6,14 @@ from typing import Optional
 
 from .base import State
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
 class TextState(State):
     """State class for text elements"""
 
-    color: Optional[ColorInput] = (255, 0, 0)
+    color: Optional[Color] = (255, 0, 0)
     font_size: float = 16
 
     letter_spacing: float = 0  # Additional spacing between letters
@@ -41,4 +41,4 @@ class TextState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
+        self._none_color("color")

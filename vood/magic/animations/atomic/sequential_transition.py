@@ -25,30 +25,30 @@ def sequential_transition(
                            (e.g., extend_timeline=False, angle=180, direction="left", etc.)
 
     Returns:
-        List of keyframes for a single element covering the full 0.0 to 1.0 timeline.
+        List of keystates for a single element covering the full 0.0 to 1.0 timeline.
 
     Example:
         >>> from vood.magic.animations.atomic import fade, rotate, slide
         >>> from vood.magic.animations.atomic.slide import SlideDirection
         >>>
         >>> # Simple fade sequence
-        >>> keyframes = sequential_transition(
-        ...     states=[state1, state2, state3],
+        >>> keystates = sequential_transition(
+        ...     keystates=[state1, state2, state3],
         ...     transition_func=fade,
         ...     transition_factor=0.5
         ... )
         >>>
         >>> # Rotate sequence with custom angle
-        >>> keyframes = sequential_transition(
-        ...     states=[state1, state2, state3],
+        >>> keystates = sequential_transition(
+        ...     keystates=[state1, state2, state3],
         ...     transition_func=rotate,
         ...     transition_factor=0.6,
         ...     angle=270
         ... )
         >>>
         >>> # Slide sequence with direction
-        >>> keyframes = sequential_transition(
-        ...     states=[state1, state2, state3, state4],
+        >>> keystates = sequential_transition(
+        ...     keystates=[state1, state2, state3, state4],
         ...     transition_func=slide,
         ...     transition_factor=0.7,
         ...     direction=SlideDirection.LEFT,
@@ -71,7 +71,7 @@ def sequential_transition(
 
     all_keyframes: List[Tuple[float, State]] = []
 
-    # 1. Add the initial keyframe at 0.0
+    # 1. Add the initial keystate at 0.0
     all_keyframes.append((0.0, states[0]))
 
     # 2. Iterate through all N-1 transitions
@@ -93,10 +93,10 @@ def sequential_transition(
 
         all_keyframes.extend(transition_keyframes)
 
-    # 4. Add the final keyframe at 1.0
+    # 4. Add the final keystate at 1.0
     all_keyframes.append((1.0, states[-1]))
 
-    # 5. Clean up, sort, and clamp all keyframe times to [0.0, 1.0]
+    # 5. Clean up, sort, and clamp all keystate times to [0.0, 1.0]
     unique_keyframes = {}
     for t_raw, state in all_keyframes:
         # Clamp the time to ensure it is in [0.0, 1.0]

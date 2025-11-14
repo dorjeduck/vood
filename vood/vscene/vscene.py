@@ -4,7 +4,7 @@ from typing import List, Optional, Union, TYPE_CHECKING, Literal
 
 import drawsvg as dw
 
-from vood.core import get_logger, Color, ColorInput
+from vood.core import get_logger, Color
 
 if TYPE_CHECKING:
     from vood.velements import VElement, VElementGroup
@@ -26,7 +26,7 @@ class VScene:
         self,
         width: float = 800,
         height: float = 800,
-        background: ColorInput = "white",
+        background: Color = Color(255, 0, 0),
         background_opacity: float = 1.0,
         origin: Literal["center", "top-left"] = "center",
         offset_x: float = 0.0,
@@ -63,7 +63,7 @@ class VScene:
         if isinstance(background, str) and background.lower() == "none":
             self.background = None
         else:
-            self.background = Color.from_any(background)
+            self.background = background
 
         self.background_opacity = background_opacity
 
@@ -270,19 +270,19 @@ class VScene:
         """Get the time range covered by all elements
 
         Returns the minimum start time and maximum end time across all
-        elements that have keyframes.
+        elements that have keystates.
 
         Returns:
-            Tuple of (min_time, max_time). Returns (0.0, 1.0) if no elements have keyframes.
+            Tuple of (min_time, max_time). Returns (0.0, 1.0) if no elements have keystates.
         """
         if not self.elements:
             return (0.0, 1.0)
 
         times = []
         for element in self.elements:
-            if hasattr(element, "keyframes") and element.keyframes:
-                times.append(element.keyframes[0][0])  # First keyframe time
-                times.append(element.keyframes[-1][0])  # Last keyframe time
+            if hasattr(element, "keystates") and element.keystates:
+                times.append(element.keystates[0][0])  # First keystate time
+                times.append(element.keystates[-1][0])  # Last keystate time
 
         if not times:
             return (0.0, 1.0)

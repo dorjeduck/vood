@@ -7,11 +7,12 @@ from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
+from vood.core.color import Color
 
 configure_logging(level="INFO")
 
-START_COLOR = "#FDBE02"
-END_COLOR = "#AA0000"
+START_COLOR = Color("#FDBE02")
+END_COLOR = Color("#AA0000")
 
 START_SHAPE = "M 0,-50 L 14.43,-15.45 L 47.55,-15.45 L 23.56,6.18 L 36.99,40.45 L 0,20 L -36.99,40.45 L -23.56,6.18 L -47.55,-15.45 L -14.43,-15.45 Z"
 END_SHAPE = "M 50,0 C 50,27.6 27.6,50 0,50 C -27.6,50 -50,27.6 -50,0 C -50,-27.6 -27.6,-50 0,-50 C 27.6,-50 50,-27.6 50,0 Z"
@@ -20,7 +21,7 @@ END_SHAPE = "M 50,0 C 50,27.6 27.6,50 0,50 C -27.6,50 -50,27.6 -50,0 C -50,-27.6
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     start_state = PathState(
         data=START_SHAPE,
@@ -38,7 +39,7 @@ def main():
 
     element = VElement(
         renderer=renderer,
-        states=[start_state, end_state],
+        keystates=[start_state, end_state],
     )
 
     # Add all elements to the scene

@@ -8,7 +8,7 @@ from typing import Optional
 from .base import State
 
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class LineState(State):
     """State class for line elements"""
 
     length: float = 100  # Length of the line
-    stroke_color: Optional[ColorInput] = (220, 220, 220)
+    stroke_color: Optional[Color] = (220, 220, 220)
     stroke_width: float = 1
     stroke_dasharray: Optional[str] = None  # For dashed lines, e.g., "5,5"
     stroke_linecap: str = "round"  # "butt", "round", "square"
@@ -30,6 +30,5 @@ class LineState(State):
         "stroke_linecap": easing.linear,  # Stepped animation for strings
     }
 
- 
     def __post_init__(self):
-        self._normalize_color_field("stroke_color")
+        self._none_color("stroke_color")

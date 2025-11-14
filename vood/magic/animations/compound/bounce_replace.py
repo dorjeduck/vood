@@ -28,7 +28,7 @@ def bounce_replace(
         at_time: Center point of the transition (0.0 to 1.0)
         duration: Duration of the bounce (0.0 to 1.0)
         bounce_height: How high to bounce (negative = up, positive = down)
-        extend_timeline: If True, adds keyframes at 0.0 and 1.0 to cover full timeline
+        extend_timeline: If True, adds keystates at 0.0 and 1.0 to cover full timeline
 
     Returns:
         Tuple of (element1_keyframes, element2_keyframes)
@@ -44,10 +44,10 @@ def bounce_replace(
         ...     bounce_height=-100
         ... )
         >>>
-        >>> elem1 = VElement(text_renderer, keyframes=kf1,
-        ...                  easing={"y": easing.bounce})
-        >>> elem2 = VElement(text_renderer, keyframes=kf2,
-        ...                  easing={"y": easing.bounce})
+        >>> elem1 = VElement(text_renderer, keystates=kf1,
+        ...                  instance_easing={"y": easing.bounce})
+        >>> elem2 = VElement(text_renderer, keystates=kf2,
+        ...                  instance_easing={"y": easing.bounce})
         >>> group = VElementGroup(elements=[elem1, elem2])
     """
     half = duration / 2

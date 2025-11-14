@@ -22,41 +22,41 @@ def step(
         state1: Starting state (will be held)
         state2: Ending state (appears instantly)
         at_time: Time when the switch occurs (0.0 to 1.0)
-        extend_timeline: If True, adds keyframes at 0.0 and 1.0 to cover full timeline
+        extend_timeline: If True, adds keystates at 0.0 and 1.0 to cover full timeline
 
     Returns:
-        List of keyframes for single element
+        List of keystates for single element
 
     Example:
         >>> # Element only exists at transition point
         >>> from vood.magic.animations.atomic import hold
         >>>
-        >>> keyframes = hold(
+        >>> keystates = hold(
         ...     TextState(text="Before"),
         ...     TextState(text="After"),
         ...     at_time=0.5
         ... )
-        >>> element = VElement(renderer, keyframes=keyframes)
+        >>> element = VElement(renderer, keystates=keystates)
         >>> # Element appears at 0.5, switches instantly
 
         >>> # Countdown sequence
-        >>> keyframes = [
+        >>> keystates = [
         ...     (0.0, TextState(text="3")),
         ...     *hold(TextState(text="3"), TextState(text="2"), at_time=0.33),
         ...     *hold(TextState(text="2"), TextState(text="1"), at_time=0.66),
         ...     (1.0, TextState(text="1")),
         ... ]
     """
-    keyframes = [
+    keystates = [
         (at_time, state1),
         (at_time, state2),  # Duplicate time = instant switch
     ]
 
     if extend_timeline:
-        keyframes = [
+        keystates = [
             (0.0, state1),
-            *keyframes,
+            *keystates,
             (1.0, state2),
         ]
 
-    return keyframes
+    return keystates

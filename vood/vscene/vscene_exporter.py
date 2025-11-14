@@ -23,6 +23,7 @@ logger = get_logger()
 @dataclass
 class ExportResult:
     """Result of an export operation"""
+
     success: bool
     files: dict[str, str]  # format -> file path
     error: Optional[str] = None
@@ -59,7 +60,9 @@ class VSceneExporter:
             timestamp_files: Whether to prefix filenames with timestamps
         """
         self.scene = scene
-        self.output_dir = Path(output_dir) if not isinstance(output_dir, Path) else output_dir
+        self.output_dir = (
+            Path(output_dir) if not isinstance(output_dir, Path) else output_dir
+        )
         self.timestamp_files = timestamp_files
         self.converter = self._init_converter(converter)
 
@@ -79,7 +82,7 @@ class VSceneExporter:
         converter_class = converter_map.get(converter)
         if converter_class:
             return converter_class()
-        
+
         logger.warning(f"Unrecognized converter '{converter}', defaulting to CairoSVG")
         return CairoSvgConverter()
 
@@ -87,14 +90,12 @@ class VSceneExporter:
         """Validate that requested formats are supported"""
         invalid = set(formats) - self.SUPPORTED_FORMATS
         if invalid:
-            raise ValueError(f"Unsupported formats: {invalid}. Supported: {self.SUPPORTED_FORMATS}")
+            raise ValueError(
+                f"Unsupported formats: {invalid}. Supported: {self.SUPPORTED_FORMATS}"
+            )
 
     def _validate_video_params(
-        self, 
-        total_frames: int, 
-        framerate: int, 
-        num_thumbnails: int,
-        codec: str
+        self, total_frames: int, framerate: int, num_thumbnails: int, codec: str
     ) -> None:
         """Validate video export parameters"""
         if total_frames < 1:
@@ -104,7 +105,9 @@ class VSceneExporter:
         if num_thumbnails < 0:
             raise ValueError(f"num_thumbnails must be >= 0, got {num_thumbnails}")
         if codec not in self.SUPPORTED_VIDEO_CODECS:
-            logger.warning(f"Codec '{codec}' not in known codecs {self.SUPPORTED_VIDEO_CODECS}")
+            logger.warning(
+                f"Codec '{codec}' not in known codecs {self.SUPPORTED_VIDEO_CODECS}"
+            )
 
     def _validate_dimensions(
         self,
@@ -138,21 +141,21 @@ class VSceneExporter:
             Full output path
         """
         path = Path(filename)
-        
+
         if self.timestamp_files:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             stem = f"{path.stem}_{timestamp}"
         else:
             stem = path.stem
-        
+
         # Use provided extension or original
         ext = extension if extension else path.suffix
-        if not ext.startswith('.'):
-            ext = f'.{ext}'
-        
+        if not ext.startswith("."):
+            ext = f".{ext}"
+
         output_path = self.output_dir / f"{stem}{ext}"
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         return output_path
 
     def _needs_converter(self, formats: list[str]) -> list[str]:
@@ -160,10 +163,10 @@ class VSceneExporter:
         return [fmt for fmt in formats if fmt != "svg"]
 
     def _calculate_frame_time(
-        self, 
-        frame_num: int, 
-        total_frames: int, 
-        easing: Optional[Callable[[float], float]] = None
+        self,
+        frame_num: int,
+        total_frames: int,
+        easing: Optional[Callable[[float], float]] = None,
     ) -> float:
         """Calculate normalized time for a frame number
 
@@ -180,8 +183,8 @@ class VSceneExporter:
 
     def _infer_formats_from_extension(self, extension: str) -> list[str]:
         """Infer export formats from file extension"""
-        ext = extension.lower().lstrip('.')
-        
+        ext = extension.lower().lstrip(".")
+
         if ext == "svg":
             return ["svg"]
         elif ext == "png":
@@ -198,7 +201,9 @@ class VSceneExporter:
         """Log frame generation progress"""
         if frame_num % max(1, total_frames // step) == 0:
             progress = (frame_num / total_frames) * 100
-            logger.info(f"Frame generation progress: {progress:.0f}% ({frame_num}/{total_frames})")
+            logger.info(
+                f"Frame generation progress: {progress:.0f}% ({frame_num}/{total_frames})"
+            )
 
     # ========================================================================
     # STATIC EXPORTS
@@ -234,7 +239,9 @@ class VSceneExporter:
         """
         # Validate frame_time
         if not 0.0 <= frame_time <= 1.0:
-            raise ValueError(f"frame_time must be between 0.0 and 1.0, got {frame_time}")
+            raise ValueError(
+                f"frame_time must be between 0.0 and 1.0, got {frame_time}"
+            )
 
         # Infer formats from extension if not specified
         path = Path(filename)
@@ -243,13 +250,12 @@ class VSceneExporter:
                 formats = self._infer_formats_from_extension(path.suffix)
             except ValueError as e:
                 return ExportResult(success=False, files={}, error=str(e))
-        
+
         # Validate formats and dimensions
         try:
             self._validate_formats(formats)
             self._validate_dimensions(
-                png_width_px, png_height_px, 
-                pdf_inch_width, pdf_inch_height
+                png_width_px, png_height_px, pdf_inch_width, pdf_inch_height
             )
         except ValueError as e:
             return ExportResult(success=False, files={}, error=str(e))
@@ -267,7 +273,7 @@ class VSceneExporter:
         converter_formats = self._needs_converter(formats)
         if converter_formats:
             output_path = self._generate_output_path(filename)
-            
+
             conv_results = self.converter.convert(
                 self.scene,
                 str(output_path),
@@ -280,7 +286,7 @@ class VSceneExporter:
                 pdf_inch_width=pdf_inch_width,
                 pdf_inch_height=pdf_inch_height,
             )
-            
+
             if conv_results:
                 files.update(conv_results)
                 for fmt, path in conv_results.items():
@@ -315,10 +321,10 @@ class VSceneExporter:
             png_width_px=png_width_px,
             png_height_px=png_height_px,
         )
-        
+
         if not result.success:
             raise RuntimeError(f"PNG export failed: {result.error}")
-        
+
         return result.files.get("png")
 
     def to_pdf(
@@ -348,10 +354,10 @@ class VSceneExporter:
             pdf_inch_width=pdf_inch_width,
             pdf_inch_height=pdf_inch_height,
         )
-        
+
         if not result.success:
             raise RuntimeError(f"PDF export failed: {result.error}")
-        
+
         return result.files.get("pdf")
 
     # ========================================================================
@@ -390,9 +396,13 @@ class VSceneExporter:
         if total_frames < 1:
             raise ValueError(f"total_frames must be >= 1, got {total_frames}")
         if format not in self.SUPPORTED_FORMATS:
-            raise ValueError(f"format must be one of {self.SUPPORTED_FORMATS}, got '{format}'")
+            raise ValueError(
+                f"format must be one of {self.SUPPORTED_FORMATS}, got '{format}'"
+            )
         if "{" not in filename_pattern:
-            raise ValueError(f"filename_pattern must include format placeholder like {{:04d}}")
+            raise ValueError(
+                f"filename_pattern must include format placeholder like {{:04d}}"
+            )
 
         frames_dir = Path(output_dir)
         frames_dir.mkdir(parents=True, exist_ok=True)
@@ -405,7 +415,7 @@ class VSceneExporter:
         for frame_num in range(total_frames):
             # Calculate frame time
             t = self._calculate_frame_time(frame_num, total_frames, easing)
-            
+
             # Progress tracking
             if progress_callback:
                 progress_callback(frame_num, total_frames)
@@ -418,7 +428,7 @@ class VSceneExporter:
                 # Direct SVG export
                 output_file = frames_dir / f"{filename}.svg"
                 self.scene.to_svg(filename=str(output_file), frame_time=t, log=False)
-                
+
             elif format == "png":
                 # Export SVG first if cleanup is needed
                 if cleanup_svg_after_png_conversion:
@@ -436,7 +446,7 @@ class VSceneExporter:
                     png_width_px=png_width_px,
                     png_height_px=png_height_px,
                 )
-                
+
             elif format == "pdf":
                 output_file = frames_dir / f"{filename}.pdf"
                 self.converter.convert(
@@ -491,9 +501,11 @@ class VSceneExporter:
         """
         # Validation
         self._validate_video_params(total_frames, framerate, num_thumbnails, codec)
-        
+
         if not self._check_ffmpeg_available():
-            raise RuntimeError("ffmpeg is required for video export but is not available")
+            raise RuntimeError(
+                "ffmpeg is required for video export but is not available"
+            )
 
         # Setup output path
         output_path = self._generate_output_path(filename, ".mp4")
@@ -513,7 +525,7 @@ class VSceneExporter:
         try:
             # Generate PNG frames
             logger.info(f"Generating {total_frames} frames for video...")
-            
+
             frame_times = []  # Track for thumbnail generation
             for frame_num, t in self.to_frames(
                 output_dir=str(frames_dir),
@@ -535,10 +547,7 @@ class VSceneExporter:
             # Generate thumbnails if requested
             if num_thumbnails > 0:
                 self._generate_thumbnails(
-                    frames_dir, 
-                    base_name, 
-                    total_frames, 
-                    num_thumbnails
+                    frames_dir, base_name, total_frames, num_thumbnails
                 )
 
         finally:
@@ -583,7 +592,7 @@ class VSceneExporter:
         for idx in thumbnail_indices:
             src = frames_dir / f"frame_{idx:04d}.png"
             dst = thumb_dir / f"thumbnail_{idx:04d}.png"
-            
+
             if src.exists():
                 try:
                     shutil.copy(src, dst)
@@ -618,32 +627,36 @@ class VSceneExporter:
         cmd = [
             "ffmpeg",
             "-y",  # Overwrite output file
-            "-framerate", str(framerate),
-            "-i", input_pattern,
-            "-c:v", codec,
-            "-pix_fmt", "yuv420p",  # Compatibility
+            "-framerate",
+            str(framerate),
+            "-i",
+            input_pattern,
+            "-c:v",
+            codec,
+            "-pix_fmt",
+            "yuv420p",  # Compatibility
             str(output_path),
         ]
 
         try:
             result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True, 
+                cmd,
+                capture_output=True,
+                text=True,
                 check=True,
-                timeout=300  # 5 minute timeout
+                timeout=300,  # 5 minute timeout
             )
             logger.debug("Video encoding complete")
-            
+
         except subprocess.CalledProcessError as e:
             logger.error(f"ffmpeg failed with return code {e.returncode}")
             logger.error(f"stderr: {e.stderr}")
             raise RuntimeError(f"Video encoding failed: {e.stderr}")
-            
+
         except subprocess.TimeoutExpired:
             logger.error("ffmpeg timed out after 5 minutes")
             raise RuntimeError("Video encoding timed out")
-            
+
         except Exception as e:
             logger.error(f"Unexpected error during video encoding: {e}")
             raise
@@ -656,11 +669,12 @@ class VSceneExporter:
         """
         try:
             subprocess.run(
-                ["ffmpeg", "-version"],
-                capture_output=True,
-                check=True,
-                timeout=5
+                ["ffmpeg", "-version"], capture_output=True, check=True, timeout=5
             )
             return True
-        except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        except (
+            subprocess.CalledProcessError,
+            FileNotFoundError,
+            subprocess.TimeoutExpired,
+        ):
             return False

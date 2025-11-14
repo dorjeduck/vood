@@ -15,21 +15,21 @@ def trim(
     duration: float = 0.2,
     extend_timeline: bool = False,
 ) -> List[Tuple[float, State]]:
-    
+
     half = duration / 2
     t_start = at_time - half
     t_end = at_time + half
 
-    keyframes = [
+    keystates = [
         (t_start, state1),
         (t_end, state2),
     ]
 
     if extend_timeline:
-        keyframes = [
+        keystates = [
             (0.0, state1),
-            *keyframes,
+            *keystates,
             (1.0, state2),
         ]
 
-    return keyframes
+    return keystates

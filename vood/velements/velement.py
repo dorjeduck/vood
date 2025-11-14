@@ -6,16 +6,20 @@ from typing import Any, Iterable, Optional, Dict, Callable, List, Union, Tuple
 import drawsvg as dw
 
 from vood.components import Renderer, State
-from vood.velements.base_velement import BaseVElement
+from vood.velements.base_velement import (
+    BaseVElement,
+    SegmentKeystateTuple,
+    PropertyTimelineConfig,
+)
 
 
 class VElement(BaseVElement):
     """Central object that combines a renderer with its state(s)
 
-    Can be used for static rendering (single state) or animation (keyframes/states).
+    Can be used for static rendering (single state) or animation (keystates/states).
     This is the main object users work with.
 
-    Elements only exist (render) within their keyframe time range. If keyframes
+    Elements only exist (render) within their keystate time range. If keystates
     don't cover the full [0, 1] timeline, the element won't render outside that range.
     """
 
@@ -23,36 +27,22 @@ class VElement(BaseVElement):
         self,
         renderer: Renderer,
         state: Optional[State] = None,
-        states: Optional[Iterable[State]] = None,
-        keyframes: Optional[Iterable[Tuple[float, State]]] = None,
-        global_transitions: Optional[Dict[str, Tuple[Any, Any]]] = None,
-        easing: Optional[Dict[str, Callable[[float], float]]] = None,
-        segment_easing: Optional[Dict[int, Dict[str, Callable[[float], float]]]] = None,
+        # Updated keystates type
+        keystates: Optional[Iterable[SegmentKeystateTuple]] = None,
+        # NEW/Renamed: Instance-level easing override (Level 2)
+        instance_easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        # NEW: Custom property timelines (Level 4 control)
+        property_timelines: Optional[PropertyTimelineConfig] = None,
     ) -> None:
-        """Initialize an element
 
-        Args:
-            renderer: The renderer to render
-            state: Single state for static element
-            states: List of states for evenly-timed animation
-            keyframes: List of (frame_time, state) tuples for precise timing.
-                Element only exists between first and last keyframe times.
-            global_transitions: Dict of property_name -> (start_value, end_value)
-                for properties that should transition linearly across entire animation
-                independent of keyframe structure
-            easing: Optional dict to override default easing functions
-            segment_easing: Optional dict of segment_index -> {property: easing_func}
-        """
         self.renderer = renderer
 
-        # Call parent constructor with keyframe parameters
+        # Call parent constructor with keystate parameters
         super().__init__(
             state=state,
-            states=states,
-            keyframes=keyframes,
-            global_transitions=global_transitions,
-            easing=easing,
-            segment_easing=segment_easing,
+            keystates=keystates,
+            instance_easing=instance_easing,
+            property_timelines=property_timelines,
         )
 
     def render(self) -> Optional[dw.DrawingElement]:
@@ -72,12 +62,12 @@ class VElement(BaseVElement):
 
         Returns:
             drawsvg element representing the element at time t, or None if
-            element doesn't exist at this time (outside keyframe range)
+            element doesn't exist at this time (outside keystate range)
         """
         # Get the interpolated state at frame_time t
         interpolated_state = self._get_state_at_time(t)
 
-        # If no state (outside keyframe range), don't render
+        # If no state (outside keystate range), don't render
         if interpolated_state is None:
             return None
 

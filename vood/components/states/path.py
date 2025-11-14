@@ -3,7 +3,7 @@ from typing import Optional, Union
 from enum import Enum
 
 from vood.paths.svg_path import SVGPath
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 from .base import State
 from vood.transitions import easing
@@ -47,7 +47,7 @@ class PathState(State):
     data: Union[str, SVGPath] = "M 0,0 L 10,10 L 0,20 Z"  # Default path data
 
     # Stroke properties
-    stroke_color: Optional[ColorInput] = None
+    stroke_color: Optional[Color] = None
     stroke_width: float = 1.0
     stroke_opacity: float = 1.0
     stroke_linecap: Union[StrokeLinecap, str] = StrokeLinecap.BUTT
@@ -55,7 +55,7 @@ class PathState(State):
     stroke_dasharray: Optional[str] = None
 
     # Fill properties
-    fill_color: Optional[ColorInput] = None
+    fill_color: Optional[Color] = None
     fill_opacity: float = 1.0
     fill_rule: Union[str, FillRule] = FillRule.NONZERO  # nonzero, evenodd
 
@@ -87,5 +87,5 @@ class PathState(State):
             self._set_field("data", SVGPath.from_string(self.data))
 
     def __post_init__(self):
-        self._normalize_color_field("fill_color")
-        self._normalize_color_field("stroke_color")
+        self._none_color("fill_color")
+        self._none_color("stroke_color")

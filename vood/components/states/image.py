@@ -8,7 +8,7 @@ from enum import Enum
 
 from .base import State
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 class ImageFitMode(Enum):
@@ -32,7 +32,7 @@ class ImageState(State):
     width: Optional[float] = None  # Image width (None = use original image width)
     height: Optional[float] = None  # Image height (None = use original image height)
     opacity: float = 1.0  # Image opacity (0.0 to 1.0)
-    stroke_color: Optional[ColorInput] = None  # Border color
+    stroke_color: Optional[Color] = None  # Border color
     stroke_width: float = 0  # Border width
     fit_mode: ImageFitMode = ImageFitMode.FIT  # How to fit the image
 
@@ -45,4 +45,4 @@ class ImageState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("stroke_color")
+        self._none_color("stroke_color")

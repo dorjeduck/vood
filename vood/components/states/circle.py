@@ -7,7 +7,7 @@ from typing import Optional
 from .base import State
 
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -15,8 +15,8 @@ class CircleState(State):
     """State class for circle elements"""
 
     radius: float = 50
-    color: Optional[ColorInput] = (255, 0, 0)
-    stroke_color: Optional[ColorInput] = None
+    color: Optional[Color] = (255, 0, 0)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 0
 
     # Default easing functions for each property
@@ -29,7 +29,5 @@ class CircleState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
-        self._normalize_color_field("stroke_color")
-
-   
+        self._none_color("color")
+        self._none_color("stroke_color")

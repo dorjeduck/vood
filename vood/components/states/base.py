@@ -4,7 +4,7 @@ from dataclasses import dataclass, fields, Field
 from typing import get_origin, get_args, Union, Any
 
 from vood.transitions import easing
-from vood.core import Color, ColorInput
+from vood.core import Color
 
 
 @dataclass(frozen=True)
@@ -35,11 +35,17 @@ class State(ABC):
     def is_angle(self, field: Field):
         return field.name == "rotation"
 
+    def _none_color(self, field_name: str):
+        color = getattr(self, field_name)
+        if color is None:
+            self._set_field(field_name, Color.NONE)
+
     def _normalize_color_field(self, field_name: str) -> None:
         """Normalize and set a color field in frozen dataclass
 
         Args:
             field_name: Name of the field to set
+
         """
         color = getattr(self, field_name)
         if color is None:
@@ -47,7 +53,7 @@ class State(ABC):
         elif isinstance(color, Color):
             normalized = color
         else:
-            normalized = Color.from_any(color)
+            normalized = Color(color)
 
         object.__setattr__(self, field_name, normalized)
 

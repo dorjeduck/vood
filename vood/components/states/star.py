@@ -7,7 +7,7 @@ from typing import Optional
 
 from .base import State
 from vood.transitions import easing
-from vood.core.color import Color, ColorInput
+from vood.core.color import Color
 
 
 @dataclass(frozen=True)
@@ -17,8 +17,8 @@ class StarState(State):
     outer_radius: float = 50  # Radius to outer points
     inner_radius: float = 20  # Radius to inner points
     points: int = 5  # Number of points (minimum 3)
-    color: Optional[ColorInput] = (255, 0, 0)
-    stroke_color: Optional[ColorInput] = None
+    color: Optional[Color] = (255, 0, 0)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 0
 
     DEFAULT_EASING = {
@@ -32,5 +32,5 @@ class StarState(State):
     }
 
     def __post_init__(self):
-        self._normalize_color_field("color")
-        self._normalize_color_field("stroke_color")
+        self._none_color("color")
+        self._none_color("stroke_color")

@@ -37,7 +37,7 @@ class PathTextRenderer(Renderer):
         >>> path2 = quadratic_curve(0, 0, 100, -50, 200, 0)
         >>> element = VElement(
         ...     renderer=PathTextRenderer(),
-        ...     keyframes=[
+        ...     keystates=[
         ...         (0.0, PathTextState(text="Morphing", path=path1)),
         ...         (1.0, PathTextState(text="Morphing", path=path2))
         ...     ]

@@ -5,10 +5,10 @@
 Compound Animations
 ===================
 
-Multi-element animation patterns that return multiple keyframe lists.
+Multi-element animation patterns that return multiple keystate lists.
 
-These functions generate coordinated keyframes for multiple elements that
-animate simultaneously. Each function returns a tuple of keyframe lists,
+These functions generate coordinated keystates for multiple elements that
+animate simultaneously. Each function returns a tuple of keystate lists,
 one for each element involved in the transition.
 
 All functions return: Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]

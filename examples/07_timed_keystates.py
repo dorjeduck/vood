@@ -5,6 +5,7 @@ from vood.core.logger import configure_logging
 from vood.velements import VElement
 from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
+from vood.core.color import Color
 
 configure_logging(level="INFO")
 
@@ -12,7 +13,7 @@ configure_logging(level="INFO")
 def main():
 
     # Create the scene
-    scene = VScene(width=256, height=256, background="#000017")
+    scene = VScene(width=256, height=256, background=Color("#000017"))
 
     # Create text states for each number with consistent styling
     # These states will be the starting point of the animation
@@ -21,7 +22,7 @@ def main():
             text=f"{num:02}",
             font_family="Courier New",
             font_size=8,
-            color="#FDBE02",
+            color=Color("#FDBE02"),
         )
         for num in range(1, 20)
     ]
@@ -43,12 +44,12 @@ def main():
     # Create a text renderer for all numbers
     renderer = TextRenderer()
 
-    # keyframe fine tuning, 4 times faster between start and middle than middle to end
+    # keystate fine tuning, 4 times faster between start and middle than middle to end
 
     elements = [
         VElement(
             renderer=renderer,
-            keyframes=[(0, start_state), (0.2, middle_state), (1, end_state)],
+            keystates=[(0, start_state), (0.2, middle_state), (1, end_state)],
         )
         for start_state, middle_state, end_state in zip(
             start_states, middle_states, end_states
@@ -67,7 +68,7 @@ def main():
 
     # Export to mp4
     exporter.to_mp4(
-        filename="07_key_frames",
+        filename="07_timed_keystates",
         total_frames=90,
         framerate=30,
         png_width_px=1024,
