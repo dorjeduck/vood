@@ -185,7 +185,7 @@ exporter.to_mp4(
 
 While this example uses a simple two-state interpolation, Vood's animation engine supports fine grained timing control:
 
-* **Multi-keystate sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - keystates](https://vood.wectar.com/circus/keystates/)
+* **Multi-keystate sequencing** — Control timing with explicit frame time values for detailed animation sequences. See [SVG Circus - timed keystates](https://vood.wectar.com/circus/timed-keystates/)
 
 * **Per-property easing** — Apply different easing functions (ease-in, ease-out, bezier curves etc) to individual properties for nuanced motion control. See [SVG Circus - Easing Variety](https://vood.wectar.com/circus/easing-variety/)
 
@@ -213,6 +213,11 @@ Vood is still in an early stage and has so far been developed primarily to suppo
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Changelog
+
+### [0.2.0] - 2025-11-15
+
+* Mandatory `Color` usage
+* states/keyframes combined into keystates
 
 ### [0.2.0] - 2025-11-13
 
