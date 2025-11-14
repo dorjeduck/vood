@@ -27,6 +27,8 @@ class ColorSpace(Enum):
 class Color:
     """Immutable RGB color with conversion utilities and interpolation
 
+    Use Color.NONE as a sentinel for "no color" (transparent/none).
+
     Examples:
         >>> # Create from tuple
         >>> red = Color(255, 0, 0)
@@ -38,6 +40,11 @@ class Color:
 
         >>> # Create from name
         >>> green = Color.from_name("green")
+
+        >>> # No color (transparent)
+        >>> transparent = Color.NONE
+        >>> transparent.to_rgb_string()  # "none"
+        >>> transparent.is_none()  # True
 
         >>> # Convert formats
         >>> red.to_tuple()  # (255, 0, 0)
@@ -52,13 +59,22 @@ class Color:
     r: int
     g: int
     b: int
+    _is_none_sentinel: bool = False
 
     def __post_init__(self):
         """Validate RGB values"""
+        # Skip validation for the NONE sentinel
+        if self._is_none_sentinel:
+            return
+
         if not (0 <= self.r <= 255 and 0 <= self.g <= 255 and 0 <= self.b <= 255):
             raise ValueError(
                 f"RGB values must be 0-255, got ({self.r}, {self.g}, {self.b})"
             )
+
+    def is_none(self) -> bool:
+        """Check if this is the special NONE sentinel (no color)"""
+        return self._is_none_sentinel
 
     # ========================================================================
     # Creation methods
@@ -140,20 +156,30 @@ class Color:
     # Conversion methods
     # ========================================================================
 
-    def to_tuple(self) -> ColorTuple:
-        """Convert to RGB tuple for rendering"""
+    def to_tuple(self) -> Optional[ColorTuple]:
+        """Convert to RGB tuple for rendering
+
+        Returns:
+            RGB tuple or None if this is Color.NONE
+        """
+        if self.is_none():
+            return None
         return (self.r, self.g, self.b)
 
     def to_hex(self) -> str:
-        """Convert to hex string (#RRGGBB)"""
+        """Convert to hex string (#RRGGBB) or 'none'"""
+        if self.is_none():
+            return "none"
         return f"#{self.r:02X}{self.g:02X}{self.b:02X}"
 
     def to_rgb_string(self) -> str:
-        """Convert to CSS rgb() string for drawsvg
+        """Convert to CSS rgb() string for drawsvg or 'none'
 
         Returns:
-            String like "rgb(255,0,0)"
+            String like "rgb(255,0,0)" or "none"
         """
+        if self.is_none():
+            return "none"
         return f"rgb({self.r},{self.g},{self.b})"
 
     # ========================================================================
@@ -178,7 +204,16 @@ class Color:
             >>> blue = Color(0, 0, 255)
             >>> purple = red.interpolate(blue, 0.5)  # Perceptual blend
             >>> rainbow = red.interpolate(blue, 0.5, ColorSpace.HSV)  # Rainbow
+
+        Note:
+            If either color is Color.NONE, returns the other color (step transition)
         """
+        # Handle NONE colors - step transition
+        if self.is_none():
+            return other
+        if other.is_none():
+            return self
+
         if space == ColorSpace.RGB:
             rgb = _interpolate_rgb(self, other, t)
         elif space == ColorSpace.HSV:
@@ -229,8 +264,18 @@ class Color:
     # Special methods
     # ========================================================================
 
+    def __bool__(self) -> bool:
+        """Make Color.NONE falsy, real colors truthy
+
+        Allows: if color: ...
+        """
+        return not self.is_none()
+
     def __iter__(self):
-        """Allow unpacking: r, g, b = color"""
+        """Allow unpacking: r, g, b = color
+
+        Note: Color.NONE yields (0, 0, 0) but shouldn't be unpacked
+        """
         yield self.r
         yield self.g
         yield self.b
@@ -428,3 +473,7 @@ CYAN = Color(0, 255, 255)
 MAGENTA = Color(255, 0, 255)
 ORANGE = Color(255, 165, 0)
 PURPLE = Color(128, 0, 128)
+
+# Special sentinel for "no color" (transparent/none)
+# This is a singleton - use Color.NONE, not Color(0, 0, 0, _is_none_sentinel=True)
+Color.NONE = Color(0, 0, 0, _is_none_sentinel=True)

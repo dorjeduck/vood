@@ -85,7 +85,5 @@ class PathState(State):
         if isinstance(self.data, str):
             self.data = SVGPath.from_string(self.data)
 
-        if self.fill_color is not None:
-            self.fill_color = Color.from_any(self.fill_color)
-        if self.stroke_color is not None:
-            self.stroke_color = Color.from_any(self.stroke_color)
+        self.fill_color = self._normalize_color(self.fill_color)
+        self.stroke_color = self._normalize_color(self.stroke_color)

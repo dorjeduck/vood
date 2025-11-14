@@ -41,5 +41,4 @@ class TextState(State):
     }
 
     def __post_init__(self):
-        if self.color is not None:
-            self.color = Color.from_any(self.color)
+        self.color = self._normalize_color(self.color)

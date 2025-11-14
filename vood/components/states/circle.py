@@ -29,7 +29,5 @@ class CircleState(State):
     }
 
     def __post_init__(self):
-        if self.color is not None:
-            self.color = Color.from_any(self.color)
-        if self.stroke_color is not None:
-            self.stroke_color = Color.from_any(self.stroke_color)
+        self.color = self._normalize_color(self.color)
+        self.stroke_color = self._normalize_color(self.stroke_color)

@@ -20,5 +20,4 @@ class RadialSegmentsState(State):
     segments_fn: Optional[callable] = None
 
     def __post_init__(self):
-        if self.stroke_color is not None:
-            self.stroke_color = Color.from_any(self.stroke_color)
+        self.stroke_color = self._normalize_color(self.stroke_color)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import  Optional
+from typing import Optional
 
 
 from .base import State
@@ -31,5 +31,4 @@ class LineState(State):
     }
 
     def __post_init__(self):
-        if self.stroke_color is not None:
-            self.stroke_color = Color.from_any(self.stroke_color)
+        self.stroke_color = self._normalize_color(self.stroke_color)
