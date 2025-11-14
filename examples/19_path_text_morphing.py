@@ -51,7 +51,7 @@ def main():
         filename="19_path_text_morphing",
         total_frames=60,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

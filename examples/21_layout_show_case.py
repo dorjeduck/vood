@@ -196,9 +196,9 @@ def main():
     # Export to MP4 file
     exporter.to_mp4(
         filename="21_layout_showcase.mp4",
-        total_frames=len(layout_states) * 60,  
+        total_frames=len(layout_states) * 60,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

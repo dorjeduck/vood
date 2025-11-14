@@ -70,7 +70,7 @@ def main():
         filename="06_the_wave",
         total_frames=30 * ROUNDS,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

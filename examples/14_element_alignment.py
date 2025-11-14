@@ -87,7 +87,7 @@ def main():
         filename="14_element_alignment",
         total_frames=210,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

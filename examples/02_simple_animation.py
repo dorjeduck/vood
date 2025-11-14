@@ -63,7 +63,7 @@ def main():
         filename="02_simple_animation",
         total_frames=60,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

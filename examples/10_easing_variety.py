@@ -76,7 +76,7 @@ def main():
         filename="10_easing_variety",
         total_frames=90,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 

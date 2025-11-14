@@ -54,7 +54,7 @@ def main():
         filename="16_animation_helper",
         total_frames=150,
         framerate=30,
-        width_px=1024,
+        png_width_px=1024,
     )
 
 
