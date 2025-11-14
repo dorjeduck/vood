@@ -5,17 +5,8 @@
 
 from typing import List, Tuple, Union
 from dataclasses import replace
-from enum import Enum
 from vood.components import State
-
-
-class SlideDirection(Enum):
-    """Direction for slide animations"""
-
-    LEFT = "left"
-    RIGHT = "right"
-    UP = "up"
-    DOWN = "down"
+from vood.magic.animations.enums import SlideDirection
 
 
 def slide_replace(

@@ -24,7 +24,6 @@ Available animations:
 
 from .step import step
 from .fade import fade
-from .hold import hold
 from .slide import slide
 from .scale import scale
 from .trim import trim
