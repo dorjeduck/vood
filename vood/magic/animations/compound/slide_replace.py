@@ -6,7 +6,7 @@
 from typing import List, Tuple, Union
 from dataclasses import replace
 from vood.components import State
-from vood.magic.animations.enums import SlideDirection
+from ..enums import SlideDirection
 
 
 def slide_replace(
