@@ -45,7 +45,7 @@ def pop(
         >>> element = VElement(
         ...     renderer,
         ...     keystates=keystates,
-        ...     instance_easing={"scale": easing.elastic}  # Add bounce!
+        ...     property_easing={"scale": easing.elastic}  # Add bounce!
         ... )
     """
     half = duration / 2

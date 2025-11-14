@@ -30,9 +30,9 @@ class VElement(BaseVElement):
         # Updated keystates type
         keystates: Optional[Iterable[SegmentKeystateTuple]] = None,
         # NEW/Renamed: Instance-level easing override (Level 2)
-        instance_easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        property_easing: Optional[Dict[str, Callable[[float], float]]] = None,
         # NEW: Custom property timelines (Level 4 control)
-        property_timelines: Optional[PropertyTimelineConfig] = None,
+        property_keystates: Optional[PropertyTimelineConfig] = None,
     ) -> None:
 
         self.renderer = renderer
@@ -41,8 +41,8 @@ class VElement(BaseVElement):
         super().__init__(
             state=state,
             keystates=keystates,
-            instance_easing=instance_easing,
-            property_timelines=property_timelines,
+            property_easing=property_easing,
+            property_keystates=property_keystates,
         )
 
     def render(self) -> Optional[dw.DrawingElement]:

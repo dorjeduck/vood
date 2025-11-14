@@ -49,8 +49,8 @@ def main():
                 (0.3 if i % 2 else 0, state_a),
                 (0.7 if i % 2 else 1, state_b),
             ],
-            instance_easing={"x": easing.linear},
-            property_timelines={
+            property_easing={"x": easing.linear},
+            property_keystates={
                 "color": [
                     (0, START_COLOR),
                     (1, END_COLOR),

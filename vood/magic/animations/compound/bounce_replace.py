@@ -45,9 +45,9 @@ def bounce_replace(
         ... )
         >>>
         >>> elem1 = VElement(text_renderer, keystates=kf1,
-        ...                  instance_easing={"y": easing.bounce})
+        ...                  property_easing={"y": easing.bounce})
         >>> elem2 = VElement(text_renderer, keystates=kf2,
-        ...                  instance_easing={"y": easing.bounce})
+        ...                  property_easing={"y": easing.bounce})
         >>> group = VElementGroup(elements=[elem1, elem2])
     """
     half = duration / 2

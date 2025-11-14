@@ -38,7 +38,7 @@ def main():
     element = VElement(
         renderer=renderer,
         keystates=fade_keyframes,
-        property_timelines={
+        property_keystates={
             "color": [
                 (0, START_COLOR),
                 (1, END_COLOR),

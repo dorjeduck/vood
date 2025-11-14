@@ -48,7 +48,7 @@ def main():
         VElement(
             renderer=renderer,
             keystates=[(0, start_state), (0.1 * (i + 1), middle_state), (1, end_state)],
-            property_timelines={
+            property_keystates={
                 "color": [
                     (0, START_COLOR),
                     (0.3, END_COLOR),

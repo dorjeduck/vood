@@ -46,7 +46,7 @@ def scale_swap(
         >>>
         >>> elem1 = VElement(circle_renderer, keystates=kf1)
         >>> elem2 = VElement(circle_renderer, keystates=kf2,
-        ...                  instance_easing={"scale": easing.elastic})
+        ...                  property_easing={"scale": easing.elastic})
         >>> group = VElementGroup(elements=[elem1, elem2])
     """
     half = duration / 2

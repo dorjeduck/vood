@@ -45,9 +45,9 @@ class BaseVElement(ABC):
         state: Optional[State] = None,
         keystates: Optional[Iterable[FlexibleKeystateInput]] = None,
         # Level 2 easing override
-        instance_easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        property_easing: Optional[Dict[str, Callable[[float], float]]] = None,
         # Level 4 control: custom property timelines
-        property_timelines: Optional[PropertyTimelineConfig] = None,
+        property_keystates: Optional[PropertyTimelineConfig] = None,
     ) -> None:
         """Initialize keystate animation system"""
 
@@ -65,8 +65,8 @@ class BaseVElement(ABC):
                 "Please specify only one of 'state' or 'keystates'."
             )
 
-        self.instance_easing = instance_easing or {}
-        self.property_timelines = property_timelines or {}
+        self.property_easing = property_easing or {}
+        self.property_keystates = property_keystates or {}
         self.keystates: List[SegmentKeystateTuple] = []
 
         if state is not None:
@@ -268,11 +268,11 @@ class BaseVElement(ABC):
 
     def is_animatable(self) -> bool:
         """Check if this element can be animated"""
-        return len(self.keystates) > 1 or bool(self.property_timelines)
+        return len(self.keystates) > 1 or bool(self.property_keystates)
 
     def _get_property_value_at_time(self, field_name: str, t: float) -> Any:
         # ... (rest of _get_property_value_at_time remains unchanged)
-        timeline = self.property_timelines[field_name]
+        timeline = self.property_keystates[field_name]
 
         if t <= timeline[0][0]:
             return timeline[0][1]
@@ -321,8 +321,8 @@ class BaseVElement(ABC):
 
         state = self.keystates[0][1]
 
-        if field_name in self.instance_easing:
-            return self.instance_easing[field_name]
+        if field_name in self.property_easing:
+            return self.property_easing[field_name]
 
         default_easing = getattr(state, "DEFAULT_EASING", {})
         if field_name in default_easing:
@@ -367,12 +367,12 @@ class BaseVElement(ABC):
         return self._apply_property_timelines(final_state, t)
 
     def _apply_property_timelines(self, base_state: State, t: float) -> State:
-        """Applies values from custom property_timelines on top of the base state."""
-        if not self.property_timelines:
+        """Applies values from custom property_keystates on top of the base state."""
+        if not self.property_keystates:
             return base_state
 
         updates = {}
-        for field_name in self.property_timelines.keys():
+        for field_name in self.property_keystates.keys():
             updates[field_name] = self._get_property_value_at_time(field_name, t)
 
         return replace(base_state, **updates)
@@ -384,13 +384,13 @@ class BaseVElement(ABC):
         t: float,
         segment_easing_overrides: Optional[Dict[str, Callable[[float], float]]],
     ) -> State:
-        """Create an interpolated state from main keystates (ignoring fields in property_timelines)"""
+        """Create an interpolated state from main keystates (ignoring fields in property_keystates)"""
         interpolated_values = {}
 
         for field in fields(start_state):
             field_name = field.name
 
-            if field_name in self.property_timelines:
+            if field_name in self.property_keystates:
                 continue
 
             start_value = getattr(start_state, field_name)
@@ -425,8 +425,8 @@ class BaseVElement(ABC):
         ):
             return segment_easing_overrides[field_name]
 
-        if field_name in self.instance_easing:
-            return self.instance_easing[field_name]
+        if field_name in self.property_easing:
+            return self.property_easing[field_name]
 
         default_easing = getattr(start_state, "DEFAULT_EASING", {})
         if field_name in default_easing:

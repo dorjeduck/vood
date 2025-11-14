@@ -47,8 +47,8 @@ def main():
         VElement(
             renderer=renderer,
             keystates=states,
-            instance_easing={"x": easing.linear},
-            property_timelines={
+            property_easing={"x": easing.linear},
+            property_keystates={
                 "color": [
                     (0, START_COLOR),
                     (1, END_COLOR),

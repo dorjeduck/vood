@@ -55,7 +55,7 @@ def main():
         VElement(
             renderer=renderer,
             keystates=[start_state, end_state],
-            instance_easing={"x": easing},
+            property_easing={"x": easing},
         )
         for start_state, end_state, easing in zip(
             start_states, end_states, easing_overrides

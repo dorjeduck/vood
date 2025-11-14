@@ -46,7 +46,7 @@ def main():
         VElement(
             renderer=renderer,
             keystates=[(0, start_state), (0.1 * (i + 1), middle_state), (1, end_state)],
-            instance_easing={"x": easing.linear},
+            property_easing={"x": easing.linear},
         )
         for i, (start_state, middle_state, end_state) in enumerate(
             zip(start_states, middle_states, end_states)

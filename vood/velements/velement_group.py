@@ -54,9 +54,9 @@ class VElementGroup(BaseVElement):
         # keystates now uses the new structure
         keystates: Optional[List[SegmentKeystateTuple]] = None,
         # NEW/Renamed parameter replacing the old 'easing'
-        instance_easing: Optional[Dict[str, Callable[[float], float]]] = None,
+        property_easing: Optional[Dict[str, Callable[[float], float]]] = None,
         # NEW: Property Timelines (replaces global_transitions)
-        property_timelines: Optional[PropertyTimelineConfig] = None,
+        property_keystates: Optional[PropertyTimelineConfig] = None,
         # REMOVED from signature: global_transitions, easing, segment_easing
     ) -> None:
         """Initialize an element group with full animation capabilities"""
@@ -65,8 +65,8 @@ class VElementGroup(BaseVElement):
         super().__init__(
             state=state,
             keystates=keystates,
-            instance_easing=instance_easing,
-            property_timelines=property_timelines,
+            property_easing=property_easing,
+            property_keystates=property_keystates,
             # Removed from super() call: global_transitions, easing, segment_easing
         )
 
