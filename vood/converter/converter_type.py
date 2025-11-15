@@ -6,3 +6,4 @@ class ConverterType(Enum):
     PLAYWRIGHT = "playwright"
     CAIROSVG = "cairosvg"
     INKSCAPE = "inkscape"
+    IMAGEMAGICK = "imagemagick"
