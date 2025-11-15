@@ -16,7 +16,7 @@ class RectangleState(State):
 
     width: float = 100
     height: float = 60
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = (255, 0, 0)
     stroke_color: Optional[Color] = None
     stroke_width: float = 0
     corner_radius: float = 0  # For rounded rectangles

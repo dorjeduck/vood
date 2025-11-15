@@ -15,7 +15,7 @@ class TriangleState(State):
     """State class for triangle elements"""
 
     size: float = 50  # Size of the triangle (distance from center to vertex)
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = (255, 0, 0)
     stroke_color: Optional[Color] = None
     stroke_width: float = 0
 

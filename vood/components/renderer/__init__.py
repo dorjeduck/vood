@@ -8,6 +8,7 @@ from .circle_text import CircleTextRenderer
 from .double_circle import DoubleCircleRenderer
 from .ellipse import EllipseRenderer
 from .moon_phase import MoonPhaseRenderer
+from .morph import MorphRenderer
 from .path import PathRenderer
 from .path_and_text_variants import PathAndTextVariantsRenderer
 from .path_text import PathTextRenderer
@@ -23,6 +24,7 @@ __all__ = [
     "DoubleCircleRenderer",
     "EllipseRenderer",
     "MoonPhaseRenderer",
+    "MorphRenderer",
     "PathAndTextVariantsRenderer",
     "PathRenderer",
     "PathTextRenderer",

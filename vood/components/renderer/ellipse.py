@@ -25,7 +25,7 @@ class EllipseRenderer(Renderer):
         Returns:
             drawsvg Ellipse object
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
 
         # Create ellipse centered at origin with scaled radii
         ellipse_kwargs = {

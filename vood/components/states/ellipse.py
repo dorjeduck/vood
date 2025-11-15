@@ -16,8 +16,8 @@ class EllipseState(State):
 
     rx: float = 60  # Horizontal radius
     ry: float = 40  # Vertical radius
-    color: Optional[Color] = (0, 0, 255)
-    stroke_color: Optional[Color] = None
+    fill_color: Optional[Color] = Color(0, 0, 255)
+    stroke_color: Optional[Color] = Color.NONE
     stroke_width: float = 0
 
     DEFAULT_EASING = {

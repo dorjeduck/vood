@@ -24,7 +24,7 @@ class StarRenderer(Renderer):
             drawsvg Lines object for the star renderer geometry.
         """
 
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
 
         # Calculate star points
         coords = []

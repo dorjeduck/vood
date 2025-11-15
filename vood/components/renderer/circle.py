@@ -29,8 +29,8 @@ class CircleRenderer(Renderer):
             "cy": 0,
             "r": state.radius,
         }
-        if state.color:
-            fill_color = state.color.to_rgb_string()
+        if state.fill_color:
+            fill_color = state.fill_color.to_rgb_string()
             circle_kwargs["fill"] = fill_color
         else:
             circle_kwargs["fill"] = "none"  # No fill if color is None

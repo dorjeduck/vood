@@ -16,7 +16,7 @@ class TextRenderer(Renderer):
     """Renderer class for rendering text elements"""
 
     def _render_core(self, state: TextState) -> dw.Text:
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
         text_kwargs = {
             "text": state.text,
             "x": 0,

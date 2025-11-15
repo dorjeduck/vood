@@ -47,7 +47,7 @@ class PathVariantsRenderer(Renderer, ABC):
 
     def _render_core(self, state: PathVariantState) -> dw.Group:
         """Render the renderer geometry centered at (0,0), no scaling or transforms"""
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
         data = self.data["path"]
 
         center_x, center_y = self.data["center"]

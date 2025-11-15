@@ -13,7 +13,7 @@ from vood.core.color import Color
 class TextState(State):
     """State class for text elements"""
 
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = (255, 0, 0)
     font_size: float = 16
 
     letter_spacing: float = 0  # Additional spacing between letters

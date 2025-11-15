@@ -40,7 +40,7 @@ class LineRenderer(Renderer):
             drawsvg Line object representing the line renderer
         """
 
-        stroke_color = state.color.to_rgb_string()
+        stroke_color = state.fill_color.to_rgb_string()
 
         # Create line with basic properties
         line_kwargs = {

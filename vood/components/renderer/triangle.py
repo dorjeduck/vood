@@ -27,7 +27,7 @@ class TriangleRenderer(Renderer):
         Returns:
             drawsvg Lines object for the triangle renderer
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
 
         # Calculate equilateral triangle points with scaling
 

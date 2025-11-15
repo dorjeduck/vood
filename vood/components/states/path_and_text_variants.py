@@ -16,7 +16,7 @@ class PathAndTextVariantsState(State):
     """Base state class for multi-path renderers with text labels"""
 
     size: float = 500
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = (255, 0, 0)
     stroke_color: Optional[Color] = None
     stroke_width: float = 0
 
@@ -26,7 +26,7 @@ class PathAndTextVariantsState(State):
     font_family: str = "Comfortaa"
     text_align: str = "left"
     font_weight: str = "normal"
-    text_color: Optional[Color] = None
+    text_color: Optional[Color] = Color.NONE
 
     DEFAULT_EASING = {
         **State.DEFAULT_EASING,

@@ -13,8 +13,8 @@ class MoonPhaseState(State):
     """State class for moon phase renderers"""
 
     size: float = 50
-    color: Optional[Color] = (255, 0, 0)
-    stroke_color: Optional[Color] = None
+    fill_color: Optional[Color] = Color(255, 0, 0)
+    stroke_color: Optional[Color] = Color.NONE
     stroke_width: float = 1
 
     # Moon-specific properties

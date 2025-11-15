@@ -56,11 +56,11 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
         Returns:
             drawsvg Group containing both path(s) and text
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
         text_color = (
             state.text_color.to_rgb_string()
             if state.text_color
-            else state.color.to_rgb_string()
+            else state.fill_color.to_rgb_string()
         )
 
         # Get the path variant data - can be single path or list of paths

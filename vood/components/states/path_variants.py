@@ -14,8 +14,8 @@ class PathVariantsState(State):
     """Base state class for multi-path renderers"""
 
     size: float = 50
-    color: Optional[Color] = (255, 0, 0)
-    stroke_color: Optional[Color] = None
+    fill_color: Optional[Color] = (255, 0, 0)
+    stroke_color: Optional[Color] = Color.NONE
     stroke_width: float = 0
     case_sensitive: bool = False
 

@@ -21,7 +21,7 @@ class RectangleRenderer(Renderer):
         Returns:
             dw.Rectangle: The drawsvg rectangle object
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
 
         # Create rectangle centered at origin with scaled dimensions
         rect_kwargs = {

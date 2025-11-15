@@ -4,6 +4,10 @@ from .circle import CircleState
 from .double_circle import DoubleCircleState
 from .ellipse import EllipseState
 from .line import LineState
+from .morph_base import MorphBaseState
+from .morph_circle import MorphCircleState
+from .morph_line import MorphLineState
+from .morph_triangle import MorphTriangleState
 from .moon_phase import MoonPhaseState
 from .path import PathState
 from .path_text import PathTextState
@@ -22,6 +26,10 @@ __all__ = [
     "DoubleCircleState",
     "EllipseState",
     "LineState",
+    "MorphBaseState",
+    "MorphCircleState",
+    "MorphLineState",
+    "MorphTriangleState",
     "MoonPhaseState",
     "PathState",
     "PathTextState",

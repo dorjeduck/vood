@@ -16,7 +16,7 @@ class LineState(State):
     """State class for line elements"""
 
     length: float = 100  # Length of the line
-    stroke_color: Optional[Color] = (220, 220, 220)
+    stroke_color: Color = Color(220, 220, 220)
     stroke_width: float = 1
     stroke_dasharray: Optional[str] = None  # For dashed lines, e.g., "5,5"
     stroke_linecap: str = "round"  # "butt", "round", "square"

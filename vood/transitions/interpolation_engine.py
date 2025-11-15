@@ -17,7 +17,7 @@ class InterpolationEngine:
     def __init__(self, easing_resolver):
         """
         Initialize the interpolation engine.
-        
+
         Args:
             easing_resolver: EasingResolver instance for determining easing functions
         """
@@ -33,14 +33,14 @@ class InterpolationEngine:
     ) -> State:
         """
         Create an interpolated state between two keystates.
-        
+
         Args:
             start_state: Starting state
             end_state: Ending state
             t: Interpolation parameter (0.0 to 1.0)
             segment_easing_overrides: Optional segment-level easing overrides
             property_keystates_fields: Set of field names managed by property_keystates
-            
+
         Returns:
             Interpolated state
         """
@@ -84,14 +84,14 @@ class InterpolationEngine:
     ) -> Any:
         """
         Interpolate a single value based on its type and context.
-        
+
         Args:
             state: State object for context (e.g., morph method for paths)
             field_name: Name of the field being interpolated
             start_value: Starting value
             end_value: Ending value
             eased_t: Eased interpolation parameter (0.0 to 1.0)
-            
+
         Returns:
             Interpolated value
         """
@@ -123,17 +123,17 @@ class InterpolationEngine:
     ) -> SVGPath:
         """
         Interpolate between two SVG paths using appropriate morphing method.
-        
+
         Morph method priority:
         1. Explicit morph_method on state
         2. Auto-detect: closed paths use shape morph, open paths use stroke morph
-        
+
         Args:
             state: State containing optional morph_method
             start_path: Starting SVG path
             end_path: Ending SVG path
             eased_t: Eased interpolation parameter
-            
+
         Returns:
             Interpolated SVG path
         """
@@ -156,11 +156,11 @@ class InterpolationEngine:
     def _is_angle_field(self, state: State, field_name: str) -> bool:
         """
         Check if a field represents an angle value.
-        
+
         Args:
             state: State object
             field_name: Name of the field to check
-            
+
         Returns:
             True if field represents an angle
         """
@@ -176,15 +176,15 @@ class InterpolationEngine:
     def _path_is_closed(self, path: SVGPath, tolerance: float = 0.01) -> bool:
         """
         Check if an SVG path is closed.
-        
+
         A path is considered closed if:
         1. It ends with a 'Z' command, or
         2. The start and end points are within tolerance distance
-        
+
         Args:
             path: SVG path to check
             tolerance: Maximum distance between start/end points to consider closed
-            
+
         Returns:
             True if path is closed
         """

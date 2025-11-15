@@ -115,7 +115,7 @@ class PathTextRenderer(Renderer):
         Returns:
             drawsvg Text element
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
 
         text_kwargs = {
             "text": text_content,

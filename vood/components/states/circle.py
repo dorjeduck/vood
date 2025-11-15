@@ -15,7 +15,7 @@ class CircleState(State):
     """State class for circle elements"""
 
     radius: float = 50
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = Color(255, 0, 0)
     stroke_color: Optional[Color] = None
     stroke_width: float = 0
 

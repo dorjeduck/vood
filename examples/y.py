@@ -1,6 +1,5 @@
-from vood.components import TextRenderer, TextState
-from vood.components.renderer.triangle import TriangleRenderer
-from vood.components.states.triangle import TriangleState
+from vood.components.renderer import MorphRenderer
+from vood.components.states import MorphTriangleState
 from vood.converter.converter_type import ConverterType
 from vood.core.logger import configure_logging
 from vood.velements import VElement
@@ -20,11 +19,11 @@ def main():
     # Create the scene
     scene = VScene(width=256, height=256, background=Color("#000017"))
 
-    triange_start_state = TriangleState(x=-70, size=20)
+    triange_start_state = MorphTriangleState(x=-70, size=20)
     triange_end_state = replace(triange_start_state, x=70, scale=2)
 
     triangle_element = VElement(
-        renderer=TriangleRenderer(),
+        renderer=MorphRenderer(),
         keystates=[
             (0, triange_start_state),
             (0.125, triange_start_state),
@@ -32,7 +31,7 @@ def main():
             (1, triange_end_state),
         ],
         property_keystates={
-            "color": [(0, START_COLOR), (0.5, START_COLOR), (1, END_COLOR)]
+            "fill_color": [(0, START_COLOR), (0.5, START_COLOR), (1, END_COLOR)]
         },
     )
 
@@ -47,7 +46,7 @@ def main():
 
     # Export to PNG file
     exporter.to_mp4(
-        filename="x.mp4",
+        filename="y.mp4",
         total_frames=120,
         framerate=30,
         png_width_px=1024,

@@ -17,7 +17,7 @@ class StarState(State):
     outer_radius: float = 50  # Radius to outer points
     inner_radius: float = 20  # Radius to inner points
     points: int = 5  # Number of points (minimum 3)
-    color: Optional[Color] = (255, 0, 0)
+    fill_color: Optional[Color] = (255, 0, 0)
     stroke_color: Optional[Color] = None
     stroke_width: float = 0
 

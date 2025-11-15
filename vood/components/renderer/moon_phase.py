@@ -22,7 +22,7 @@ class MoonPhaseRenderer(Renderer):
         Returns:
             drawsvg Group containing the moon phase geometry
         """
-        fill_color = state.color.to_rgb_string()
+        fill_color = state.fill_color.to_rgb_string()
         stroke_color = (
             state.stroke_color.to_rgb_string() if state.stroke_color else fill_color
         )
@@ -196,7 +196,7 @@ class MoonPhaseRenderer2(MoonPhaseRenderer):
             rotation=state.rotation,
             opacity=state.opacity,
             size=state.size,
-            color=state.color,
+            color=state.fill_color,
             stroke_color=state.stroke_color,
             stroke_width=state.stroke_width,
             illumination=adjusted_illumination,
