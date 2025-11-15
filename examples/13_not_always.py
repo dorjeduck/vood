@@ -50,12 +50,7 @@ def main():
                 (0.7 if i % 2 else 1, state_b),
             ],
             property_easing={"x": easing.linear},
-            property_keystates={
-                "color": [
-                    (0, START_COLOR),
-                    (1, END_COLOR),
-                ],
-            },
+            property_keystates={"color": [START_COLOR, END_COLOR]},
         )
         for i, (state_a, state_b) in enumerate(zip(*all_states))
     ]

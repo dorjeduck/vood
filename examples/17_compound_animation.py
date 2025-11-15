@@ -48,12 +48,7 @@ def main():
         VElement(
             renderer=renderer,
             keystates=keystates,
-            property_keystates={
-                "color": [
-                    (0, START_COLOR),
-                    (1, END_COLOR),
-                ],
-            },
+            property_keystates={"color": [START_COLOR, END_COLOR]},
             property_easing={"opacity": opacity_easing[i]},
         )
         for i, keystates in enumerate(fade_keyframes)

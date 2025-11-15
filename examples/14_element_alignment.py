@@ -68,12 +68,7 @@ def main():
         VElement(
             renderer=renderer,
             keystates=[(i / 7, [a, b, c, d][i // 2]) for i in range(8)],
-            property_keystates={
-                "color": [
-                    (0, START_COLOR),
-                    (1, END_COLOR),
-                ],
-            },
+            property_keystates={"color": [START_COLOR, END_COLOR]},
         )
         for a, b, c, d in zip(*all_states)
     ]

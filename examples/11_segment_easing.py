@@ -54,12 +54,7 @@ def main():
                 (1, state_d),
             ],
             property_easing={"x": easing.linear},
-            property_keystates={
-                "color": [
-                    (0, START_COLOR),
-                    (1, END_COLOR),
-                ],
-            },
+            property_keystates={"color": [START_COLOR, END_COLOR]},
         )
         for i, (state_a, state_b, state_c, state_d) in enumerate(zip(*all_states))
     ]

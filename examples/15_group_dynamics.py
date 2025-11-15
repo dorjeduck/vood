@@ -48,12 +48,7 @@ def main():
             renderer=renderer,
             keystates=states,
             property_easing={"x": easing.linear},
-            property_keystates={
-                "color": [
-                    (0, START_COLOR),
-                    (1, END_COLOR),
-                ],
-            },
+            property_keystates={"color": [START_COLOR, END_COLOR]},
         )
         for states in zip(*all_states)
     ]
