@@ -12,9 +12,9 @@ from .morph_base import MorphBaseState
 class MorphTriangleState(MorphBaseState):
     """Equilateral triangle with vertices distributed along perimeter"""
 
-    size: float = 50  # Distance from center to vertex
-    fill_color: Optional[Color] = Color(100, 150, 255)
-    stroke_color: Optional[Color] = Color.NONE
+    size: float = 50
+    fill_color: Optional[Color] = (100, 150, 255)
+    stroke_color: Optional[Color] = None
     stroke_width: float = 2
 
     DEFAULT_EASING = {
@@ -61,7 +61,6 @@ class MorphTriangleState(MorphBaseState):
         distance_along_edge = 0
 
         for i in range(self.num_points):
-            # Target distance along total perimeter
             target_distance = (i / self.num_points) * total_perimeter
 
             # Find which edge we're on

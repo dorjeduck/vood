@@ -100,6 +100,8 @@ class BaseVElement(ABC):
 
         if not self.keystates:
             raise ValueError("Keystates list could not be parsed.")
+        
+        self._preprocess_morph_segments()
 
     def _parse_property_keystates(self) -> None:
         """Parse raw property keystates into normalized format"""
@@ -264,3 +266,30 @@ class BaseVElement(ABC):
                 )
 
         return timeline[-1][1]
+
+    def _preprocess_morph_segments(self) -> None:
+        """
+        Convert MorphState segments to MorphRawState with aligned vertices.
+
+        This happens once when keystates are set, not on every frame.
+        After this, normal field-by-field interpolation works correctly.
+        """
+        from vood.components.states.morph_base import MorphBaseState
+
+        for i in range(len(self.keystates) - 1):
+            t1, state1, easing1 = self.keystates[i]
+            t2, state2, easing2 = self.keystates[i + 1]
+
+            # Check if this is a MorphState → MorphState segment
+            if isinstance(state1, MorphBaseState) and isinstance(state2, MorphBaseState):
+                from vood.transitions.interpolation.morpher.morph_state_interpolation import align_and_convert_to_raw
+
+                # Convert both states to MorphRawState with aligned vertices
+                aligned_state1 = align_and_convert_to_raw(state1, state2, is_start=True)
+                aligned_state2 = align_and_convert_to_raw(
+                    state1, state2, is_start=False
+                )
+
+                # Replace in the keystates list
+                self.keystates[i] = (t1, aligned_state1, easing1)
+                self.keystates[i + 1] = (t2, aligned_state2, easing2)

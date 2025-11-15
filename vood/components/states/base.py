@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC
-from dataclasses import dataclass, fields, Field
-from typing import get_origin, get_args, Union, Any
+from dataclasses import dataclass, Field
+from typing import Any
 
 from vood.transitions import easing
 from vood.core import Color

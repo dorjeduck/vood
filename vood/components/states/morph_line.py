@@ -13,13 +13,11 @@ class MorphLineState(MorphBaseState):
     """Straight line with vertices distributed along its length
 
     Note: Lines are open shapes (closed=False by default).
-    When morphing into closed shapes, the endpoints will be connected
-    for fill area determination.
     """
 
     length: float = 100
-    closed: bool = False  # Lines are open by default
-    stroke_color: Optional[Color] = Color(0, 0, 0)
+    closed: bool = False
+    stroke_color: Optional[Color] = (0, 0, 0)
     stroke_width: float = 2
 
     DEFAULT_EASING = {

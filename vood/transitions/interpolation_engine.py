@@ -95,6 +95,24 @@ class InterpolationEngine:
         Returns:
             Interpolated value
         """
+
+        if (
+            field_name == "vertices"
+            and isinstance(start_value, list)
+            and isinstance(end_value, list)
+        ):
+            if len(start_value) != len(end_value):
+                raise ValueError(
+                    f"Vertex lists must have same length: {len(start_value)} != {len(end_value)}"
+                )
+            return [
+                (
+                    interpolation.lerp(v1[0], v2[0], eased_t),
+                    interpolation.lerp(v1[1], v2[1], eased_t),
+                )
+                for v1, v2 in zip(start_value, end_value)
+            ]
+
         # 1. SVG Path interpolation
         if isinstance(start_value, SVGPath):
             return self._interpolate_path(state, start_value, end_value, eased_t)
