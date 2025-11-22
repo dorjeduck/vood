@@ -21,11 +21,6 @@ class PolygonState(VertexState):
         "num_sides": easing.step,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.polygon import PolygonRenderer
-
-        return PolygonRenderer
 
     def need_morph(self, state):
         return not isinstance(state, PolygonState) or state.num_sides != self.num_sides

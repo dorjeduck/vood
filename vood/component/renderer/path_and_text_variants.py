@@ -8,10 +8,12 @@ from typing import Dict, Any
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.path_and_text_variants import PathAndTextVariantsState
 
 
+@register_renderer(PathAndTextVariantsState)
 class PathAndTextVariantsRenderer(Renderer, ABC):
     """Abstract base class for renderers with multiple path variants and text labels
 

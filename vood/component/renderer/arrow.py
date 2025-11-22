@@ -6,10 +6,12 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.arrow import ArrowState
 
 
+@register_renderer(ArrowState)
 class ArrowRenderer(Renderer):
     """Renderer class for rendering circle elements
 

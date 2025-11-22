@@ -8,10 +8,12 @@ import math
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.line import LineState
 
 
+@register_renderer(LineState)
 class LineRenderer(Renderer):
     @staticmethod
     def from_endpoints(x1: float, y1: float, x2: float, y2: float):

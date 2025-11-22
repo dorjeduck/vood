@@ -36,12 +36,6 @@ class PolyRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.poly_ring import PolyRingRenderer
-
-        return PolyRingRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate polygon ring contours with outer and inner polygons

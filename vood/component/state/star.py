@@ -31,11 +31,6 @@ class StarState(VertexState):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.star import StarRenderer
-
-        return StarRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate star vertices"""

@@ -34,19 +34,7 @@ class AstroidState(VertexState):
         "curvature": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.astroid import AstroidRenderer
 
-        return AstroidRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate astroid contours

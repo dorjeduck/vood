@@ -28,11 +28,6 @@ class TriangleState(VertexState):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.triangle import TriangleRenderer
-
-        return TriangleRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate triangle vertices distributed along perimeter

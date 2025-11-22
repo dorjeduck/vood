@@ -37,8 +37,3 @@ class CircleTextState(TextState):
         "dominant_baseline": easing.step,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.circle_text import CircleTextRenderer
-
-        return CircleTextRenderer

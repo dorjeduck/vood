@@ -6,9 +6,11 @@ import drawsvg as dw
 import math
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.astroid import AstroidState
 
 
+@register_renderer(AstroidState)
 class AstroidRenderer(Renderer):
     """Renderer for astroid elements using SVG primitives
 

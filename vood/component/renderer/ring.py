@@ -5,9 +5,11 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.ring import RingState
 
 
+@register_renderer(RingState)
 class RingRenderer(Renderer):
     """Renderer for ring elements using SVG primitives
 

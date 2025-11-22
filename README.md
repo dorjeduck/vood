@@ -192,7 +192,6 @@ exporter.to_mp4(
 
 ![](docs/videos/02_simple_animation.gif)
 
-*(⚠️ Low quality GIF. For the **actual MP4**, click [here](docs/videos/02_simple_animation.mp4).)*
 
 ### Advanced Animation Control
 
@@ -204,7 +203,7 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 
 * **Segment Easing** - Customize easing between keystates. See [SVG Circus - Segment Easing](https://vood.wectar.com/circus/segment-easing/)
 
-* **Global Transitions** - Apply property transitions beyond keystates - See [SVG Circus - Global Transitions](https://vood.wectar.com/circus/global-transitions/)
+* **Property Keystates** - Apply property transitions beyond the main keystates - See [SVG Circus - Property Keystates](https://vood.wectar.com/circus/property-keystates/)
 
 ## ⚙️ Configuration
 

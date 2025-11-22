@@ -22,11 +22,6 @@ class SquareState(VertexState):
         "rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.square import SquareRenderer
-
-        return SquareRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate square vertices, starting at top-left, going clockwise"""

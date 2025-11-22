@@ -9,10 +9,12 @@ import drawsvg as dw
 from vood.path.svg_path import SVGPath
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.path import PathState
 
 
+@register_renderer(PathState)
 class PathRenderer(Renderer):
     """Renderer class for rendering custom SVG path elements"""
 

@@ -6,10 +6,12 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.arc import ArcState
 
 
+@register_renderer(ArcState)
 class ArcRenderer(Renderer):
 
     def __init__(self) -> None:

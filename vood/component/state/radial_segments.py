@@ -23,8 +23,3 @@ class RadialSegmentsState(State):
     def __post_init__(self):
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.radial_segments import RadialSegmentsRenderer
-
-        return RadialSegmentsRenderer

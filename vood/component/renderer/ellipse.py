@@ -6,9 +6,11 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.ellipse import EllipseState
 
 
+@register_renderer(EllipseState)
 class EllipseRenderer(Renderer):
     """Renderer class for rendering ellipse elements"""
 

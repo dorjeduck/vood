@@ -6,10 +6,12 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.rectangle import RectangleState
 
 
+@register_renderer(RectangleState)
 class RectangleRenderer(Renderer):
     """Renderer class for rendering rectangle elements"""
 

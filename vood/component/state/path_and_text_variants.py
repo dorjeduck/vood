@@ -50,9 +50,3 @@ class PathAndTextVariantsState(State):
         self._none_color("fill_color")
         self._none_color("stroke_color")
         self._none_color("text_color")
-
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path_and_text_variants import PathAndTextVariantsRenderer
-
-        return PathAndTextVariantsRenderer

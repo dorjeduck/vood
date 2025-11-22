@@ -24,12 +24,6 @@ class RingState(VertexState):
         "outer_radius": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.ring import RingRenderer
-
-        return RingRenderer
 
 
     def _generate_contours(self) -> VertexContours:

@@ -1,10 +1,11 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, Field
 from typing import Any, Optional
 
 from vood.transition import easing
 from vood.core.color import Color
+from vood.component.registry import get_renderer_for_state
 
 
 @dataclass(frozen=True)
@@ -56,14 +57,33 @@ class State(ABC):
         if self.rotation is None:
             self._set_field("rotation", config.get("state.rotation", 0.0))
 
-    @staticmethod
-    @abstractmethod
-    def get_renderer_class():
-        pass
+    def get_renderer_class(self):
+        """Get the renderer class for this state.
 
-    @staticmethod
-    def get_vertex_renderer_class():
-        return State.get_renderer_class()
+        First checks the registry for a registered renderer.
+        Subclasses can override this method to provide custom renderers.
+
+        Returns:
+            The renderer class for this state
+
+        Raises:
+            ValueError: If no renderer is registered for this state type
+        """
+        renderer_class = get_renderer_for_state(type(self))
+        if renderer_class is None:
+            raise ValueError(
+                f"No renderer registered for {type(self).__name__}. "
+                f"Add @register_renderer({type(self).__name__}) to the renderer class."
+            )
+        return renderer_class
+
+    def get_vertex_renderer_class(self):
+        """Get the vertex renderer class for morphing transitions.
+
+        By default, returns the same as get_renderer_class().
+        VertexState subclass overrides this to return VertexRenderer.
+        """
+        return self.get_renderer_class()
 
     def need_morph(self, state):
         return type(state) is not type(self)

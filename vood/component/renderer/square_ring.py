@@ -5,9 +5,11 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.square_ring import SquareRingState
 
 
+@register_renderer(SquareRingState)
 class SquareRingRenderer(Renderer):
     """Renderer for square ring elements using SVG primitives
 

@@ -6,9 +6,11 @@ import drawsvg as dw
 import math
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.poly_ring import PolyRingState
 
 
+@register_renderer(PolyRingState)
 class PolyRingRenderer(Renderer):
     """Renderer for polygon ring elements using SVG primitives
 

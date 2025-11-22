@@ -20,19 +20,7 @@ class CircleState(VertexState):
         "radius": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.circle import CircleRenderer
 
-        return CircleRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate circle contours

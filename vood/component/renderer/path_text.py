@@ -9,10 +9,12 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.path_text import PathTextState
 
 
+@register_renderer(PathTextState)
 class PathTextRenderer(Renderer):
     """Renderer for text along any SVG path with morphing support
 

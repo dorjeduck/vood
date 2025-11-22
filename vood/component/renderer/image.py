@@ -12,9 +12,11 @@ import random
 import io
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.image import ImageState, ImageFitMode
 
 
+@register_renderer(ImageState)
 class ImageRenderer(Renderer):
     """Renderer class for rendering image elements"""
 

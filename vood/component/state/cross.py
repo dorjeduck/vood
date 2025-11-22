@@ -21,11 +21,6 @@ class CrossState(VertexState):
         "thickness": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.cross import CrossRenderer
-
-        return CrossRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate cross vertices (12 corners)"""

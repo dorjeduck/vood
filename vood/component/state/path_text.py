@@ -42,8 +42,3 @@ class PathTextState(TextState):
         if isinstance(self.data, str):
             self.data = SVGPath.from_string(self.data)
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path_text import PathTextRenderer
-
-        return PathTextRenderer

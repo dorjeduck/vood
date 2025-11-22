@@ -30,19 +30,7 @@ class EllipseState(VertexState):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.ellipse import EllipseRenderer
 
-        return EllipseRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate ellipse contours

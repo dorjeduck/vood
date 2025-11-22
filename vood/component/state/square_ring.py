@@ -30,12 +30,6 @@ class SquareRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.square_ring import SquareRingRenderer
-
-        return SquareRingRenderer
 
 
     def _generate_contours(self) -> VertexContours:

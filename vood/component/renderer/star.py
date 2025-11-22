@@ -7,11 +7,13 @@ import math
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 
 from ..state.star import StarState
 
 
+@register_renderer(StarState)
 class StarRenderer(Renderer):
     """Renderer class for rendering star elements"""
 

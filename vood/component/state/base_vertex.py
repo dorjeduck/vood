@@ -82,24 +82,7 @@ class VertexState(State):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the default renderer (often a primitive-based renderer)
-
-        This is used for static rendering and at keystate endpoints.
-        Subclasses can override to use SVG primitives for better quality.
-        Should be overwritten by subclasses to refer to a svg primitives
-        based render class if available
-
-        Returns:
-            Renderer class for non-morphing rendering
-        """
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
+    def get_vertex_renderer_class(self):
         """Get the renderer for morphing transitions (0 < t < 1)
 
         During morphing, we need vertex-based rendering to smoothly

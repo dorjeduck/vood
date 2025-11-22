@@ -5,9 +5,11 @@ import math
 
 import drawsvg as dw
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.radial_segments import RadialSegmentsState
 
 
+@register_renderer(RadialSegmentsState)
 class RadialSegmentsRenderer(Renderer):
 
     def _render_core(self, state: RadialSegmentsState, drawing: Optional[dw.Drawing] = None) -> dw.Group:

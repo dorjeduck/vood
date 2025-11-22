@@ -6,10 +6,12 @@ from typing import Optional
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 
 from ..state.text import TextState
 
 
+@register_renderer(TextState)
 class TextRenderer(Renderer):
     """Renderer class for rendering text elements"""
 

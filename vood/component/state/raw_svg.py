@@ -10,8 +10,3 @@ class RawSvgState(State):
 
     svg_data: str = ""
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.raw_svg import RawSvgRenderer
-
-        return RawSvgRenderer

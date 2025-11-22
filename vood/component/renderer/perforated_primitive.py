@@ -6,12 +6,14 @@ import drawsvg as dw
 import math
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.perforated.base import (
     PerforatedVertexState, Shape, Circle, Ellipse,
     Rectangle, Polygon, Star, Astroid
 )
 
 
+@register_renderer(PerforatedVertexState)
 class PerforatedPrimitiveRenderer(Renderer):
     """Renderer for perforated shape elements using SVG primitives
 

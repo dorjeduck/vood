@@ -42,8 +42,3 @@ class ArcState(VertexState):
 
         return VertexContours.from_single_loop(vertices, closed=self.closed)
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.arc import ArcRenderer
-
-        return ArcRenderer

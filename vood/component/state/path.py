@@ -89,8 +89,3 @@ class PathState(State):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path import PathRenderer
-
-        return PathRenderer

@@ -40,17 +40,7 @@ class NumberState(VertexState):
         if not isinstance(self.digit, int) or self.digit < 0 or self.digit > 9:
             raise ValueError(f"digit must be an integer from 0-9, got {self.digit}")
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the renderer for static/keystate rendering"""
-        from ..renderer.base_vertex import VertexRenderer
-        return VertexRenderer
 
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate contours for the specified digit

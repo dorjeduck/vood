@@ -8,9 +8,11 @@ import math
 import drawsvg as dw
 
 from .base import Renderer
+from ..registry import register_renderer
 from ..state.triangle import TriangleState
 
 
+@register_renderer(TriangleState)
 class TriangleRenderer(Renderer):
     """Renderer class for rendering triangle elements
 
