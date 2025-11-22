@@ -7,10 +7,13 @@ The Playwright Render Server is an optional HTTP service that provides high-qual
 While Vood includes several built-in converters (CairoSVG, Inkscape, local Playwright), the HTTP-based Playwright server offers:
 
 - **Best rendering quality**: Uses real Chromium browser for pixel-perfect output
+- **Lightweight Python process**: Offloads heavy rendering work to separate server process
 - **Background operation**: Runs as a daemon, doesn't block your Python process
 - **Cross-platform**: Works on Linux, macOS, and Windows
 - **Optional auto-start**: Can automatically start when needed
 - **Easy management**: Simple CLI commands for control
+
+**Performance Note:** The HTTP server provides similar wall-clock rendering times to local Playwright, but significantly reduces CPU usage in your main Python process (typically 85-95% reduction). This makes it ideal for service architectures, multi-app environments, or when you need your main process to remain responsive. For detailed performance analysis, see **[BENCHMARK.md](BENCHMARK.md)**.
 
 ## Installation
 
@@ -463,25 +466,34 @@ curl -X POST http://localhost:4000/render \
 | Feature | Playwright HTTP | Playwright Local | CairoSVG | Inkscape |
 |---------|----------------|------------------|----------|----------|
 | Quality | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Speed | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| Wall-Clock Speed | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| Process CPU Load | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
 | Setup | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
 | Fonts | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | Background | ✅ | ❌ | ❌ | ❌ |
-| Scalable | ✅ | ❌ | ❌ | ❌ |
+| Multi-App | ✅ | ❌ | ❌ | ❌ |
 
 **Use Playwright HTTP when:**
-- You need the highest quality output
-- You're rendering many frames (keep server running)
-- You want background/daemon operation
-- You need perfect font rendering
+- Building service/microservice architectures
+- Multiple applications need rendering
+- You need your main process to stay lightweight (85-95% less CPU)
+- Running long-lived applications that need to stay responsive
+- Distributed systems (render on different machine)
+
+**Use Playwright Local when:**
+- Simple single-script batch rendering
+- One-off render jobs
+- Want minimal complexity (no server management)
+- Can't run background services
 
 **Use other converters when:**
 - You want simpler setup (CairoSVG)
 - You need maximum speed (CairoSVG)
-- You can't run a server process
+- Lower quality is acceptable
 
 ## See Also
 
+- [BENCHMARK.md](BENCHMARK.md) - Performance comparison benchmark
 - [CONFIG.md](CONFIG.md) - Configuration reference
 - [Examples](examples/) - Code examples
 - [Playwright Documentation](https://playwright.dev/python/) - Playwright Python docs

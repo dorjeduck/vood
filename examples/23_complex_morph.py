@@ -71,7 +71,7 @@ def main():
     # Create the exporter
     exporter = VSceneExporter(
         scene=scene,
-        converter=ConverterType.INKSCAPE,
+        converter=ConverterType.PLAYWRIGHT_HTTP,
         output_dir="output/",
     )
 

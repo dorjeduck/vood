@@ -54,6 +54,8 @@ Vood offers multiple ways to convert SVG graphics to PNG and PDF formats. Each h
   - Start server: `vood playwright-server start`
   - Best for: batch rendering, long-running processes, production workflows
   - See **[PLAYWRIGHT_SERVER.md](PLAYWRIGHT_SERVER.md)** for complete setup guide and features
+
+**Performance Comparison:** See **[benchmark/README.md](benchmark/README.md)** for detailed performance comparisons between all converters. Run `python benchmark/run_benchmark.py` to generate fresh benchmark reports comparing speed, CPU usage, and memory consumption.
   
 ## 🚀 Quick Start
 
