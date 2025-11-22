@@ -225,44 +225,10 @@ See [https://vood.wectar.com/](https://vood.wectar.com/).
 
 Vood is still in an early stage and has so far been developed primarily to support the needs of a specific project. That said, it was always intended to evolve into a general-purpose library. We deeply appreciate your feedback and would love to hear your ideas for improving Vood — be it bug reports, feature requests, pull requests, or anything else you’d like to share.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Changelog
-
-### [0.3.0] - 2025-11-21
-* lib architecture redesign/cleanup
-* configuration support
-* advanced morphing (shapes with holes)
-
-### [0.2.0] - 2025-11-15
-
-* Mandatory `Color` usage
-* states/keyframes combined into keystates
-
-### [0.2.0] - 2025-11-13
-
-* Version 0.2.0 - approaching beta
-
-### [0.1.0] - 2025-11-02
-
-* Partial timelines
-* `vood.animations`
-
-### [0.1.0] - 2025-11-01
-
-* VElementGroup refinement
-* States as Iterable
-
-### [0.1.0] - 2025-10-30
-
-* Global transitions
-
-### [0.1.0] - 2025-10-28
-
-* SVG Circus published
-
-### [0.1.0] - 2025-10-27
-
-* Initial release
