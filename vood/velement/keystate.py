@@ -22,7 +22,7 @@ class Morphing:
         hole_mapper: Strategy for mapping holes between states (SimpleMapper,
                     GreedyNearestMapper, DiscreteMapper, ClusteringMapper, etc.)
         vertex_aligner: Strategy for aligning vertices within matched shapes
-                       (AngularAligner, EuclideanAligner, NullAligner, etc.)
+                       (AngularAligner, EuclideanAligner, SequentialAligner, etc.)
 
     Examples:
         Hole mapping only:

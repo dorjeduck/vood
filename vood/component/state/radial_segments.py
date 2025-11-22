@@ -21,5 +21,6 @@ class RadialSegmentsState(State):
     segments_fn: Optional[callable] = None
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("stroke_color")
 

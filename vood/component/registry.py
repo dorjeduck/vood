@@ -26,6 +26,9 @@ from typing import Dict, Type, Optional
 # Global registry mapping state classes to renderer classes
 _renderer_registry: Dict[Type, Type] = {}
 
+# Global cache mapping renderer classes to singleton instances
+_renderer_cache: Dict[Type, object] = {}
+
 
 def register_renderer(state_class: Type):
     """Decorator to register a renderer for a state class.
@@ -78,3 +81,32 @@ def get_all_registered_states():
         List of state classes
     """
     return list(_renderer_registry.keys())
+
+
+def get_cached_renderer_instance(renderer_class: Type) -> object:
+    """Get or create a cached renderer instance.
+
+    Since renderers are stateless, we can safely cache and reuse instances
+    instead of creating new ones on every frame.
+
+    Args:
+        renderer_class: The renderer class to instantiate or retrieve
+
+    Returns:
+        Cached renderer instance
+
+    Example:
+        renderer_class = state.get_renderer_class()
+        renderer = get_cached_renderer_instance(renderer_class)
+    """
+    if renderer_class not in _renderer_cache:
+        _renderer_cache[renderer_class] = renderer_class()
+    return _renderer_cache[renderer_class]
+
+
+def clear_renderer_cache():
+    """Clear the renderer instance cache.
+
+    Useful for testing or if you need to force re-instantiation of renderers.
+    """
+    _renderer_cache.clear()

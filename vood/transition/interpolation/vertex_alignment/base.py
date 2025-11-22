@@ -65,16 +65,16 @@ def get_aligner(closed1: bool, closed2: bool) -> VertexAligner:
 
     Returns:
         Appropriate VertexAligner instance:
-        - NullAligner for open ↔ open
+        - SequentialAligner for open ↔ open
         - AngularAligner for closed ↔ closed
         - EuclideanAligner for open ↔ closed or closed ↔ open
     """
     from .angular import AngularAligner
     from .euclidean import EuclideanAligner
-    from .null import NullAligner
+    from .sequential import SequentialAligner
 
     if not closed1 and not closed2:
-        return NullAligner()
+        return SequentialAligner()
     elif closed1 and closed2:
         return AngularAligner()
     else:

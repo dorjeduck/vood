@@ -5,7 +5,7 @@ from typing import Any, Iterable, Optional, Dict, Callable, List, Union, Tuple
 
 import drawsvg as dw
 
-from vood.component import Renderer, State
+from vood.component import Renderer, State, get_cached_renderer_instance
 from vood.velement.base_velement import BaseVElement
 from vood.velement.keystate_parser import (
     FlexibleKeystateInput,
@@ -75,12 +75,13 @@ class VElement(BaseVElement):
             return None
 
         if inbetween:
-            renderer = interpolated_state.get_vertex_renderer_class()()
+            renderer_class = interpolated_state.get_vertex_renderer_class()
+            renderer = get_cached_renderer_instance(renderer_class)
         else:
-            renderer = (
-                self.renderer
-                if self.renderer
-                else interpolated_state.get_renderer_class()()
-            )
-   
+            if self.renderer:
+                renderer = self.renderer
+            else:
+                renderer_class = interpolated_state.get_renderer_class()
+                renderer = get_cached_renderer_instance(renderer_class)
+
         return renderer.render(interpolated_state, drawing=drawing)

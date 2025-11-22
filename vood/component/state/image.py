@@ -47,5 +47,6 @@ class ImageState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("stroke_color")
 

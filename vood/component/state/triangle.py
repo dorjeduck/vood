@@ -25,6 +25,7 @@ class TriangleState(VertexState):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
         self._none_color("stroke_color")
 

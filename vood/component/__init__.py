@@ -5,6 +5,16 @@ from . import renderer
 from . import state
 from . import vertex
 
+# Import registry functions
+from .registry import (
+    register_renderer,
+    get_renderer_for_state,
+    is_renderer_registered,
+    get_all_registered_states,
+    get_cached_renderer_instance,
+    clear_renderer_cache,
+)
+
 # Import all states
 from .state import *
 
@@ -22,6 +32,13 @@ __all__ = [
     "renderer",
     "state",
     "vertex",
+    # Registry functions
+    "register_renderer",
+    "get_renderer_for_state",
+    "is_renderer_registered",
+    "get_all_registered_states",
+    "get_cached_renderer_instance",
+    "clear_renderer_cache",
     # Base classes
     "Renderer",
     "State",
