@@ -55,16 +55,21 @@ else:
 
 ---
 
-### 🟡 Issue #2: Vertex Alignment Inconsistency (MEDIUM PRIORITY)
+### ✅ ~~Issue #2: Vertex Alignment Inconsistency~~ - FIXED (2025-11-22)
 
-**Location**: `vood/transition/interpolation/vertex_alignment/`
+**Location**: `vood/transition/interpolation/vertex_alignment/euclidean.py`
 
 **Issue**:
-- `AngularAligner` applies `state.rotation` before alignment (line 53)
-- `EuclideanAligner` does NOT apply rotation
-- Results in inconsistent morphing behavior when rotation differs
+- `AngularAligner` applied `state.rotation` before alignment
+- `EuclideanAligner` did NOT apply rotation
+- Result: Inconsistent morphing behavior when rotation differed
 
-**Fix**: Add rotation handling to `EuclideanAligner` or document why it's unnecessary
+**Fix Applied**: Added rotation handling to `EuclideanAligner`
+- Now applies `rotate_vertices()` to both shapes before distance calculation
+- Uses rotated vertices for alignment, returns original vertices with best offset
+- Consistent with `AngularAligner` behavior
+
+**Status**: ✅ **Fixed and tested**
 
 ---
 
@@ -577,6 +582,49 @@ get_aligner(closed1, closed2):
 
 ## Completed Improvements
 
+### ✅ EuclideanAligner Rotation Fix (2025-11-22)
+
+**Status**: Implemented and tested
+
+**Problem**:
+- `EuclideanAligner` didn't consider shape rotation when aligning vertices
+- `AngularAligner` did consider rotation, causing inconsistent behavior
+- Open→Closed morphing with rotated shapes produced suboptimal alignment
+
+**Changes Made**:
+1. Added `rotate_vertices()` import to `euclidean.py`
+2. Applied rotation to both vertex lists before distance calculation
+3. Use rotated vertices for alignment, return original vertices with offset
+4. Updated algorithm documentation in docstring
+
+**Results**:
+- ✅ Rotation now considered during alignment
+- ✅ Consistent with `AngularAligner` behavior
+- ✅ Better alignment quality for rotated shapes
+- ✅ All tests pass
+
+**Files Changed**:
+- `vood/transition/interpolation/vertex_alignment/euclidean.py`
+
+**Testing**:
+```python
+# Verified rotation affects alignment
+line = [(0,0), (10,0), (20,0), (30,0)]
+circle = [(10,0), (0,10), (-10,0), (0,-10)]
+
+# Without rotation
+context1 = AlignmentContext(closed1=False, closed2=True, rotation1=0, rotation2=0)
+result1 = aligner.align(line, circle, context1)
+
+# With 90° rotation
+context2 = AlignmentContext(closed1=False, closed2=True, rotation1=0, rotation2=90)
+result2 = aligner.align(line, circle, context2)
+
+assert result1 != result2  # Rotation now affects result
+```
+
+---
+
 ### ✅ Renderer Registry Pattern (2025-11-22)
 
 **Status**: Implemented and tested
@@ -616,6 +664,7 @@ class MyCustomCircle(CircleState):
 
 ---
 
-**Document Version**: 1.1
+**Document Version**: 1.2
 **Last Updated**: 2025-11-22
 **Status**: Active roadmap
+**Completed**: 2 improvements (Renderer Registry, EuclideanAligner Rotation)

@@ -9,6 +9,7 @@ from __future__ import annotations
 import math
 from typing import List, Tuple
 
+from vood.component.vertex import rotate_vertices
 from .base import VertexAligner, AlignmentContext
 
 
@@ -20,11 +21,13 @@ class EuclideanAligner(VertexAligner):
     or start-end correspondence.
 
     Algorithm:
-    1. Identify which shape is open and which is closed
-    2. Try all possible rotations of the closed shape
-    3. For each rotation, calculate total Euclidean distance between all vertex pairs
-    4. Select rotation that minimizes total distance
-    5. Ensure last vertex equals first vertex for closed shape (closure)
+    1. Apply shape rotations to both vertex lists
+    2. Identify which shape is open and which is closed
+    3. Try all possible rotations of the closed shape
+    4. For each rotation, calculate total Euclidean distance between all vertex pairs
+    5. Select rotation that minimizes total distance
+    6. Return original vertices with selected offset applied
+    7. Ensure last vertex equals first vertex for closed shape (closure)
 
     Performance: O(n²) - tries n offsets, evaluates n vertex pairs each
     """
@@ -40,16 +43,25 @@ class EuclideanAligner(VertexAligner):
                 f"Vertex lists must have same length: {len(verts1)} != {len(verts2)}"
             )
 
+        # Apply shape rotations to vertices for alignment calculation
+        # (consistent with AngularAligner)
+        verts1_rotated = rotate_vertices(verts1, context.rotation1)
+        verts2_rotated = rotate_vertices(verts2, context.rotation2)
+
         # Determine which is open and which is closed
         if not context.closed1 and context.closed2:
             # verts1 is open, verts2 is closed
-            verts_open = verts1
-            verts_closed = verts2
+            verts_open = verts1_rotated
+            verts_closed = verts2_rotated
+            verts_open_original = verts1
+            verts_closed_original = verts2
             swap = False
         elif context.closed1 and not context.closed2:
             # verts1 is closed, verts2 is open
-            verts_open = verts2
-            verts_closed = verts1
+            verts_open = verts2_rotated
+            verts_closed = verts1_rotated
+            verts_open_original = verts2
+            verts_closed_original = verts1
             swap = True
         else:
             # Both open or both closed - shouldn't use this aligner
@@ -61,6 +73,7 @@ class EuclideanAligner(VertexAligner):
         min_distance = float("inf")
 
         # Try all rotations and find the one that minimizes total Euclidean distance
+        # Use rotated vertices for distance calculation
         for offset in range(n):
             total_dist = sum(
                 math.sqrt(
@@ -74,14 +87,17 @@ class EuclideanAligner(VertexAligner):
                 min_distance = total_dist
                 best_offset = offset
 
-        # Rotate closed shape by best offset
-        verts_closed_aligned = verts_closed[best_offset:] + verts_closed[:best_offset]
+        # Apply best offset to ORIGINAL vertices (not rotated)
+        # This is consistent with AngularAligner behavior
+        verts_closed_aligned = (
+            verts_closed_original[best_offset:] + verts_closed_original[:best_offset]
+        )
 
         # Make last vertex same as first for closed shape
         verts_closed_aligned[-1] = verts_closed_aligned[0]
 
-        # Return in original order
+        # Return original vertices in original order
         if swap:
-            return verts_closed_aligned, verts_open
+            return verts_closed_aligned, verts_open_original
         else:
-            return verts_open, verts_closed_aligned
+            return verts_open_original, verts_closed_aligned
