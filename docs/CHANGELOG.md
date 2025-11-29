@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.4.0] - 2025-11-29
+* lib architecture redesign/cleanup
+* norm (l1,l2,linf) config for vertex alignment 
+* dev server support
+* jupyter support
+
 ## [0.3.0] - 2025-11-21
 * lib architecture redesign/cleanup
 * configuration support
