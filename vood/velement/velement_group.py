@@ -10,7 +10,7 @@ from vood.component import State
 from vood.velement.base_velement import BaseVElement
 from vood.velement.keystate_parser import (
     FlexibleKeystateInput,
-    PropertyTimelineConfig,
+    PropertyKeyStatesConfig,
 )
 from vood.transition import easing
 
@@ -56,7 +56,7 @@ class VElementGroup(BaseVElement):
         # NEW/Renamed parameter replacing the old 'easing'
         property_easing: Optional[Dict[str, Callable[[float], float]]] = None,
         # NEW: Property Timelines (replaces global_transitions)
-        property_keystates: Optional[PropertyTimelineConfig] = None,
+        property_keystates: Optional[PropertyKeyStatesConfig] = None,
         # REMOVED from signature: global_transitions, easing, segment_easing
     ) -> None:
         """Initialize an element group with full animation capabilities"""
@@ -76,10 +76,10 @@ class VElementGroup(BaseVElement):
         """Render the element group in its initial state (static rendering)"""
         return self.render_at_frame_time(0.0)
 
-    def render_at_frame_time(self, t: float) -> Optional[dw.Group]:
+    def render_at_frame_time(self, t: float,drawing: Optional[dw.Drawing] = None) -> Optional[dw.Group]:
         """Render the element transform group at a specific animation time"""
 
-        group_state: Optional[VElementGroupState] = self._get_state_at_time(t)
+        group_state, _ = self._get_state_at_time(t)
 
         if group_state is None:
             return None

@@ -3,10 +3,9 @@
 # ============================================================================
 """Scale down, switch, scale up animation"""
 
-from typing import List, Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def scale(
     state1: State,
@@ -15,7 +14,7 @@ def scale(
     duration: float = 0.3,
     min_scale: float = 0.0,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Scale down first state, switch properties, scale up second state
 
     Element scales down to minimum (typically 0), properties change,
@@ -49,17 +48,17 @@ def scale(
     t_end = at_time + half
 
     keystates = [
-        (t_start, replace(state1, scale=1.0)),
-        (at_time, replace(state1, scale=min_scale, opacity=0.0)),  # Scaled down
-        (at_time, replace(state2, scale=min_scale, opacity=0.0)),  # Switch (tiny)
-        (t_end, replace(state2, scale=1.0, opacity=1.0)),  # Scaled up
+        KeyState(time=t_start, state=replace(state1, scale=1.0)),
+        KeyState(time=at_time, state=replace(state1, scale=min_scale, opacity=0.0)),  # Scaled down
+        KeyState(time=at_time, state=replace(state2, scale=min_scale, opacity=0.0)),  # Switch (tiny)
+        KeyState(time=t_end, state=replace(state2, scale=1.0, opacity=1.0)),  # Scaled up
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, replace(state1, scale=1.0)),
+            KeyState(time=0.0, state=replace(state1, scale=1.0)),
             *keystates,
-            (1.0, replace(state2, scale=1.0)),
+            KeyState(time=1.0, state=replace(state2, scale=1.0)),
         ]
 
     return keystates

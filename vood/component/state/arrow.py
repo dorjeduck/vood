@@ -6,8 +6,12 @@ from typing import List, Tuple
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.core.point2d import Point2D
+from vood.component.registry import renderer
+from vood.component.renderer.arrow import ArrowRenderer
 
 
+@renderer(ArrowRenderer)
 @dataclass(frozen=True)
 class ArrowState(VertexState):
 
@@ -15,7 +19,6 @@ class ArrowState(VertexState):
     head_width: float = 40
     head_length: float = 30
     shaft_width: float = 20
-    
 
     closed: bool = True
 
@@ -36,26 +39,23 @@ class ArrowState(VertexState):
 
         # Define arrow corners, starting from back-bottom, going clockwise
         corners = [
-            (-self.length / 2, -sw),  # 0: back bottom
-            (-self.length / 2 + sl, -sw),  # 1: shaft bottom-right
-            (-self.length / 2 + sl, -hw),  # 2: head bottom
-            (self.length / 2, 0),  # 3: tip
-            (-self.length / 2 + sl, hw),  # 4: head top
-            (-self.length / 2 + sl, sw),  # 5: shaft top-right
-            (-self.length / 2, sw),  # 6: back top
+            Point2D(-self.length / 2, -sw),  # 0: back bottom
+            Point2D(-self.length / 2 + sl, -sw),  # 1: shaft bottom-right
+            Point2D(-self.length / 2 + sl, -hw),  # 2: head bottom
+            Point2D(self.length / 2, 0),  # 3: tip
+            Point2D(-self.length / 2 + sl, hw),  # 4: head top
+            Point2D(-self.length / 2 + sl, sw),  # 5: shaft top-right
+            Point2D(-self.length / 2, sw),  # 6: back top
         ]
-
-        # Calculate edge lengths
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
 
         edge_lengths = [
-            distance(corners[i], corners[i + 1]) for i in range(len(corners) - 1)
+            corners[i].distance_to(corners[i + 1]) for i in range(len(corners) - 1)
         ]
+  
         # Add closing edge (back to start)
-        edge_lengths.append(distance(corners[-1], corners[0]))
+        edge_lengths.append(corners[-1].distance_to(corners[0]))
         total_perimeter = sum(edge_lengths)
-
+        
         # Distribute vertices
         vertices = []
         for i in range(self._num_vertices):
@@ -70,9 +70,9 @@ class ArrowState(VertexState):
                     v2 = corners[(edge_idx + 1) % len(corners)]
                     edge_t = distance_along_edge / edge_lengths[edge_idx]
 
-                    x = v1[0] + edge_t * (v2[0] - v1[0])
-                    y = v1[1] + edge_t * (v2[1] - v1[1])
-                    vertices.append((x, y))
+                    x = v1.x + edge_t * (v2.x - v1.x)
+                    y = v1.y + edge_t * (v2.y - v1.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += edge_lengths[edge_idx]
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .vertex_loop import VertexLoop
 
+from vood.core.point2d import Point2D
 
 class VertexRectangle(VertexLoop):
     """Rectangle as a VertexLoop
@@ -39,10 +40,10 @@ class VertexRectangle(VertexLoop):
 
         # Rectangle corners (top-left, top-right, bottom-right, bottom-left)
         corners = [
-            (cx - hw, cy - hh),  # Top-left
-            (cx + hw, cy - hh),  # Top-right
-            (cx + hw, cy + hh),  # Bottom-right
-            (cx - hw, cy + hh),  # Bottom-left
+            Point2D(cx - hw, cy - hh),  # Top-left
+            Point2D(cx + hw, cy - hh),  # Top-right
+            Point2D(cx + hw, cy + hh),  # Bottom-right
+            Point2D(cx - hw, cy + hh),  # Bottom-left
         ]
 
         # Perimeter lengths for each side
@@ -68,9 +69,9 @@ class VertexRectangle(VertexLoop):
                     end_corner = corners[(side_idx + 1) % 4]
                     t = distance_along_side / side_lengths[side_idx]
 
-                    x = start_corner[0] + t * (end_corner[0] - start_corner[0])
-                    y = start_corner[1] + t * (end_corner[1] - start_corner[1])
-                    vertices.append((x, y))
+                    x = start_corner.x + t * (end_corner.x - start_corner.x)
+                    y = start_corner.y + t * (end_corner.y - start_corner.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += side_lengths[side_idx]
 

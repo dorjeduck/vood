@@ -1,7 +1,7 @@
 """Path renderer implementation for custom SVG paths (like zodiac signs)"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 
 import drawsvg as dw
@@ -10,20 +10,25 @@ from vood.path.svg_path import SVGPath
 
 from .base import Renderer
 
-from ..state.path import PathState
+if TYPE_CHECKING:
+    from ..state.path import PathState
+
+
 
 
 class PathRenderer(Renderer):
     """Renderer class for rendering custom SVG path elements"""
 
-    def _render_core(self, state: PathState, drawing: Optional[dw.Drawing] = None) -> dw.Path:
+    def _render_core(
+        self, state: "PathState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Path:
         """Render the renderer's geometry with the given state
 
         Returns:
             drawsvg Path object
         """
         # Create path with basic properties
-        
+
         path_kwargs = {
             "d": (
                 state.data.to_string()

@@ -1,4 +1,4 @@
-from .base import State
+from .base import State, States
 from .base_vertex import VertexState
 from .arc import ArcState
 from .arrow import ArrowState
@@ -8,7 +8,6 @@ from .circle import CircleState
 from .cross import CrossState
 from .ellipse import EllipseState
 from .line import LineState
-from .number import NumberState
 from .path import PathState
 from .perforated import (
     PerforatedVertexState,
@@ -50,6 +49,7 @@ from .wave import WaveState
 
 __all__ = [
     "State",
+    "States",
     "VertexState",
     "ArcState",
     "ArrowState",
@@ -59,7 +59,6 @@ __all__ = [
     "CrossState",
     "EllipseState",
     "LineState",
-    "NumberState",
     "PathState",
     "PerforatedVertexState",
     "PerforatedCircleState",

@@ -1,13 +1,16 @@
 from __future__ import annotations
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.core.point2d import Point2D
+from vood.component.registry import renderer
+from vood.component.renderer.infinity import InfinityRenderer
 
 
+@renderer(InfinityRenderer)
 @dataclass(frozen=True)
 class InfinityState(VertexState):
     """Infinity symbol (lemniscate)"""
@@ -33,7 +36,7 @@ class InfinityState(VertexState):
             x = self.size * math.cos(t) / denominator
             y = self.size * math.sin(t) * math.cos(t) / denominator
 
-            vertices.append((x, y))
+            vertices.append(Point2D(x, y))
 
         vertices.append(vertices[0])
         return VertexContours.from_single_loop(vertices, closed=True)

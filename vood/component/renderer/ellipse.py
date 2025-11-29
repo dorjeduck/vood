@@ -1,12 +1,15 @@
 """Ellipse renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
-from ..state.ellipse import EllipseState
+
+if TYPE_CHECKING:
+    from ..state.ellipse import EllipseState
+
 
 
 class EllipseRenderer(Renderer):
@@ -19,7 +22,9 @@ class EllipseRenderer(Renderer):
         """
         pass
 
-    def _render_core(self, state: EllipseState, drawing: Optional[dw.Drawing] = None) -> dw.Ellipse:
+    def _render_core(
+        self, state: "EllipseState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Ellipse:
         """Render the ellipse renderer (geometry only) with the given state
 
         Returns:

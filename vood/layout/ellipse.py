@@ -4,24 +4,25 @@ import math
 from typing import List, Optional, Callable
 from dataclasses import replace
 
-from vood.component import State
+from vood.component.state.base import States
+
 from .enums import ElementAlignment
 
 
 def ellipse(
-    states: List[State],
+    states: States,
     rx: float = 100,
     ry: float = 50,
     rotation: float = 0,
-    center_x: float = 0,
-    center_y: float = 0,
+    cx: float = 0,
+    cy: float = 0,
     clockwise: bool = True,
     start_angle: float = 0,
     angles: Optional[List[float]] = None,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
     element_rotation_offset: float = 0,
     element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
-) -> List[State]:
+) -> States:
     """
     Arrange states in an elliptical formation.
 
@@ -34,8 +35,8 @@ def ellipse(
         rx: Horizontal radius of the ellipse
         ry: Vertical radius of the ellipse
         rotation: Rotation in degrees (0° = top, 90° = right)
-        center_x: X coordinate of ellipse center
-        center_y: Y coordinate of ellipse center
+        cx: X coordinate of ellipse center
+        cy: Y coordinate of ellipse center
         clockwise: If True, arrange clockwise; if False, counterclockwise.
                   Only used when angles is None.
         angles: Optional list of specific angles in degrees for each element.
@@ -86,8 +87,8 @@ def ellipse(
         ey = -ry * math.cos(angle_rad)
 
         # Rotate ellipse axes by 'rotation'
-        x = center_x + ex * cos_rot - ey * sin_rot
-        y = center_y + ex * sin_rot + ey * cos_rot
+        x = cx + ex * cos_rot - ey * sin_rot
+        y = cy + ex * sin_rot + ey * cos_rot
 
         additional_rotation = (
             element_rotation_offset_fn(angle)
@@ -107,3 +108,92 @@ def ellipse(
         result.append(new_state)
 
     return result
+
+
+def ellipse_in_bbox(
+    states: States,
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+    rotation: float = 0,
+    clockwise: bool = True,
+    start_angle: float = 0,
+    alignment: ElementAlignment = ElementAlignment.PRESERVE,
+    element_rotation_offset: float = 0,
+    angles: Optional[List[float]] = None,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
+) -> States:
+    """
+    Arrange states in an elliptical formation within a bounding box.
+
+    Alternative specification to ellipse() for users who think in terms of bounding boxes
+    rather than center + radii. The ellipse will be inscribed in the specified rectangle.
+
+    Args:
+        states: List of states to arrange
+        x: X coordinate of bounding box top-left corner
+        y: Y coordinate of bounding box top-left corner
+        width: Width of bounding box
+        height: Height of bounding box
+        rotation: Rotation in degrees (0° = top, 90° = right)
+        clockwise: If True, arrange clockwise; if False, counterclockwise
+        start_angle: Starting angle in degrees for first element
+        alignment: How to align each element relative to the ellipse.
+                  PRESERVE keeps original rotation, LAYOUT aligns tangent to ellipse,
+                  UPRIGHT starts from vertical position.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        angles: Optional list of specific angles in degrees for each element.
+               If provided, overrides automatic distribution.
+        element_rotation_offset_fn: Function that takes position angle (degrees) and returns rotation offset.
+
+    Returns:
+        New list of states with elliptical positions
+
+    Raises:
+        ValueError: If width or height is zero or negative
+
+    Examples:
+        # Ellipse in 400x200 box at origin
+        >>> ellipse_in_bbox(states, 0, 0, 400, 200)
+
+        # Ellipse in square box (becomes circle)
+        >>> ellipse_in_bbox(states, -100, -100, 200, 200)
+
+        # Rotated ellipse in rectangular box
+        >>> ellipse_in_bbox(states, 50, 50, 300, 150, rotation=45)
+
+        # Equivalent to ellipse() with center and radii:
+        # ellipse_in_bbox(states, 0, 0, 400, 200)
+        # == ellipse(states, cx=200, cy=100, rx=200, ry=100)
+    """
+    if not states:
+        return []
+
+    # Validate dimensions
+    if width <= 0:
+        raise ValueError(f"Width must be positive, got {width}")
+    if height <= 0:
+        raise ValueError(f"Height must be positive, got {height}")
+
+    # Convert bounding box to center + radii
+    cx = x + width / 2
+    cy = y + height / 2
+    rx = width / 2
+    ry = height / 2
+
+    # Call canonical ellipse function
+    return ellipse(
+        states,
+        rx=rx,
+        ry=ry,
+        rotation=rotation,
+        cx=cx,
+        cy=cy,
+        clockwise=clockwise,
+        start_angle=start_angle,
+        angles=angles,
+        alignment=alignment,
+        element_rotation_offset=element_rotation_offset,
+        element_rotation_offset_fn=element_rotation_offset_fn,
+    )

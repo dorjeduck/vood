@@ -11,23 +11,18 @@ If you need easing or alignment overrides, use the KeyState class (not complex t
 The (time, state) tuple is kept as a convenience for the common case of explicit timing.
 """
 
-from typing import List, Optional, Tuple, Callable, Dict, Any, Union, TYPE_CHECKING
-
+from typing import List, Optional, Tuple, Callable, Dict, Any, Union
 from vood.component import State
-
-# Import KeyState - done after to avoid circular import issues
-if TYPE_CHECKING:
-    from .keystate import KeyState
+from .keystate import KeyState
 
 # Type definitions
 PropertyKeyframeTuple = Tuple[float, Any, Optional[Callable[[float], float]]]
-
-PropertyTimelineConfig = Dict[str, List[PropertyKeyframeTuple]]
+PropertyKeyStatesConfig = Dict[str, List[PropertyKeyframeTuple]]
 
 # Flexible input accepts three formats
 FlexibleKeystateInput = Union[
-    "KeyState",         # KeyState class (for advanced features: easing, alignment)
-    State,              # Bare state (auto-timed)
+    KeyState,  # KeyState class (for advanced features: easing, alignment)
+    State,  # Bare state (auto-timed)
     Tuple[float, State],  # (time, state) - simple explicit timing
 ]
 
@@ -130,14 +125,31 @@ def parse_property_keystates(
         normalized.append((t, val, easing))
 
     # Step 2: ALWAYS apply full timeline boundaries for properties
-    if normalized[0][0] is None or normalized[0][0] > 0.0:
-        # Extend first value to 0.0
+    
+    # Handle start
+    if normalized[0][0] is None:
+        # First item is implicit, anchor it to 0.0
+        normalized[0] = (0.0, normalized[0][1], normalized[0][2])
+    elif normalized[0][0] > 0.0:
+        # First item is explicit > 0.0, extend backwards
         first_val = normalized[0][1]
         first_easing = normalized[0][2]
         normalized.insert(0, (0.0, first_val, first_easing))
 
-    if normalized[-1][0] is None or normalized[-1][0] < 1.0:
-        # Extend last value to 1.0
+    # Handle end
+    if normalized[-1][0] is None:
+        # Last item is implicit, anchor it to 1.0
+        if len(normalized) == 1 and normalized[0][0] == 0.0:
+             # Single item (that we just anchored to 0.0), duplicate it at 1.0
+             val = normalized[0][1]
+             easing = normalized[0][2]
+             normalized.append((1.0, val, easing))
+        else:
+             # Anchor last implicit to 1.0
+             normalized[-1] = (1.0, normalized[-1][1], normalized[-1][2])
+             
+    elif normalized[-1][0] < 1.0:
+        # Last item is explicit < 1.0, extend forwards
         last_val = normalized[-1][1]
         last_easing = normalized[-1][2]
         # Only add if not already at 1.0
@@ -188,10 +200,16 @@ def _normalize_keystates(
 
         # Handle (time, state) tuples
         if isinstance(item, tuple):
-            if len(item) == 2 and isinstance(item[0], (float, int)) and isinstance(item[1], State):
+            if (
+                len(item) == 2
+                and isinstance(item[0], (float, int))
+                and isinstance(item[1], State)
+            ):
                 t = float(item[0])
                 if not (0.0 <= t <= 1.0):
-                    raise ValueError(f"Keystate time must be between 0.0 and 1.0, got {t}")
+                    raise ValueError(
+                        f"Keystate time must be between 0.0 and 1.0, got {t}"
+                    )
                 keystate = KeyState(state=item[1], time=t)
                 normalized.append(keystate)
                 has_explicit_times = True
@@ -219,11 +237,12 @@ def _apply_full_timeline_boundaries(
     if not normalized:
         return normalized
 
-    # Anchor first to 0.0
-    normalized[0] = normalized[0].with_time(0.0)
+    # Anchor first to 0.0 if implicit
+    if normalized[0].time is None:
+        normalized[0] = normalized[0].with_time(0.0)
 
-    # Anchor last to 1.0 (if more than one keystate)
-    if len(normalized) > 1:
+    # Anchor last to 1.0 if implicit (and more than one keystate)
+    if len(normalized) > 1 and normalized[-1].time is None:
         normalized[-1] = normalized[-1].with_time(1.0)
 
     return normalized
@@ -340,7 +359,7 @@ def _finalize_property_keystates(
     for t, val, easing in keystates:
         if not unique_keystates or t > unique_keystates[-1][0]:
             unique_keystates.append((t, val, easing))
-        elif t == unique_keystates[-1][0]:
+        elif t == unique_keystates[-1].time:
             # Replace with last definition at same time
             unique_keystates[-1] = (t, val, easing)
 

@@ -4,13 +4,16 @@
 """PathText component - Text that follows any SVG path with morphing support"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.path_text import PathTextState
+if TYPE_CHECKING:
+    from ..state.path_text import PathTextState
+
+
 
 
 class PathTextRenderer(Renderer):
@@ -50,7 +53,9 @@ class PathTextRenderer(Renderer):
         """Initialize path text renderer"""
         pass
 
-    def _render_core(self, state: PathTextState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "PathTextState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render text along the path with the given state (core geometry only)"""
 
         # Convert SVGPath to drawsvg Path
@@ -103,7 +108,7 @@ class PathTextRenderer(Renderer):
         text_content: str,
         offset: float,
         text_path: dw.Path,
-        state: PathTextState,
+        state: "PathTextState",
     ) -> dw.Text:
         """Create a single text element at the specified offset along the path
 

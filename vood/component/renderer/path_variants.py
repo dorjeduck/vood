@@ -1,15 +1,16 @@
 """Abstract base class for renderers with multiple path variants"""
 
 from __future__ import annotations
-from typing import Optional
-from typing import Dict, Any
+from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Any
 from abc import ABC
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.path_variants import PathVariantState
+if TYPE_CHECKING:
+    from ..state.path_variants import PathVariantState
 
 
 class PathVariantsRenderer(Renderer, ABC):
@@ -19,7 +20,7 @@ class PathVariantsRenderer(Renderer, ABC):
     - "variant_name": {
         "path": "SVG path data",
         "viewbox": original_size,
-        "center": (center_x, center_y)
+        "center": (cx, cy)
       }
     """
 
@@ -46,18 +47,18 @@ class PathVariantsRenderer(Renderer, ABC):
         self.variant = variant
         self.data = self.PATH_VARIANTS[variant]
 
-    def _render_core(self, state: PathVariantState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "PathVariantState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render the renderer geometry centered at (0,0), no scaling or transforms"""
         fill_color = state.fill_color.to_rgb_string()
         data = self.data["path"]
 
-        center_x, center_y = self.data["center"]
+        cx, cy = self.data["center"]
 
         viewbox_size = self.data["viewbox"]
         scale_factor = state.size / viewbox_size
-        group = dw.Group(
-            transform=f"scale({scale_factor}) translate({-center_x},{-center_y})"
-        )
+        group = dw.Group(transform=f"scale({scale_factor}) translate({-cx},{-cy})")
 
         paths = data if isinstance(data, list) else [data]
         for path_string in paths:
@@ -72,7 +73,7 @@ class PathVariantsRenderer(Renderer, ABC):
                 path_kwargs["stroke_width"] = state.stroke_width
 
             group.append(dw.Path(**path_kwargs))
-        group.transform = f"translate({-center_x},{-center_y})"
+        group.transform = f"translate({-cx},{-cy})"
         return group
 
     @classmethod

@@ -22,7 +22,7 @@ from vood.velement import VElement
 from vood.component.state import CircleState, TextState
 from vood.component.renderer import CircleRenderer, TextRenderer
 from vood.core.color import Color
-from vood.playwright_server.process_manager import ProcessManager
+from vood.server.playwright.process_manager import ProcessManager
 
 
 @dataclass

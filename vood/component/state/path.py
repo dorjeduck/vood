@@ -6,6 +6,8 @@ from vood.path.svg_path import SVGPath
 from vood.core.color import Color
 
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.path import PathRenderer
 from vood.transition import easing
 
 
@@ -40,6 +42,7 @@ class FillRule(StrEnum):
     EVENODD = "evenodd"
 
 
+@renderer(PathRenderer)
 @dataclass(frozen=True)
 class PathState(State):
     """State for SVG path rendering and morphing"""
@@ -82,6 +85,7 @@ class PathState(State):
 
     def __post_init__(self):
         super().__post_init__()
+       
 
         if isinstance(self.data, str):
             self._set_field("data", SVGPath.from_string(self.data))
@@ -89,8 +93,3 @@ class PathState(State):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path import PathRenderer
-
-        return PathRenderer

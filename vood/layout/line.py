@@ -1,23 +1,23 @@
 """Line layout state function"""
 
 import math
-from typing import List, Optional
+from typing import List, Optional, Callable
 from dataclasses import replace
 
-from vood.component import State
+from vood.component.state.base import States
 from .enums import ElementAlignment
 
 
 def line(
-    states: List[State],
+    states: States,
     spacing: float = 100,
     rotation: float = 0,
-    center_x: float = 0,
-    center_y: float = 0,
+    cx: float = 0,
+    cy: float = 0,
     distances: Optional[List[float]] = None,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
     element_rotation_offset: float = 0,
-) -> List[State]:
+) -> States:
     """
     Arrange states in a straight line formation.
 
@@ -31,8 +31,8 @@ def line(
         states: List of states to arrange
         spacing: Distance between adjacent elements. Only used when distances is None.
         rotation: Angle of the line in degrees (0° = horizontal right, 90° = vertical down)
-        center_x: X coordinate of line center
-        center_y: Y coordinate of line center
+        cx: X coordinate of line center
+        cy: Y coordinate of line center
         distances: Optional list of specific distances from center for each element.
                   If provided, overrides automatic distribution and spacing parameter.
                   Positive values = forward along line, negative = backward along line.
@@ -102,8 +102,8 @@ def line(
         line_pos = line_positions[i]
 
         # Calculate position along the line
-        x = center_x + line_pos * cos_rotation
-        y = center_y + line_pos * sin_rotation
+        x = cx + line_pos * cos_rotation
+        y = cy + line_pos * sin_rotation
 
         # Calculate element rotation based on alignment mode
         if alignment == ElementAlignment.PRESERVE:
@@ -122,3 +122,91 @@ def line(
         result.append(new_state)
 
     return result
+
+
+def line_between_points(
+    states: States,
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+    alignment: ElementAlignment = ElementAlignment.PRESERVE,
+    element_rotation_offset: float = 0,
+    distances: Optional[List[float]] = None,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
+) -> States:
+    """
+    Arrange states along a line from point A to point B.
+
+    Alternative specification to line() for users who think in terms of endpoints
+    rather than center + rotation + spacing. Distributes states evenly from start
+    to end point, or uses explicit distances if provided.
+
+    Args:
+        states: List of states to arrange
+        x1: X coordinate of line start point
+        y1: Y coordinate of line start point
+        x2: X coordinate of line end point
+        y2: Y coordinate of line end point
+        alignment: How to align each element relative to the line.
+                  PRESERVE keeps original rotation, LAYOUT aligns parallel to line,
+                  UPRIGHT starts from vertical position.
+        element_rotation_offset: Additional rotation in degrees added to the alignment base.
+        distances: Optional list of specific distances from center for each element.
+                  If provided, overrides automatic distribution.
+                  Positive values = forward along line, negative = backward along line.
+        element_rotation_offset_fn: Optional function to calculate rotation offset dynamically.
+                                    Not used currently, reserved for future compatibility.
+
+    Returns:
+        New list of states with line positions
+
+    Raises:
+        ValueError: If start and end points are identical (zero-length line)
+
+    Examples:
+        # Horizontal line from origin to (200, 0)
+        >>> line_between_points(states, 0, 0, 200, 0)
+
+        # Diagonal line
+        >>> line_between_points(states, -100, -100, 100, 100)
+
+        # Vertical line with elements aligned to line direction
+        >>> line_between_points(states, 50, 0, 50, 200, alignment=ElementAlignment.LAYOUT)
+
+        # Equivalent to line() with center and rotation:
+        # line_between_points(states, 0, 0, 100, 100)
+        # == line(states, cx=50, cy=50, rotation=45, spacing=~35.35)
+    """
+    if not states:
+        return []
+
+    # Calculate line vector
+    dx = x2 - x1
+    dy = y2 - y1
+
+    # Check for zero-length line
+    length = math.sqrt(dx * dx + dy * dy)
+    if length < 1e-10:
+        raise ValueError(
+            f"Start point ({x1}, {y1}) and end point ({x2}, {y2}) are identical. "
+            "Cannot create a line with zero length."
+        )
+
+    # Convert endpoints to center + rotation + spacing
+    cx = (x1 + x2) / 2
+    cy = (y1 + y2) / 2
+    rotation = math.degrees(math.atan2(dy, dx))
+    spacing = length / (len(states) - 1) if len(states) > 1 else 0
+
+    # Call canonical line function
+    return line(
+        states,
+        spacing=spacing,
+        rotation=rotation,
+        cx=cx,
+        cy=cy,
+        distances=distances,
+        alignment=alignment,
+        element_rotation_offset=element_rotation_offset,
+    )

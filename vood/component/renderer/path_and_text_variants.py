@@ -1,15 +1,16 @@
 """Abstract base class for renderers with multiple path variants and text labels"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 from abc import ABC
-from typing import Dict, Any
+from typing import TYPE_CHECKING, Dict, Any
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.path_and_text_variants import PathAndTextVariantsState
+if TYPE_CHECKING:
+    from ..state.path_and_text_variants import PathAndTextVariantsState
 
 
 class PathAndTextVariantsRenderer(Renderer, ABC):
@@ -21,7 +22,7 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
         "text": "LABEL TEXT",
         "text_position": (text_x, text_y),
         "viewbox": original_size,
-        "center": (center_x, center_y)
+        "center": (cx, cy)
       }
     """
 
@@ -48,7 +49,9 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
         self.variant = variant
         self.data = self.PATH_VARIANTS[variant]
 
-    def _render_core(self, state: PathAndTextVariantsState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "PathAndTextVariantsState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render the renderer geometry only (no transforms or positioning)
 
         Args:
@@ -69,14 +72,12 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
         text_content = self.data["text"]
         text_x, text_y = self.data["text_position"]
         viewbox_size = self.data["viewbox"]
-        center_x, center_y = self.data["center"]
+        cx, cy = self.data["center"]
 
         # Create main group to hold everything
 
         scale_factor = state.size / viewbox_size
-        main_group = dw.Group(
-            transform=f"scale({scale_factor}) translate({-center_x},{-center_y})"
-        )
+        main_group = dw.Group(transform=f"scale({scale_factor}) translate({-cx},{-cy})")
 
         # Handle multiple paths (if data is a list) or single path
         if isinstance(data, list):

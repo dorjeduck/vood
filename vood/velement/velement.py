@@ -5,12 +5,14 @@ from typing import Any, Iterable, Optional, Dict, Callable, List, Union, Tuple
 
 import drawsvg as dw
 
-from vood.component import Renderer, State
+from vood.component import Renderer, State, get_renderer_instance_for_state
 from vood.velement.base_velement import BaseVElement
+from vood.component.renderer.base_vertex import VertexRenderer
 from vood.velement.keystate_parser import (
     FlexibleKeystateInput,
-    PropertyTimelineConfig,
+    PropertyKeyStatesConfig,
 )
+from vood.core.point2d import Point2D, Points2D
 
 
 class VElement(BaseVElement):
@@ -32,10 +34,14 @@ class VElement(BaseVElement):
         # NEW/Renamed: Instance-level easing override (Level 2)
         property_easing: Optional[Dict[str, Callable[[float], float]]] = None,
         # NEW: Custom property timelines (Level 4 control)
-        property_keystates: Optional[PropertyTimelineConfig] = None,
+        property_keystates: Optional[PropertyKeyStatesConfig] = None,
     ) -> None:
 
         self.renderer = renderer
+
+        # Vertex buffer cache for optimized interpolation
+        # Cache keyed by (num_vertices, num_holes) to reuse buffers across frames
+        self._vertex_buffer_cache: Dict[Tuple[int, int], Tuple[Points2D, List[Points2D]]] = {}
 
         # Call parent constructor with keystate parameters
         super().__init__(
@@ -44,6 +50,18 @@ class VElement(BaseVElement):
             property_easing=property_easing,
             property_keystates=property_keystates,
         )
+
+    def get_frame(self, t: float) -> Optional[State]:
+        """Get the interpolated state at a specific time
+
+        Args:
+            t: Time factor from 0.0 to 1.0
+
+        Returns:
+            Interpolated state at time t, or None if element doesn't exist at this time
+        """
+        state, _ = self._get_state_at_time(t)
+        return state
 
     def render(self) -> Optional[dw.DrawingElement]:
         """Render the element in its current state (static rendering)
@@ -75,12 +93,40 @@ class VElement(BaseVElement):
             return None
 
         if inbetween:
-            renderer = interpolated_state.get_vertex_renderer_class()()
+            
+            #renderer_class = interpolated_state.get_vertex_renderer_class()
+            renderer = VertexRenderer()
         else:
-            renderer = (
-                self.renderer
-                if self.renderer
-                else interpolated_state.get_renderer_class()()
-            )
-   
+            if self.renderer:
+                renderer = self.renderer
+            else:
+                
+                renderer = get_renderer_instance_for_state(interpolated_state)
+                
+
         return renderer.render(interpolated_state, drawing=drawing)
+
+    def _get_vertex_buffer(self, num_verts: int, num_holes: int) -> Tuple[Points2D, List[Points2D]]:
+        """Get or create reusable vertex buffer for interpolation
+
+        Buffers are cached to avoid creating new Point2D lists for every frame.
+        Each buffer is sized for a specific (num_vertices, num_holes) combination.
+
+        Args:
+            num_verts: Number of vertices in the outer contour
+            num_holes: Number of holes in the shape
+
+        Returns:
+            Tuple of (outer_buffer, hole_buffers) where:
+            - outer_buffer: List of Point2D for outer contour
+            - hole_buffers: List of Lists of Point2D, one per hole
+        """
+        key = (num_verts, num_holes)
+        if key not in self._vertex_buffer_cache:
+            # Create new buffer with pre-allocated Point2D objects
+            outer_buffer = [Point2D(0.0, 0.0) for _ in range(num_verts)]
+            hole_buffers = [[Point2D(0.0, 0.0) for _ in range(num_verts)] for _ in range(num_holes)]
+            self._vertex_buffer_cache[key] = (outer_buffer, hole_buffers)
+
+        return self._vertex_buffer_cache[key]
+

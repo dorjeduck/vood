@@ -56,12 +56,12 @@ def main():
 
     vertex_states.append(CircleState(fill_color=FILL_COLOR, stroke_color=STROKE_COLOR))
     vertex_name_states.append(replace(base_name_state, text="Circle"))
-
+    
     vertex_states.append(
         ArrowState(fill_color=FILL_COLOR, stroke_color=STROKE_COLOR, rotation=-45)
     )
     vertex_name_states.append(replace(base_name_state, text="Arrow"))
-
+    
     vertex_states.append(
         CrossState(
             fill_color=FILL_COLOR,
@@ -69,7 +69,7 @@ def main():
         )
     )
     vertex_name_states.append(replace(base_name_state, text="Cross"))
-
+    
     vertex_states.append(
         LineState(
             fill_color=FILL_COLOR,
@@ -90,7 +90,7 @@ def main():
         PolygonState(fill_color=FILL_COLOR, stroke_color=STROKE_COLOR, num_sides=5)
     )
     vertex_name_states.append(replace(base_name_state, text="Pentagon"))
-
+    
     vertex_states.append(FlowerState(fill_color=FILL_COLOR, stroke_color=STROKE_COLOR))
     vertex_name_states.append(replace(base_name_state, text="Flower"))
 
@@ -101,7 +101,7 @@ def main():
         )
     )
     vertex_name_states.append(replace(base_name_state, text="Heart"))
-
+    
     vertex_states.append(
         WaveState(
             fill_color=FILL_COLOR,
@@ -200,13 +200,13 @@ def main():
             keystates=vertex_keystates,
         )
     )
-    
+   
 
     text_keyframes = sequential_transition(vertex_name_states, fade, 0.5)
 
     texts = VElement(renderer=TextRenderer(), keystates=text_keyframes)
     scene.add_element(texts)
-
+   
     # Create the exporter
     exporter = VSceneExporter(
         scene=scene,

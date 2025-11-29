@@ -11,7 +11,7 @@ These functions generate keystates for animating a single element through
 different states. The element changes its properties over time, with instant
 switches or smooth transitions between values.
 
-All functions return: List[Tuple[float, State]]
+All functions return: List[KeyState]
 
 Available animations:
 - hold: Hold state, then instantly switch

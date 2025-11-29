@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import List, Tuple, Optional
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Points2D,Point2D
 
 class VertexContours:
     """A shape defined by an outer contour and optional holes
@@ -70,30 +70,47 @@ class VertexContours:
         """Calculate bounding box of the entire shape (min_x, min_y, max_x, max_y)"""
         return self._outer.bounds()
 
-    def centroid(self) -> Tuple[float, float]:
+    def centroid(self) -> Point2D:
         """Calculate centroid of the outer contour"""
         return self._outer.centroid()
 
     def translate(self, dx: float, dy: float) -> VertexContours:
-        """Return new VertexContours translated by (dx, dy)"""
-        translated_outer = self._outer.translate(dx, dy)
-        translated_holes = [hole.translate(dx, dy) for hole in self._holes]
-        return VertexContours(translated_outer, translated_holes)
+        """Translate all contours in-place by (dx, dy)
+
+        Returns self for method chaining.
+        """
+        self._outer.translate(dx, dy)
+        for hole in self._holes:
+            hole.translate(dx, dy)
+        return self
 
     def scale(self, sx: float, sy: Optional[float] = None) -> VertexContours:
-        """Return new VertexContours scaled by (sx, sy)"""
-        scaled_outer = self._outer.scale(sx, sy)
-        scaled_holes = [hole.scale(sx, sy) for hole in self._holes]
-        return VertexContours(scaled_outer, scaled_holes)
+        """Scale all contours in-place by (sx, sy)
 
-    def rotate(self, angle_degrees: float, center: Optional[Tuple[float, float]] = None) -> VertexContours:
-        """Return new VertexContours rotated around center"""
-        rotated_outer = self._outer.rotate(angle_degrees, center)
-        rotated_holes = [hole.rotate(angle_degrees, center) for hole in self._holes]
-        return VertexContours(rotated_outer, rotated_holes)
+        If sy is None, uses sx for both dimensions (uniform scaling).
+        Returns self for method chaining.
+        """
+        self._outer.scale(sx, sy)
+        for hole in self._holes:
+            hole.scale(sx, sy)
+        return self
+
+    def rotate(self, angle_degrees: float, center: Optional[Point2D] = None) -> VertexContours:
+        """Rotate all contours in-place around center
+
+        Args:
+            angle_degrees: Rotation angle in degrees (positive = counter-clockwise)
+            center: Center of rotation (default is origin)
+
+        Returns self for method chaining.
+        """
+        self._outer.rotate(angle_degrees, center)
+        for hole in self._holes:
+            hole.rotate(angle_degrees, center)
+        return self
 
     @classmethod
-    def from_single_loop(cls, vertices: List[Tuple[float, float]], closed: bool = True) -> VertexContours:
+    def from_single_loop(cls, vertices: Points2D, closed: bool = True) -> VertexContours:
         """Create VertexContours from a single loop (no holes)
 
         Convenience method for simple shapes without holes.
@@ -104,8 +121,8 @@ class VertexContours:
     @classmethod
     def from_vertices_lists(
         cls,
-        outer_vertices: List[Tuple[float, float]],
-        holes_vertices: Optional[List[List[Tuple[float, float]]]] = None
+        outer_vertices: Points2D,
+        holes_vertices: Optional[List[Points2D]] = None
     ) -> VertexContours:
         """Create VertexContours from lists of vertex tuples
 

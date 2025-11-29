@@ -6,8 +6,12 @@ from typing import List, Tuple
 from vood.transition import easing
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.component.registry import renderer
+from vood.component.renderer.cross import CrossRenderer
+from vood.core.point2d import Point2D
 
 
+@renderer(CrossRenderer)
 @dataclass(frozen=True)
 class CrossState(VertexState):
     """Plus/cross shape"""
@@ -21,11 +25,6 @@ class CrossState(VertexState):
         "thickness": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.cross import CrossRenderer
-
-        return CrossRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate cross vertices (12 corners)"""
@@ -34,23 +33,23 @@ class CrossState(VertexState):
 
         # Define 12 corners of the cross shape, starting from top-center, clockwise
         corners = [
-            (-ht, -hw),  # 0: top of vertical bar
-            (ht, -hw),  # 1
-            (ht, -ht),  # 2
-            (hw, -ht),  # 3: right of horizontal bar
-            (hw, ht),  # 4
-            (ht, ht),  # 5
-            (ht, hw),  # 6: bottom of vertical bar
-            (-ht, hw),  # 7
-            (-ht, ht),  # 8
-            (-hw, ht),  # 9: left of horizontal bar
-            (-hw, -ht),  # 10
-            (-ht, -ht),  # 11
+            Point2D(-ht, -hw),  # 0: top of vertical bar
+            Point2D(ht, -hw),  # 1
+            Point2D(ht, -ht),  # 2
+            Point2D(hw, -ht),  # 3: right of horizontal bar
+            Point2D(hw, ht),  # 4
+            Point2D(ht, ht),  # 5
+            Point2D(ht, hw),  # 6: bottom of vertical bar
+            Point2D(-ht, hw),  # 7
+            Point2D(-ht, ht),  # 8
+            Point2D(-hw, ht),  # 9: left of horizontal bar
+            Point2D(-hw, -ht),  # 10
+            Point2D(-ht, -ht),  # 11
         ]
 
         # Calculate edge lengths
         def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+            return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
         edge_lengths = [distance(corners[i], corners[(i + 1) % 12]) for i in range(12)]
         total_perimeter = sum(edge_lengths)
@@ -68,9 +67,9 @@ class CrossState(VertexState):
                     v2 = corners[(edge_idx + 1) % 12]
                     t = distance_along_edge / edge_lengths[edge_idx]
 
-                    x = v1[0] + t * (v2[0] - v1[0])
-                    y = v1[1] + t * (v2[1] - v1[1])
-                    vertices.append((x, y))
+                    x = v1.x + t * (v2.x - v1.x)
+                    y = v1.y + t * (v2.y - v1.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += edge_lengths[edge_idx]
 

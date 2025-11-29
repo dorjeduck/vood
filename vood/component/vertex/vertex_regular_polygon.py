@@ -5,6 +5,7 @@ import math
 
 from .vertex_loop import VertexLoop
 
+from vood.core.point2d import Point2D
 
 class VertexRegularPolygon(VertexLoop):
     """Regular n-sided polygon as a VertexLoop
@@ -46,11 +47,11 @@ class VertexRegularPolygon(VertexLoop):
             angle = math.radians(i * (360 / num_sides) - 90 + rotation)
             x = cx + size * math.cos(angle)
             y = cy + size * math.sin(angle)
-            corners.append((x, y))
+            corners.append(Point2D(x, y))
 
         # Calculate perimeter and side lengths
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+        def distance(p1: Point2D, p2: Point2D) -> float:
+            return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
         side_lengths = [distance(corners[i], corners[(i + 1) % num_sides]) for i in range(num_sides)]
         perimeter = sum(side_lengths)
@@ -69,13 +70,13 @@ class VertexRegularPolygon(VertexLoop):
                     end_corner = corners[(side_idx + 1) % num_sides]
                     t = distance_along_side / side_lengths[side_idx]
 
-                    x = start_corner[0] + t * (end_corner[0] - start_corner[0])
-                    y = start_corner[1] + t * (end_corner[1] - start_corner[1])
-                    vertices.append((x, y))
+                    x = start_corner.x + t * (end_corner.x - start_corner.x)
+                    y = start_corner.y + t * (end_corner.y - start_corner.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += side_lengths[side_idx]
 
         # Last vertex equals first to close the loop
-        vertices.append(vertices[0])
+        vertices.append(vertices[0])    
 
         super().__init__(vertices, closed=True)

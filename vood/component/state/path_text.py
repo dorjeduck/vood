@@ -9,9 +9,12 @@ from typing import Union, List, Optional
 
 from .text import TextState
 from vood.path import SVGPath
+from vood.component.registry import renderer
+from vood.component.renderer.path_text import PathTextRenderer
 from vood.transition import easing
 
 
+@renderer(PathTextRenderer)
 @dataclass(frozen=True)
 class PathTextState(TextState):
     """State class for text elements following an SVG path
@@ -40,10 +43,5 @@ class PathTextState(TextState):
     def __post_init__(self):
         super().__post_init__()
         if isinstance(self.data, str):
-            self.data = SVGPath.from_string(self.data)
+            self._set_field("data", SVGPath.from_string(self.data))
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path_text import PathTextRenderer
-
-        return PathTextRenderer

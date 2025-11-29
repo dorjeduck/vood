@@ -5,10 +5,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.path_variants import PathVariantsRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(PathVariantsRenderer)
 @dataclass(frozen=True)
 class PathVariantsState(State):
     """Base state class for multi-path renderers"""
@@ -32,11 +35,7 @@ class PathVariantsState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path_variants import PathVariantsRenderer
-
-        return PathVariantsRenderer

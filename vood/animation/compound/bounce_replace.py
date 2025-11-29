@@ -3,10 +3,10 @@
 # ============================================================================
 """Bounce replace with sequential bouncing"""
 
-from typing import List, Tuple
+from typing import Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def bounce_replace(
     state1: State,
@@ -15,7 +15,7 @@ def bounce_replace(
     duration: float = 0.4,
     bounce_height: float = -50,
     extend_timeline: bool = False,
-) -> Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]:
+) -> Tuple[KeyStates, KeyStates]:
     """Bounce out first element, bounce in second element
 
     First element bounces up and away, second element bounces in from above.
@@ -61,24 +61,24 @@ def bounce_replace(
 
     # Element 1: Bounce up and away
     keyframes1 = [
-        (t_start, replace(state1, y=orig_y_1, opacity=1.0, scale=1.0)),
-        (t_mid, replace(state1, y=orig_y_1 + bounce_height, opacity=0.0, scale=0.5)),
+        KeyState(time=t_start, state=replace(state1, y=orig_y_1, opacity=1.0, scale=1.0)),
+        KeyState(time=t_mid, state=replace(state1, y=orig_y_1 + bounce_height, opacity=0.0, scale=0.5)),
     ]
 
     # Element 2: Bounce down and in
     keyframes2 = [
-        (t_mid, replace(state2, y=orig_y_2 + bounce_height, opacity=0.0, scale=0.5)),
-        (t_end, replace(state2, y=orig_y_2, opacity=1.0, scale=1.0)),
+        KeyState(time=t_mid, state=replace(state2, y=orig_y_2 + bounce_height, opacity=0.0, scale=0.5)),
+        KeyState(time=t_end, state=replace(state2, y=orig_y_2, opacity=1.0, scale=1.0)),
     ]
 
     if extend_timeline:
         keyframes1 = [
-            (0.0, replace(state1, y=orig_y_1, opacity=1.0, scale=1.0)),
+            KeyState(time=0.0, state=replace(state1, y=orig_y_1, opacity=1.0, scale=1.0)),
             *keyframes1,
         ]
         keyframes2 = [
             *keyframes2,
-            (1.0, replace(state2, y=orig_y_2, opacity=1.0, scale=1.0)),
+            KeyState(time=1.0, state=replace(state2, y=orig_y_2, opacity=1.0, scale=1.0)),
         ]
 
     return keyframes1, keyframes2

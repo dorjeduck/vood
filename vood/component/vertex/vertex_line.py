@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Tuple
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Point2D
 
 class VertexLine(VertexLoop):
     """Line (open or closed) as a VertexLoop
@@ -16,8 +16,8 @@ class VertexLine(VertexLoop):
 
     def __init__(
         self,
-        start: Tuple[float, float],
-        end: Tuple[float, float],
+        start: Point2D,
+        end: Point2D,
         num_vertices: int = 128,
         closed: bool = False
     ):
@@ -35,8 +35,8 @@ class VertexLine(VertexLoop):
         vertices = []
         for i in range(num_vertices):
             t = i / (num_vertices - 1) if num_vertices > 1 else 0
-            x = start[0] + t * (end[0] - start[0])
-            y = start[1] + t * (end[1] - start[1])
-            vertices.append((x, y))
+            x = start.x + t * (end.x - start.x)
+            y = start.y + t * (end.y - start.y)
+            vertices.append(Point2D(x, y))
 
         super().__init__(vertices, closed=closed)

@@ -64,10 +64,10 @@ class VertexState(State):
 
         # Apply config default for _num_vertices if not specified
         if self._num_vertices is None:
-            from vood.config import get_config
+            from vood.config import get_config, ConfigKey
 
             config = get_config()
-            num_verts = config.get("state.visual.num_vertices", 128)
+            num_verts = config.get(ConfigKey.STATE_VISUAL_NUM_VERTICES, 128)
             self._set_field("_num_vertices", num_verts)
 
     @abstractmethod
@@ -82,24 +82,7 @@ class VertexState(State):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the default renderer (often a primitive-based renderer)
-
-        This is used for static rendering and at keystate endpoints.
-        Subclasses can override to use SVG primitives for better quality.
-        Should be overwritten by subclasses to refer to a svg primitives
-        based render class if available
-
-        Returns:
-            Renderer class for non-morphing rendering
-        """
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
+    def get_vertex_renderer_class(self):
         """Get the renderer for morphing transitions (0 < t < 1)
 
         During morphing, we need vertex-based rendering to smoothly

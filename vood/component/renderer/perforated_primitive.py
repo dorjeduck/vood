@@ -1,15 +1,27 @@
 """Perforated primitive renderer - SVG primitive-based for static/keystate rendering"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 import drawsvg as dw
 import math
 
+from vood.core.color import Color
+
 from .base import Renderer
-from ..state.perforated.base import (
-    PerforatedVertexState, Shape, Circle, Ellipse,
-    Rectangle, Polygon, Star, Astroid
+
+if TYPE_CHECKING:
+    from ..state.perforated.base import (
+
+    PerforatedVertexState,
+    Shape,
+    Circle,
+    Ellipse,
+    Rectangle,
+    Polygon,
+    Star,
+    Astroid,
 )
+from vood.core.point2d import Point2D
 
 
 class PerforatedPrimitiveRenderer(Renderer):
@@ -35,10 +47,15 @@ class PerforatedPrimitiveRenderer(Renderer):
         group = dw.Group()
 
         # Create a path that defines the perforated shape using even-odd fill rule
-        path = dw.Path(
+        fill_path = dw.Path(
             fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
             fill_opacity=state.fill_opacity,
             fill_rule="evenodd",
+            stroke="none",
+        )
+
+        outer_stroke_path = dw.Path(
+            fill="none",
             stroke=(
                 state.stroke_color.to_rgb_string()
                 if state.stroke_color and state.stroke_width > 0
@@ -58,20 +75,59 @@ class PerforatedPrimitiveRenderer(Renderer):
             stroke_linecap="round",
         )
 
+        hole_stroke_path = dw.Path(
+            fill=(
+                state.holes_fill_color.to_rgb_string()
+                if state.holes_fill_color
+                else "none"
+            ),
+            fill_opacity=state.holes_fill_opacity,
+            stroke=(
+                state.holes_stroke_color.to_rgb_string()
+                if state.holes_stroke_color and state.holes_stroke_width > 0
+                else "none"
+            ),
+            stroke_width=(
+                state.holes_stroke_width
+                if state.holes_stroke_color and state.holes_stroke_width > 0
+                else 0
+            ),
+            stroke_opacity=(
+                state.holes_stroke_opacity
+                if state.holes_stroke_color and state.holes_stroke_width > 0
+                else 0
+            ),
+            stroke_linejoin="round",
+            stroke_linecap="round",
+        )
+
         # Draw outer shape (clockwise for outer boundary)
         # Get the outer contour from the state's _generate_outer_contour() method
         outer_contour = state._generate_outer_contour()
-        self._add_vertex_loop_to_path(path, outer_contour.vertices, clockwise=True)
+
+        self._add_vertex_loop_to_path(fill_path, outer_contour.vertices, clockwise=True)
 
         # Draw hole shapes (counter-clockwise - creates holes due to even-odd rule)
         for hole_shape in state.holes:
-            self._add_shape_to_path(path, hole_shape, clockwise=False)
+            self._add_shape_to_path(fill_path, hole_shape, clockwise=False)
 
-        group.append(path)
+        group.append(fill_path)
+
+        if state.stroke_width > 0 and state.stroke_opacity > 0:
+            self._add_vertex_loop_to_path(outer_stroke_path, outer_contour.vertices)
+            group.append(outer_stroke_path)
+
+        if (state.holes_stroke_width > 0 and state.holes_stroke_opacity > 0) or (
+            state.holes_fill_color != Color.NONE and state.holes_fill_opacity > 0
+        ):
+            for hole_shape in state.holes:
+                self._add_shape_to_path(hole_stroke_path, hole_shape)
+            group.append(hole_stroke_path)
+
         return group
 
     def _add_vertex_loop_to_path(
-        self, path: dw.Path, vertices: list, clockwise: bool
+        self, path: dw.Path, vertices: list, clockwise: bool = True
     ):
         """Add a vertex loop to the path
 
@@ -88,15 +144,17 @@ class PerforatedPrimitiveRenderer(Renderer):
             verts = verts[::-1]
 
         # Start at first vertex
-        path.M(*verts[0])
+        path.M(verts[0].x, verts[0].y)
 
         # Draw lines to remaining vertices
-        for vertex in verts[1:-1]:  # Skip last vertex (should equal first for closed loop)
-            path.L(*vertex)
+        for vertex in verts[
+            1:-1
+        ]:  # Skip last vertex (should equal first for closed loop)
+            path.L(vertex.x, vertex.y)
 
         path.Z()
 
-    def _add_shape_to_path(self, path: dw.Path, shape: Shape, clockwise: bool):
+    def _add_shape_to_path(self, path: dw.Path, shape: Shape, clockwise: bool = True):
         """Add a shape to the path by working directly with the Shape object
 
         Args:
@@ -115,24 +173,48 @@ class PerforatedPrimitiveRenderer(Renderer):
 
         elif isinstance(shape, Rectangle):
             self._add_rectangle(
-                path, shape.x, shape.y, shape.width, shape.height, shape.rotation, clockwise
+                path,
+                shape.x,
+                shape.y,
+                shape.width,
+                shape.height,
+                shape.rotation,
+                clockwise,
             )
 
         elif isinstance(shape, Polygon):
             self._add_polygon(
-                path, shape.x, shape.y, shape.radius, shape.num_sides, shape.rotation, clockwise
+                path,
+                shape.x,
+                shape.y,
+                shape.radius,
+                shape.num_sides,
+                shape.rotation,
+                clockwise,
             )
 
         elif isinstance(shape, Star):
             self._add_star(
-                path, shape.x, shape.y, shape.outer_radius, shape.inner_radius,
-                shape.num_points, shape.rotation, clockwise
+                path,
+                shape.x,
+                shape.y,
+                shape.outer_radius,
+                shape.inner_radius,
+                shape.num_points,
+                shape.rotation,
+                clockwise,
             )
 
         elif isinstance(shape, Astroid):
             self._add_astroid(
-                path, shape.x, shape.y, shape.radius, shape.num_cusps,
-                shape.curvature, shape.rotation, clockwise
+                path,
+                shape.x,
+                shape.y,
+                shape.radius,
+                shape.num_cusps,
+                shape.curvature,
+                shape.rotation,
+                clockwise,
             )
 
         else:
@@ -182,9 +264,9 @@ class PerforatedPrimitiveRenderer(Renderer):
         if not clockwise:
             corners = corners[::-1]  # Reverse for counter-clockwise
 
-        path.M(*corners[0])
+        path.M(corners[0].x, corners[0].y)
         for corner in corners[1:]:
-            path.L(*corner)
+            path.L(corner.x, corner.y)
         path.Z()
 
     def _add_ellipse(
@@ -230,14 +312,14 @@ class PerforatedPrimitiveRenderer(Renderer):
             angle = math.radians(i * (360 / num_sides) - 90 + rotation)
             x = cx + size * math.cos(angle)
             y = cy + size * math.sin(angle)
-            corners.append((x, y))
+            corners.append(Point2D(x, y))
 
         if not clockwise:
             corners = corners[::-1]
 
-        path.M(*corners[0])
+        path.M(corners[0].x, corners[0].y)
         for corner in corners[1:]:
-            path.L(*corner)
+            path.L(corner.x, corner.y)
         path.Z()
 
     def _add_star(
@@ -259,14 +341,14 @@ class PerforatedPrimitiveRenderer(Renderer):
             radius = outer_radius if i % 2 == 0 else inner_radius
             x = cx + radius * math.cos(angle)
             y = cy + radius * math.sin(angle)
-            corners.append((x, y))
+            corners.append(Point2D(x, y))
 
         if not clockwise:
             corners = corners[::-1]
 
-        path.M(*corners[0])
+        path.M(corners[0].x, corners[0].y)
         for corner in corners[1:]:
-            path.L(*corner)
+            path.L(corner.x, corner.y)
         path.Z()
 
     def _add_astroid(
@@ -287,13 +369,13 @@ class PerforatedPrimitiveRenderer(Renderer):
             angle = math.radians(i * (360 / num_cusps) - 90 + rotation)
             x = cx + radius * math.cos(angle)
             y = cy + radius * math.sin(angle)
-            cusps.append((x, y))
+            cusps.append(Point2D(x, y))
 
         if not clockwise:
             cusps = cusps[::-1]
 
         # Start at first cusp
-        path.M(*cusps[0])
+        path.M(cusps[0].x, cusps[0].y)
 
         # Draw curves connecting cusps
         for i in range(num_cusps):
@@ -301,14 +383,14 @@ class PerforatedPrimitiveRenderer(Renderer):
             end_cusp = cusps[(i + 1) % num_cusps]
 
             # Calculate control point for inward-bending curve
-            mid_x = (start_cusp[0] + end_cusp[0]) / 2
-            mid_y = (start_cusp[1] + end_cusp[1]) / 2
+            mid_x = (start_cusp.x + end_cusp.x) / 2
+            mid_y = (start_cusp.y + end_cusp.y) / 2
 
             # Pull control point toward center based on curvature
             control_x = mid_x + (cx - mid_x) * curvature
             control_y = mid_y + (cy - mid_y) * curvature
 
             # Draw quadratic Bezier curve to next cusp
-            path.Q(control_x, control_y, *end_cusp)
+            path.Q(control_x, control_y, end_cusp.x, end_cusp.y)
 
         path.Z()

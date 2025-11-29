@@ -1,13 +1,14 @@
 """Circle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import Optional,TYPE_CHECKING
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.arrow import ArrowState
+if TYPE_CHECKING:
+    from vood.component.state.arrow import ArrowState
 
 
 class ArrowRenderer(Renderer):

@@ -1,11 +1,15 @@
 """Square ring renderer - SVG primitive-based for static/keystate rendering"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 import drawsvg as dw
 
 from .base import Renderer
-from ..state.square_ring import SquareRingState
+
+if TYPE_CHECKING:
+    from ..state.square_ring import SquareRingState
+
+from vood.core.point2d import Point2D
 
 
 class SquareRingRenderer(Renderer):
@@ -18,7 +22,9 @@ class SquareRingRenderer(Renderer):
     smooth transitions between different shapes.
     """
 
-    def _render_core(self, state: SquareRingState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "SquareRingState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render square ring using SVG path primitives with evenodd fill-rule"""
         import math
 
@@ -29,11 +35,23 @@ class SquareRingRenderer(Renderer):
             fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
             fill_opacity=state.fill_opacity,
             fill_rule="evenodd",
-            stroke=state.stroke_color.to_rgb_string() if state.stroke_color and state.stroke_width > 0 else "none",
-            stroke_width=state.stroke_width if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_opacity=state.stroke_opacity if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_linejoin='round',
-            stroke_linecap='round'
+            stroke=(
+                state.stroke_color.to_rgb_string()
+                if state.stroke_color and state.stroke_width > 0
+                else "none"
+            ),
+            stroke_width=(
+                state.stroke_width
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_opacity=(
+                state.stroke_opacity
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_linejoin="round",
+            stroke_linecap="round",
         )
 
         # Calculate half sizes for positioning
@@ -42,9 +60,9 @@ class SquareRingRenderer(Renderer):
 
         # Draw outer square (clockwise)
         path.M(-outer_half, -outer_half)  # Top-left
-        path.L(outer_half, -outer_half)   # Top-right
-        path.L(outer_half, outer_half)    # Bottom-right
-        path.L(-outer_half, outer_half)   # Bottom-left
+        path.L(outer_half, -outer_half)  # Top-right
+        path.L(outer_half, outer_half)  # Bottom-right
+        path.L(-outer_half, outer_half)  # Bottom-left
         path.Z()  # Close path
 
         # Draw inner square (counter-clockwise - creates the hole due to even-odd rule)
@@ -58,26 +76,26 @@ class SquareRingRenderer(Renderer):
             # Define corners and rotate them
             corners = [
                 (-inner_half, -inner_half),  # Top-left
-                (-inner_half, inner_half),   # Bottom-left
-                (inner_half, inner_half),    # Bottom-right
-                (inner_half, -inner_half),   # Top-right
+                (-inner_half, inner_half),  # Bottom-left
+                (inner_half, inner_half),  # Bottom-right
+                (inner_half, -inner_half),  # Top-right
             ]
 
             rotated_corners = [
-                (x * cos_a - y * sin_a, x * sin_a + y * cos_a)
+                Point2D(x * cos_a - y * sin_a, x * sin_a + y * cos_a)
                 for x, y in corners
             ]
 
-            path.M(*rotated_corners[0])
+            path.M(rotated_corners[0].x, rotated_corners[0].y)
             for corner in rotated_corners[1:]:
-                path.L(*corner)
+                path.L(corner.x, corner.y)
             path.Z()
         else:
             # No rotation - use simple coordinates
             path.M(-inner_half, -inner_half)  # Top-left
-            path.L(-inner_half, inner_half)   # Bottom-left (reversed direction)
-            path.L(inner_half, inner_half)    # Bottom-right
-            path.L(inner_half, -inner_half)   # Top-right
+            path.L(-inner_half, inner_half)  # Bottom-left (reversed direction)
+            path.L(inner_half, inner_half)  # Bottom-right
+            path.L(inner_half, -inner_half)  # Top-right
             path.Z()  # Close path
 
         group.append(path)

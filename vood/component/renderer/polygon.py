@@ -1,19 +1,24 @@
 """Rectangle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.polygon import PolygonState
+if TYPE_CHECKING:
+    from ..state.polygon import PolygonState
+
+
 
 
 class PolygonRenderer(Renderer):
     """Renderer class for rendering rectangle elements"""
 
-    def _render_core(self, state: PolygonState, drawing: Optional[dw.Drawing] = None) -> dw.Lines:
+    def _render_core(
+        self, state: "PolygonState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Lines:
         """Render regular polygon using SVG primitive
 
         Args:

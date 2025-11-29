@@ -1,11 +1,14 @@
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.circle_text import CircleTextState
+if TYPE_CHECKING:
+    from ..state.circle_text import CircleTextState
+
+
 
 
 class CircleTextRenderer(Renderer):
@@ -24,7 +27,9 @@ class CircleTextRenderer(Renderer):
                    List length should match text length for multi-text.
         """
 
-    def _render_core(self, state: CircleTextState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "CircleTextState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render the circular text with the given state (core geometry only)"""
 
         # Create the circular path that text will follow
@@ -104,7 +109,7 @@ class CircleTextRenderer(Renderer):
         text_content: str,
         offset: float,
         circle_path: dw.Path,
-        state: CircleTextState,
+        state: "CircleTextState",
     ) -> dw.Text:
         """Create a single text element at the specified offset
 

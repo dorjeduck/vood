@@ -50,7 +50,7 @@ Vood offers multiple ways to convert SVG graphics to PNG and PDF formats. Each h
   - Highest quality (same as PLAYWRIGHT), runs as background service
   - Start server: `vood playwright-server start`
   - Best for: batch rendering, long-running processes, production workflows
-  - See **[PLAYWRIGHT_SERVER.md](PLAYWRIGHT_SERVER.md)** for complete setup guide and features
+  - See **[PLAYWRIGHT_SERVER.md](docs/PLAYWRIGHT_SERVER.md)** for complete setup guide and features
 
 **Performance Comparison:** See **[benchmark/README.md](benchmark/README.md)** for detailed performance comparisons between all converters. Run `python benchmark/run_benchmark.py` to generate fresh benchmark reports comparing speed, CPU usage, and memory consumption.
   
@@ -192,7 +192,6 @@ exporter.to_mp4(
 
 ![](docs/videos/02_simple_animation.gif)
 
-*(⚠️ Low quality GIF. For the **actual MP4**, click [here](docs/videos/02_simple_animation.mp4).)*
 
 ### Advanced Animation Control
 
@@ -204,11 +203,43 @@ While this example uses a simple two-state interpolation, Vood's animation engin
 
 * **Segment Easing** - Customize easing between keystates. See [SVG Circus - Segment Easing](https://vood.wectar.com/circus/segment-easing/)
 
-* **Global Transitions** - Apply property transitions beyond keystates - See [SVG Circus - Global Transitions](https://vood.wectar.com/circus/global-transitions/)
+* **Property Keystates** - Apply property transitions beyond the main keystates - See [SVG Circus - Property Keystates](https://vood.wectar.com/circus/property-keystates/)
+
+## 📓 Jupyter Notebook Support
+
+Vood provides comprehensive support for Jupyter notebooks with static scene display, interactive animation preview (grid and navigator layouts), and MP4 export. Perfect for fast iteration and testing!
+
+See **[docs/JUPYTER_SUPPORT.md](docs/JUPYTER_SUPPORT.md)** for complete documentation and examples.
+
+## 🔧 Development Server
+
+For rapid animation development outside Jupyter, Vood includes a development server with live browser preview and automatic hot-reload. Edit your Python animation code, save the file, and watch the browser update instantly—no manual refresh needed.
+
+```bash
+# Install dev server dependencies
+pip install vood[devserver]
+
+# Start server (defaults: 20 frames @ 10 FPS)
+vood serve my_animation.py
+
+# Smooth animation (60 frames @ 30 FPS)
+vood serve my_animation.py --frames 60 --fps 30
+```
+
+The server watches your animation file for changes and automatically reloads the preview in your browser. Syntax and runtime errors are displayed gracefully without crashing the server.
+
+**Export directly from the browser:**
+- **MP4**: Professional video export with ffmpeg
+- **GIF**: Lightweight animated format for web sharing
+- **HTML**: Self-contained interactive file for website embedding
+
+Just click the export button, configure settings, and download when ready - all while the server keeps running.
+
+See **[DEVSERVER.md](docs/DEVSERVER.md)** for complete documentation, CLI options, and advanced features.
 
 ## ⚙️ Configuration
 
-Vood supports TOML-based configuration for customizing default values. Create a `vood.toml` file in your project directory to set scene dimensions, colors, logging levels, and more. For a complete documentation, see **[CONFIG.md](CONFIG.md)**.
+Vood supports TOML-based configuration for customizing default values. Create a `vood.toml` file in your project directory to set scene dimensions, colors, logging levels, and more. For a complete documentation, see **[CONFIG.md](docs/CONFIG.md)**.
 
 ## SVG Circus
 
@@ -225,44 +256,10 @@ See [https://vood.wectar.com/](https://vood.wectar.com/).
 
 Vood is still in an early stage and has so far been developed primarily to support the needs of a specific project. That said, it was always intended to evolve into a general-purpose library. We deeply appreciate your feedback and would love to hear your ideas for improving Vood — be it bug reports, feature requests, pull requests, or anything else you’d like to share.
 
+## Changelog
+
+See [CHANGELOG.md](docs/CHANGELOG.md) for version history.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Changelog
-
-### [0.3.0] - 2025-11-21
-* lib architecture redesign/cleanup
-* configuration support
-* advanced morphing (shapes with holes)
-
-### [0.2.0] - 2025-11-15
-
-* Mandatory `Color` usage
-* states/keyframes combined into keystates
-
-### [0.2.0] - 2025-11-13
-
-* Version 0.2.0 - approaching beta
-
-### [0.1.0] - 2025-11-02
-
-* Partial timelines
-* `vood.animations`
-
-### [0.1.0] - 2025-11-01
-
-* VElementGroup refinement
-* States as Iterable
-
-### [0.1.0] - 2025-10-30
-
-* Global transitions
-
-### [0.1.0] - 2025-10-28
-
-* SVG Circus published
-
-### [0.1.0] - 2025-10-27
-
-* Initial release

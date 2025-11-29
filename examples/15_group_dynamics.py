@@ -35,8 +35,7 @@ def main():
     x_shifts = [-100, 60]
 
     all_states = [
-        layout.line(states, center_x=x_shift, spacing=20, rotation=90)
-        for x_shift in x_shifts
+        layout.line(states, cx=x_shift, spacing=20, rotation=90) for x_shift in x_shifts
     ]
 
     # Create a text renderer for all numbers

@@ -1,12 +1,16 @@
 """Polygon ring renderer - SVG primitive-based for static/keystate rendering"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 import drawsvg as dw
 import math
 
 from .base import Renderer
-from ..state.poly_ring import PolyRingState
+
+if TYPE_CHECKING:
+    from ..state.poly_ring import PolyRingState
+
+from vood.core.point2d import Points2D, Point2D
 
 
 class PolyRingRenderer(Renderer):
@@ -19,7 +23,9 @@ class PolyRingRenderer(Renderer):
     smooth transitions between different shapes.
     """
 
-    def _render_core(self, state: PolyRingState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "PolyRingState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render polygon ring using SVG path primitives with evenodd fill-rule"""
 
         group = dw.Group()
@@ -29,43 +35,55 @@ class PolyRingRenderer(Renderer):
             fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
             fill_opacity=state.fill_opacity,
             fill_rule="evenodd",
-            stroke=state.stroke_color.to_rgb_string() if state.stroke_color and state.stroke_width > 0 else "none",
-            stroke_width=state.stroke_width if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_opacity=state.stroke_opacity if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_linejoin='round',
-            stroke_linecap='round'
+            stroke=(
+                state.stroke_color.to_rgb_string()
+                if state.stroke_color and state.stroke_width > 0
+                else "none"
+            ),
+            stroke_width=(
+                state.stroke_width
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_opacity=(
+                state.stroke_opacity
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_linejoin="round",
+            stroke_linecap="round",
         )
 
         # Generate outer polygon vertices (clockwise)
         outer_vertices = self._generate_polygon_vertices(
-            size=state.outer_size,
-            num_edges=state.num_edges,
-            rotation=0
+            size=state.outer_size, num_edges=state.num_edges, rotation=0
         )
 
         # Draw outer polygon
-        path.M(*outer_vertices[0])
+        path.M(outer_vertices[0].x, outer_vertices[0].y)
         for vertex in outer_vertices[1:]:
-            path.L(*vertex)
+            path.L(vertex.x, vertex.y)
         path.Z()
 
         # Generate inner polygon vertices (counter-clockwise - creates the hole due to even-odd rule)
         inner_vertices = self._generate_polygon_vertices(
             size=state.inner_size,
             num_edges=state.num_edges,
-            rotation=state.inner_rotation
+            rotation=state.inner_rotation,
         )
 
         # Draw inner polygon (reversed direction for hole)
-        path.M(*inner_vertices[0])
+        path.M(inner_vertices[0].x, inner_vertices[0].y)
         for vertex in reversed(inner_vertices[1:]):
-            path.L(*vertex)
+            path.L(vertex.x, vertex.y)
         path.Z()
 
         group.append(path)
         return group
 
-    def _generate_polygon_vertices(self, size: float, num_edges: int, rotation: float = 0) -> list[tuple[float, float]]:
+    def _generate_polygon_vertices(
+        self, size: float, num_edges: int, rotation: float = 0
+    ) -> Points2D:
         """Generate vertices for a regular polygon
 
         Args:
@@ -87,6 +105,6 @@ class PolyRingRenderer(Renderer):
 
             x = size * math.cos(angle_rad)
             y = size * math.sin(angle_rad)
-            vertices.append((x, y))
+            vertices.append(Point2D(x, y))
 
         return vertices

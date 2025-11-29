@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Point2D,Points2D
 
 class VertexAstroid(VertexLoop):
     """Astroid as a VertexLoop - star-like shape with inward-curving cusps
@@ -49,7 +49,7 @@ class VertexAstroid(VertexLoop):
             angle = math.radians(i * (360 / num_cusps) - 90)  # -90 to start at top
             x = cx + radius * math.cos(angle)
             y = cy + radius * math.sin(angle)
-            cusps.append((x, y))
+            cusps.append(Point2D(x, y))
 
         # Generate vertices along the astroid curve
         vertices = self._generate_astroid_vertices(
@@ -60,12 +60,12 @@ class VertexAstroid(VertexLoop):
 
     def _generate_astroid_vertices(
         self,
-        cusps: list[tuple[float, float]],
+        cusps: Points2D,
         curvature: float,
         num_vertices: int,
         cx: float,
         cy: float
-    ) -> list[tuple[float, float]]:
+    ) -> Points2D:
         """Generate vertices along the astroid curve
 
         The astroid is formed by connecting cusp points with inward-bending
@@ -99,8 +99,8 @@ class VertexAstroid(VertexLoop):
                 # Use a simple quadratic Bezier curve with control point pulled inward
 
                 # Control point: midpoint pulled toward center
-                mid_x = (start_cusp[0] + end_cusp[0]) / 2
-                mid_y = (start_cusp[1] + end_cusp[1]) / 2
+                mid_x = (start_cusp.x + end_cusp.x) / 2
+                mid_y = (start_cusp.y + end_cusp.y) / 2
 
                 # Pull control point toward center based on curvature
                 control_x = mid_x + (cx - mid_x) * curvature
@@ -110,15 +110,15 @@ class VertexAstroid(VertexLoop):
                 # B(t) = (1-t)²P0 + 2(1-t)tP1 + t²P2
                 one_minus_t = 1 - t
 
-                x = (one_minus_t ** 2 * start_cusp[0] +
+                x = (one_minus_t ** 2 * start_cusp.x +
                      2 * one_minus_t * t * control_x +
-                     t ** 2 * end_cusp[0])
+                     t ** 2 * end_cusp.x)
 
-                y = (one_minus_t ** 2 * start_cusp[1] +
+                y = (one_minus_t ** 2 * start_cusp.y +
                      2 * one_minus_t * t * control_y +
-                     t ** 2 * end_cusp[1])
+                     t ** 2 * end_cusp.y)
 
-                vertices.append((x, y))
+                vertices.append(Point2D(x, y))
 
         # Ensure we have exactly num_vertices by adding any remaining
         while len(vertices) < num_vertices:

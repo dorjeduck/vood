@@ -1,19 +1,24 @@
 """Text renderer implementation for new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.text import TextState
+if TYPE_CHECKING:
+    from ..state.text import TextState
+
+
 
 
 class TextRenderer(Renderer):
     """Renderer class for rendering text elements"""
 
-    def _render_core(self, state: TextState, drawing: Optional[dw.Drawing] = None) -> dw.Text:
+    def _render_core(
+        self, state: "TextState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Text:
         fill_color = state.fill_color.to_rgb_string()
         text_kwargs = {
             "text": state.text,

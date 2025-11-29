@@ -1,11 +1,14 @@
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.cross import CrossState
+if TYPE_CHECKING:
+    from ..state.cross import CrossState
+
+
 
 
 class CrossRenderer(Renderer):
@@ -18,7 +21,9 @@ class CrossRenderer(Renderer):
         """
         pass
 
-    def _render_core(self, state: CrossState, drawing: Optional[dw.Drawing] = None) -> dw.Lines:
+    def _render_core(
+        self, state: "CrossState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Lines:
         """Render cross using SVG polygon primitive"""
         hw = state.width / 2
         ht = state.thickness / 2

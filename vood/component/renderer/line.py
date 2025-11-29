@@ -1,7 +1,7 @@
 """Line renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 
 import math
@@ -9,7 +9,8 @@ import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.line import LineState
+if TYPE_CHECKING:
+    from ..state.line import LineState
 
 
 class LineRenderer(Renderer):
@@ -18,20 +19,22 @@ class LineRenderer(Renderer):
         """
         Given two endpoints, return center (x, y), length, and rotation (degrees).
         Returns:
-            (center_x, center_y, length, rotation)
+            (cx, cy, length, rotation)
         """
 
-        center_x = (x1 + x2) / 2
-        center_y = (y1 + y2) / 2
+        cx = (x1 + x2) / 2
+        cy = (y1 + y2) / 2
         dx = x2 - x1
         dy = y2 - y1
         length = math.hypot(dx, dy)
         rotation = math.degrees(math.atan2(dy, dx))
-        return center_x, center_y, length, rotation
+        return cx, cy, length, rotation
 
     """Renderer class for rendering line elements"""
 
-    def _render_core(self, state: LineState, drawing: Optional[dw.Drawing] = None) -> dw.Line:
+    def _render_core(
+        self, state: "LineState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Line:
         """Render the line renderer (geometry only, no transforms)
 
         Args:

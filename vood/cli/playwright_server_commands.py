@@ -1,15 +1,15 @@
 """CLI commands for managing the Playwright render server"""
 
 import click
-from vood.playwright_server.process_manager import ProcessManager
-from vood.config import get_config
+from vood.server.playwright.process_manager import ProcessManager
+from vood.config import get_config, ConfigKey
 
 
 def get_process_manager() -> ProcessManager:
     """Create ProcessManager with config settings"""
     config = get_config()
-    host = config.get("playwright_server.host", "localhost")
-    port = config.get("playwright_server.port", 4000)
+    host = config.get(ConfigKey.PLAYWRIGHT_SERVER_HOST, "localhost")
+    port = config.get(ConfigKey.PLAYWRIGHT_SERVER_PORT, 4000)
     return ProcessManager(host=host, port=port)
 
 

@@ -1,11 +1,14 @@
 """Ring renderer - SVG primitive-based for static/keystate rendering"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 import drawsvg as dw
 
 from .base import Renderer
-from ..state.ring import RingState
+
+if TYPE_CHECKING:
+    from ..state.ring import RingState
+
 
 
 class RingRenderer(Renderer):
@@ -18,7 +21,9 @@ class RingRenderer(Renderer):
     smooth transitions between different shapes.
     """
 
-    def _render_core(self, state: RingState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "RingState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render ring using SVG arc primitives with evenodd fill-rule"""
         group = dw.Group()
 
@@ -27,11 +32,23 @@ class RingRenderer(Renderer):
             fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
             fill_opacity=state.fill_opacity,
             fill_rule="evenodd",
-            stroke=state.stroke_color.to_rgb_string() if state.stroke_color and state.stroke_width > 0 else "none",
-            stroke_width=state.stroke_width if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_opacity=state.stroke_opacity if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_linejoin='round',
-            stroke_linecap='round'
+            stroke=(
+                state.stroke_color.to_rgb_string()
+                if state.stroke_color and state.stroke_width > 0
+                else "none"
+            ),
+            stroke_width=(
+                state.stroke_width
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_opacity=(
+                state.stroke_opacity
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_linejoin="round",
+            stroke_linecap="round",
         )
 
         # Draw outer circle (clockwise)

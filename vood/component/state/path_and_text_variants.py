@@ -6,11 +6,14 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.path_and_text_variants import PathAndTextVariantsRenderer
 from vood.transition import easing
 
 from vood.core.color import Color
 
 
+@renderer(PathAndTextVariantsRenderer)
 @dataclass(frozen=True)
 class PathAndTextVariantsState(State):
     """Base state class for multi-path renderers with text labels"""
@@ -47,12 +50,7 @@ class PathAndTextVariantsState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
         self._none_color("stroke_color")
         self._none_color("text_color")
-
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.path_and_text_variants import PathAndTextVariantsRenderer
-
-        return PathAndTextVariantsRenderer

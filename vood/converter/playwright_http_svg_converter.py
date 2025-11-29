@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Optional
 from vood.converter.svg_converter import SVGConverter
 from vood.core.logger import get_logger
-from vood.config import get_config
+from vood.config import get_config, ConfigKey
 import time
 import requests
 
@@ -28,13 +28,13 @@ class PlaywrightHttpSvgConverter(SVGConverter):
     def __init__(self, host: str = "localhost", port: int = 4000, auto_start: Optional[bool] = None):
         super().__init__()
         config = get_config()
-        self.host = host or config.get("playwright_server.host", "localhost")
-        self.port = port or config.get("playwright_server.port", 4000)
+        self.host = host or config.get(ConfigKey.PLAYWRIGHT_SERVER_HOST, "localhost")
+        self.port = port or config.get(ConfigKey.PLAYWRIGHT_SERVER_PORT, 4000)
         self.base_url = f"http://{self.host}:{self.port}/render"
 
         # Auto-start preference: explicit param > config > False (default)
         if auto_start is None:
-            self.auto_start = config.get("playwright_server.auto_start", False)
+            self.auto_start = config.get(ConfigKey.PLAYWRIGHT_SERVER_AUTO_START, False)
         else:
             self.auto_start = auto_start
 
@@ -134,7 +134,7 @@ class PlaywrightHttpSvgConverter(SVGConverter):
         # Attempt auto-start
         logger.info("Auto-starting Playwright render server...")
         try:
-            from vood.playwright_server.process_manager import ProcessManager
+            from vood.server.playwright.process_manager import ProcessManager
 
             manager = ProcessManager(host=self.host, port=self.port)
             if not manager.is_running():

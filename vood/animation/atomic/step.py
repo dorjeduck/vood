@@ -3,16 +3,15 @@
 # ============================================================================
 """Hold and instant switch animation"""
 
-from typing import List, Tuple
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def step(
     state1: State,
     state2: State,
     at_time: float = 0.5,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Hold first state, then instantly switch to second state
 
     Creates a step transition with no interpolation between states.
@@ -48,15 +47,15 @@ def step(
         ... ]
     """
     keystates = [
-        (at_time, state1),
-        (at_time, state2),  # Duplicate time = instant switch
+        KeyState(time=at_time, state=state1),
+        KeyState(time=at_time, state=state2),  # Duplicate time = instant switch
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, state1),
+            KeyState(time=0.0, state=state1),
             *keystates,
-            (1.0, state2),
+            KeyState(time=1.0, state=state2),
         ]
 
     return keystates

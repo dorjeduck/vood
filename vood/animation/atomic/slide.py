@@ -3,11 +3,11 @@
 # ============================================================================
 """Slide out, switch, slide in animation"""
 
-from typing import List, Tuple, Union
+from typing import  Union
 from dataclasses import replace
 from vood.component import State
 from ..enums import SlideDirection
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def slide(
     state1: State,
@@ -17,7 +17,7 @@ def slide(
     direction: Union[SlideDirection, str] = SlideDirection.LEFT,
     distance: float = 100,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Slide out first state, switch properties, slide in second state
 
     Element slides off-screen in one direction, properties change, then
@@ -70,23 +70,23 @@ def slide(
     orig_pos_2 = getattr(state2, prop)
 
     keystates = [
-        (t_start, state1),
-        (
-            at_time,
-            replace(state1, **{prop: orig_pos_1 + out_offset}, opacity=0.0),
+        KeyState(time=t_start, state=state1),
+        KeyState(
+            time=at_time,
+            state=replace(state1, **{prop: orig_pos_1 + out_offset}, opacity=0.0),
         ),  # Slid out
-        (
-            at_time,
-            replace(state2, **{prop: orig_pos_2 + in_offset}, opacity=0.0),
+        KeyState(
+            time=at_time,
+            state=replace(state2, **{prop: orig_pos_2 + in_offset}, opacity=0.0),
         ),  # Switch (off-screen)
-        (t_end, replace(state2, **{prop: orig_pos_2}, opacity=1.0)),  # Slid in
+        KeyState(time=t_end, state=replace(state2, **{prop: orig_pos_2}, opacity=1.0)),  # Slid in
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, state1),
+            KeyState(time=0.0, state=state1),
             *keystates,
-            (1.0, state2),
+            KeyState(time=1.0, state=state2),
         ]
 
     return keystates

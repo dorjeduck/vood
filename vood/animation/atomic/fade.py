@@ -3,10 +3,9 @@
 # ============================================================================
 """Fade out, switch, fade in animation"""
 
-from typing import List, Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def fade(
     state1: State,
@@ -14,7 +13,7 @@ def fade(
     at_time: float = 0.5,
     duration: float = 0.2,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Fade out first state, switch properties, fade in second state
 
     Creates a crossfade effect on a single element by fading to transparent,
@@ -48,17 +47,17 @@ def fade(
     t_end = at_time + half
 
     keystates = [
-        (t_start, replace(state1, opacity=1.0)),
-        (at_time, replace(state1, opacity=0.0)),  # Faded out
-        (at_time, replace(state2, opacity=0.0)),  # Switch (invisible)
-        (t_end, replace(state2, opacity=1.0)),
+        KeyState(time=t_start, state=replace(state1, opacity=1.0)),
+        KeyState(time=at_time, state=replace(state1, opacity=0.0)),  # Faded out
+        KeyState(time=at_time, state=replace(state2, opacity=0.0)),  # Switch (invisible)
+        KeyState(time=t_end, state=replace(state2, opacity=1.0)),
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, replace(state1, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, opacity=1.0)),
             *keystates,
-            (1.0, replace(state2, opacity=1.0)),
+            KeyState(time=1.0, state=replace(state2, opacity=1.0)),
         ]
 
     return keystates

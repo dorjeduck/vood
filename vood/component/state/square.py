@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.component.registry import renderer
+from vood.component.renderer.square import SquareRenderer
+from vood.core.point2d import Point2D
 
 from vood.transition import easing
 
 
+@renderer(SquareRenderer)
 @dataclass(frozen=True)
 class SquareState(VertexState):
     """State class for rectangle elements"""
@@ -22,11 +25,6 @@ class SquareState(VertexState):
         "rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.square import SquareRenderer
-
-        return SquareRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate square vertices, starting at top-left, going clockwise"""
@@ -50,7 +48,7 @@ class SquareState(VertexState):
                 x = -half
                 y = half - (distance - 3 * self.size)
 
-            vertices.append((x, y))
+            vertices.append(Point2D(x, y))
 
         vertices.append(vertices[0])
         return VertexContours.from_single_loop(vertices, closed=True)

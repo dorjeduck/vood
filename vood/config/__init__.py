@@ -5,9 +5,9 @@ to customize default values via TOML configuration files.
 
 Usage:
     # Get current configuration
-    from vood.config import get_config
+    from vood.config import get_config, ConfigKey
     config = get_config()
-    width = config.get('scene.width')
+    width = config.get(ConfigKey.SCENE_WIDTH)
 
     # Load custom configuration
     from vood.config import load_config
@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Optional
 
 from .config import VoodConfig
+from .config_key import ConfigKey
 
 # Global configuration instance
 _global_config: Optional[VoodConfig] = None
@@ -35,9 +36,9 @@ def get_config() -> VoodConfig:
         Global VoodConfig instance
 
     Example:
-        >>> from vood.config import get_config
+        >>> from vood.config import get_config, ConfigKey
         >>> config = get_config()
-        >>> width = config.get('scene.width')
+        >>> width = config.get(ConfigKey.SCENE_WIDTH)
         >>> width
         800
     """
@@ -107,6 +108,7 @@ _global_config = VoodConfig.load_with_overrides()
 
 __all__ = [
     'VoodConfig',
+    'ConfigKey',
     'get_config',
     'load_config',
     'reset_config',

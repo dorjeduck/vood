@@ -3,18 +3,18 @@
 import math
 from typing import List, Optional, Callable, Sequence, Tuple
 from dataclasses import replace
-from vood.component import State
+from vood.component.state.base import States
 from .enums import ElementAlignment
-
+from vood.core.point2d import Points2D,Point2D
 
 def path_points(
-    states: List[State],
-    points: Sequence[Tuple[float, float]],
+    states: States,
+    points: Points2D,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
     element_rotation_offset: float = 0,
     element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
     smooth: bool = True,
-) -> List[State]:
+) -> States:
     """
     Arrange states along an arbitrary path defined by points with uniform spacing.
 
@@ -39,7 +39,7 @@ def path_points(
     num_elements = len(states)
 
     # --- FIX: Padding points for Catmull-Rom to use full path ---
-    working_points = list(points)
+    working_points = points
     if smooth and len(points) >= 2:
         p_start = working_points[0]
         p_next = working_points[1]
@@ -47,15 +47,15 @@ def path_points(
         p_prev = working_points[-2]
 
         # Calculate start phantom point (reflect P1 across P0)
-        p_phantom_start = (
-            2 * p_start[0] - p_next[0],
-            2 * p_start[1] - p_next[1],
+        p_phantom_start = Point2D(
+            2 * p_start.x - p_next.x,
+            2 * p_start.y - p_next.y,
         )
 
         # Calculate end phantom point (reflect Pn-2 across Pn-1)
-        p_phantom_end = (
-            2 * p_end[0] - p_prev[0],
-            2 * p_end[1] - p_prev[1],
+        p_phantom_end = Point2D(
+            2 * p_end.x - p_prev.x,
+            2 * p_end.y - p_prev.y,
         )
 
         # Insert phantom points
@@ -65,43 +65,43 @@ def path_points(
     points_to_use = working_points
     # -----------------------------------------------------------
 
-    def get_path_length(pts: Sequence[Tuple[float, float]]) -> float:
+    def get_path_length(pts: Points2D) -> float:
         """Calculate total path length (used for linear segments only)"""
         total = 0.0
         for i in range(len(pts) - 1):
-            dx = pts[i + 1][0] - pts[i][0]
-            dy = pts[i + 1][1] - pts[i][1]
+            dx = pts[i + 1].x - pts[i].x
+            dy = pts[i + 1].y - pts[i].y
             total += math.sqrt(dx * dx + dy * dy)
         return total
 
     def catmull_rom_point(
         t: float,
-        p0: Tuple[float, float],
-        p1: Tuple[float, float],
-        p2: Tuple[float, float],
-        p3: Tuple[float, float],
-    ) -> Tuple[float, float]:
+        p0: Point2D,
+        p1: Point2D,
+        p2: Point2D,
+        p3: Point2D,
+    ) -> Point2D:
         """Calculate point on Catmull-Rom spline"""
         t2 = t * t
         t3 = t2 * t
 
         x = 0.5 * (
-            (2 * p1[0])
-            + (-p0[0] + p2[0]) * t
-            + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2
-            + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
+            (2 * p1.x)
+            + (-p0.x + p2.x) * t
+            + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2
+            + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3
         )
 
         y = 0.5 * (
-            (2 * p1[1])
-            + (-p0[1] + p2[1]) * t
-            + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2
-            + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
+            (2 * p1.y)
+            + (-p0.y + p2.y) * t
+            + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2
+            + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3
         )
 
-        return (x, y)
+        return Point2D(x, y)
 
-    def get_point_at_t(t: float) -> Tuple[float, float]:
+    def get_point_at_t(t: float) -> Point2D:
         """Get point at normalized position t (0-1) along path based on parameter t."""
         if smooth:  # Logic relies on padded list now
             num_segments = len(points_to_use) - 3  # Catmull-Rom uses n-3 segments
@@ -124,8 +124,8 @@ def path_points(
 
             current_distance = 0.0
             for i in range(len(points_to_use) - 1):
-                dx = points_to_use[i + 1][0] - points_to_use[i][0]
-                dy = points_to_use[i + 1][1] - points_to_use[i][1]
+                dx = points_to_use[i + 1].x - points_to_use[i].x
+                dy = points_to_use[i + 1].y - points_to_use[i].y
                 segment_length = math.sqrt(dx * dx + dy * dy)
 
                 if current_distance + segment_length >= target_distance:
@@ -135,8 +135,8 @@ def path_points(
                         if segment_length > 0
                         else 0
                     )
-                    x = points_to_use[i][0] + dx * segment_t
-                    y = points_to_use[i][1] + dy * segment_t
+                    x = points_to_use[i].x + dx * segment_t
+                    y = points_to_use[i].y + dy * segment_t
                     return (x, y)
 
                 current_distance += segment_length
@@ -152,8 +152,8 @@ def path_points(
         p1 = get_point_at_t(t1)
         p2 = get_point_at_t(t2)
 
-        dx = p2[0] - p1[0]
-        dy = p2[1] - p1[1]
+        dx = p2.x - p1.x
+        dy = p2.y - p1.y
 
         return math.degrees(math.atan2(dy, dx))
 
@@ -172,8 +172,8 @@ def path_points(
             t = i / samples
             current_point = get_point_at_t(t)
 
-            dx = current_point[0] - last_point[0]
-            dy = current_point[1] - last_point[1]
+            dx = current_point.x - last_point.x
+            dy = current_point.y - last_point.y
             segment_length = math.sqrt(dx * dx + dy * dy)
             total_length += segment_length
 

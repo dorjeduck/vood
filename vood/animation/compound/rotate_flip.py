@@ -3,10 +3,10 @@
 # ============================================================================
 """Rotate flip effect with two elements"""
 
-from typing import List, Tuple
+from typing import Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def rotate_flip(
     state1: State,
@@ -15,7 +15,7 @@ def rotate_flip(
     duration: float = 0.5,
     angle: float = 180,
     extend_timeline: bool = False,
-) -> Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]:
+) -> Tuple[KeyStates,KeyStates]:
     """Create a flip effect by rotating two elements
 
     First element rotates away while fading out, second element rotates
@@ -58,24 +58,24 @@ def rotate_flip(
 
     # Element 1: Rotate and fade out (first half)
     keyframes1 = [
-        (t_start, replace(state1, rotation=orig_rot_1, opacity=1.0)),
-        (t_mid, replace(state1, rotation=orig_rot_1 + angle / 2, opacity=0.0)),
+        KeyState(time=t_start, state=replace(state1, rotation=orig_rot_1, opacity=1.0)),
+        KeyState(time=t_mid, state=replace(state1, rotation=orig_rot_1 + angle / 2, opacity=0.0)),
     ]
 
     # Element 2: Rotate and fade in (second half)
     keyframes2 = [
-        (t_mid, replace(state2, rotation=orig_rot_2 - angle / 2, opacity=0.0)),
-        (t_end, replace(state2, rotation=orig_rot_2, opacity=1.0)),
+        KeyState(time=t_mid, state=replace(state2, rotation=orig_rot_2 - angle / 2, opacity=0.0)),
+        KeyState(time=t_end, state=replace(state2, rotation=orig_rot_2, opacity=1.0)),
     ]
 
     if extend_timeline:
         keyframes1 = [
-            (0.0, replace(state1, rotation=orig_rot_1, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, rotation=orig_rot_1, opacity=1.0)),
             *keyframes1,
         ]
         keyframes2 = [
             *keyframes2,
-            (1.0, replace(state2, rotation=orig_rot_2, opacity=1.0)),
+            KeyState(time=1.0, state=replace(state2, rotation=orig_rot_2, opacity=1.0)),
         ]
 
     return keyframes1, keyframes2

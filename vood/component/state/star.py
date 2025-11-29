@@ -6,12 +6,15 @@ from typing import Optional, List, Tuple
 
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexStar
+from vood.component.registry import renderer
+from vood.component.renderer.star import StarRenderer
 
 from .base import State
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(StarRenderer)
 @dataclass(frozen=True)
 class StarState(VertexState):
     """State class for star elements"""
@@ -28,14 +31,10 @@ class StarState(VertexState):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.star import StarRenderer
-
-        return StarRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate star vertices"""

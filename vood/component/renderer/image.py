@@ -1,9 +1,9 @@
 """Image renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from typing import Tuple
+from typing import TYPE_CHECKING, Tuple
 
 from PIL import Image
 import logging
@@ -12,7 +12,10 @@ import random
 import io
 
 from .base import Renderer
-from ..state.image import ImageState, ImageFitMode
+
+if TYPE_CHECKING:
+    from ..state.image import ImageState, ImageFitMode
+
 
 
 class ImageRenderer(Renderer):
@@ -168,11 +171,13 @@ class ImageRenderer(Renderer):
             scale = min(scale_x, scale_y)
             return (original_width * scale, original_height * scale, False)
 
-    def _render_core(self, state: ImageState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "ImageState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render the image renderer without transforms
 
         Args:
-            state: ImageState containing rendering properties
+            state: "ImageState" containing rendering properties
 
         Returns:
             drawsvg Group containing the image renderer

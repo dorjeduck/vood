@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from .base import State
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexCircle
+from vood.component.registry import renderer
+from vood.component.renderer.ring import RingRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(RingRenderer)
 @dataclass(frozen=True)
 class RingState(VertexState):
     """State class for ring elements (circle with circular hole)"""
@@ -24,12 +27,6 @@ class RingState(VertexState):
         "outer_radius": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.ring import RingRenderer
-
-        return RingRenderer
 
 
     def _generate_contours(self) -> VertexContours:

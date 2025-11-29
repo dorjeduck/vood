@@ -5,10 +5,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Tuple
 from abc import ABC, abstractmethod
-import math
-
+from vood.core.point2d import Point2D
 
 @dataclass
 class PathCommand(ABC):
@@ -20,12 +18,12 @@ class PathCommand(ABC):
         pass
 
     @abstractmethod
-    def to_absolute(self, current_pos: Tuple[float, float]) -> PathCommand:
+    def to_absolute(self, current_pos: Point2D) -> PathCommand:
         """Convert to absolute coordinates"""
         pass
 
     @abstractmethod
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         """Get the end point of this command"""
         pass
 
@@ -47,15 +45,15 @@ class MoveTo(PathCommand):
         cmd = "M" if self.absolute else "m"
         return f"{cmd} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> MoveTo:
+    def to_absolute(self, current_pos: Point2D) -> MoveTo:
         if self.absolute:
             return self
-        return MoveTo(current_pos[0] + self.x, current_pos[1] + self.y)
+        return MoveTo(current_pos.x + self.x, current_pos.y + self.y)
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> MoveTo:
         if not isinstance(other, MoveTo):
@@ -79,15 +77,15 @@ class LineTo(PathCommand):
         cmd = "L" if self.absolute else "l"
         return f"{cmd} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> LineTo:
+    def to_absolute(self, current_pos: Point2D) -> LineTo:
         if self.absolute:
             return self
-        return LineTo(current_pos[0] + self.x, current_pos[1] + self.y)
+        return LineTo(current_pos.x + self.x, current_pos.y + self.y)
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> LineTo:
         if not isinstance(other, LineTo):
@@ -113,16 +111,16 @@ class HorizontalLine(PathCommand):
         cmd = "H" if self.absolute else "h"
         return f"{cmd} {self.x}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> LineTo:
+    def to_absolute(self, current_pos: Point2D) -> LineTo:
         """Converts to a standard LineTo command with the current y-coordinate"""
         if self.absolute:
-            return LineTo(self.x, current_pos[1])
-        return LineTo(current_pos[0] + self.x, current_pos[1])
+            return LineTo(self.x, current_pos.y)
+        return LineTo(current_pos.x + self.x, current_pos.y)
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
-            return (self.x, current_pos[1])
-        return (current_pos[0] + self.x, current_pos[1])
+            return (self.x, current_pos.y)
+        return (current_pos.x + self.x, current_pos.y)
 
     def interpolate(self, other: PathCommand, t: float) -> HorizontalLine:
         if not isinstance(other, HorizontalLine):
@@ -143,16 +141,16 @@ class VerticalLine(PathCommand):
         cmd = "V" if self.absolute else "v"
         return f"{cmd} {self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> LineTo:
+    def to_absolute(self, current_pos: Point2D) -> LineTo:
         """Converts to a standard LineTo command with the current x-coordinate"""
         if self.absolute:
-            return LineTo(current_pos[0], self.y)
-        return LineTo(current_pos[0], current_pos[1] + self.y)
+            return LineTo(current_pos.x, self.y)
+        return LineTo(current_pos.x, current_pos.y + self.y)
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
-            return (current_pos[0], self.y)
-        return (current_pos[0], current_pos[1] + self.y)
+            return (current_pos.x, self.y)
+        return (current_pos.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> VerticalLine:
         if not isinstance(other, VerticalLine):
@@ -179,21 +177,21 @@ class QuadraticBezier(PathCommand):
         cmd = "Q" if self.absolute else "q"
         return f"{cmd} {self.cx},{self.cy} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> QuadraticBezier:
+    def to_absolute(self, current_pos: Point2D) -> QuadraticBezier:
         if self.absolute:
             return self
         return QuadraticBezier(
-            cx=current_pos[0] + self.cx,
-            cy=current_pos[1] + self.cy,
-            x=current_pos[0] + self.x,
-            y=current_pos[1] + self.y,
+            cx=current_pos.x + self.cx,
+            cy=current_pos.y + self.cy,
+            x=current_pos.x + self.x,
+            y=current_pos.y + self.y,
             absolute=True,
         )
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> QuadraticBezier:
         if not isinstance(other, QuadraticBezier):
@@ -225,23 +223,23 @@ class CubicBezier(PathCommand):
         cmd = "C" if self.absolute else "c"
         return f"{cmd} {self.cx1},{self.cy1} {self.cx2},{self.cy2} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> CubicBezier:
+    def to_absolute(self, current_pos: Point2D) -> CubicBezier:
         if self.absolute:
             return self
         return CubicBezier(
-            cx1=current_pos[0] + self.cx1,
-            cy1=current_pos[1] + self.cy1,
-            cx2=current_pos[0] + self.cx2,
-            cy2=current_pos[1] + self.cy2,
-            x=current_pos[0] + self.x,
-            y=current_pos[1] + self.y,
+            cx1=current_pos.x + self.cx1,
+            cy1=current_pos.y + self.cy1,
+            cx2=current_pos.x + self.cx2,
+            cy2=current_pos.y + self.cy2,
+            x=current_pos.x + self.x,
+            y=current_pos.y + self.y,
             absolute=True,
         )
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> CubicBezier:
         if not isinstance(other, CubicBezier):
@@ -274,17 +272,17 @@ class SmoothQuadraticBezier(PathCommand):
         cmd = "T" if self.absolute else "t"
         return f"{cmd} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> SmoothQuadraticBezier:
+    def to_absolute(self, current_pos: Point2D) -> SmoothQuadraticBezier:
         if self.absolute:
             return self
         return SmoothQuadraticBezier(
-            x=current_pos[0] + self.x, y=current_pos[1] + self.y, absolute=True
+            x=current_pos.x + self.x, y=current_pos.y + self.y, absolute=True
         )
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> SmoothQuadraticBezier:
         if not isinstance(other, SmoothQuadraticBezier):
@@ -312,21 +310,21 @@ class SmoothCubicBezier(PathCommand):
         cmd = "S" if self.absolute else "s"
         return f"{cmd} {self.cx2},{self.cy2} {self.x},{self.y}"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> SmoothCubicBezier:
+    def to_absolute(self, current_pos: Point2D) -> SmoothCubicBezier:
         if self.absolute:
             return self
         return SmoothCubicBezier(
-            cx2=current_pos[0] + self.cx2,
-            cy2=current_pos[1] + self.cy2,
-            x=current_pos[0] + self.x,
-            y=current_pos[1] + self.y,
+            cx2=current_pos.x + self.cx2,
+            cy2=current_pos.y + self.cy2,
+            x=current_pos.x + self.x,
+            y=current_pos.y + self.y,
             absolute=True,
         )
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> SmoothCubicBezier:
         if not isinstance(other, SmoothCubicBezier):
@@ -366,7 +364,7 @@ class Arc(PathCommand):
             f"{self.large_arc_flag},{self.sweep_flag} {self.x},{self.y}"
         )
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> Arc:
+    def to_absolute(self, current_pos: Point2D) -> Arc:
         if self.absolute:
             return self
         return Arc(
@@ -375,15 +373,15 @@ class Arc(PathCommand):
             x_axis_rotation=self.x_axis_rotation,
             large_arc_flag=self.large_arc_flag,
             sweep_flag=self.sweep_flag,
-            x=current_pos[0] + self.x,
-            y=current_pos[1] + self.y,
+            x=current_pos.x + self.x,
+            y=current_pos.y + self.y,
             absolute=True,
         )
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         if self.absolute:
             return (self.x, self.y)
-        return (current_pos[0] + self.x, current_pos[1] + self.y)
+        return (current_pos.x + self.x, current_pos.y + self.y)
 
     def interpolate(self, other: PathCommand, t: float) -> Arc:
         if not isinstance(other, Arc):
@@ -419,10 +417,10 @@ class ClosePath(PathCommand):
     def to_string(self) -> str:
         return "Z"
 
-    def to_absolute(self, current_pos: Tuple[float, float]) -> ClosePath:
+    def to_absolute(self, current_pos: Point2D) -> ClosePath:
         return self
 
-    def get_end_point(self, current_pos: Tuple[float, float]) -> Tuple[float, float]:
+    def get_end_point(self, current_pos: Point2D) -> Point2D:
         # NOTE: In a real implementation, ClosePath needs access to the start
         # point of the current subpath (the last MoveTo). For simplicity here,
         # we return the current position, as the path consumer handles the Z command.

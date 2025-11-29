@@ -1,13 +1,16 @@
 from __future__ import annotations
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.core.point2d import Point2D
+from vood.component.registry import renderer
+from vood.component.renderer.spiral import SpiralRenderer
 
 
+@renderer(SpiralRenderer)
 @dataclass(frozen=True)
 class SpiralState(VertexState):
     """Archimedean spiral - OPEN shape"""
@@ -35,6 +38,6 @@ class SpiralState(VertexState):
             angle = t * self.turns * 2 * math.pi
             radius = self.start_radius + t * (self.end_radius - self.start_radius)
 
-            vertices.append((radius * math.sin(angle), -radius * math.cos(angle)))
+            vertices.append(Point2D(radius * math.sin(angle), -radius * math.cos(angle)))
 
         return VertexContours.from_single_loop(vertices, closed=self.closed)

@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Point2D
 
 class VertexCircle(VertexLoop):
     """Circle approximation as a VertexLoop
@@ -42,7 +42,7 @@ class VertexCircle(VertexLoop):
             angle = start_rad + 2 * math.pi * i / (num_vertices - 1)
             x = cx + radius * math.sin(angle)
             y = cy - radius * math.cos(angle)
-            vertices.append((x, y))
+            vertices.append(Point2D(x, y))
 
         # Last vertex equals first to close the loop
         vertices.append(vertices[0])

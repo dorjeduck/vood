@@ -10,10 +10,6 @@ import shutil
 import subprocess
 import tempfile
 
-from vood.converter.playwright_http_svg_converter import PlaywrightHttpSvgConverter
-from vood.converter.cairo_svg_converter import CairoSvgConverter
-from vood.converter.inkscape_svg_converter import InkscapeSvgConverter
-from vood.converter.playwright_svg_converter import PlaywrightSvgConverter
 from vood.converter.converter_type import ConverterType
 from vood.core.logger import get_logger
 
@@ -72,6 +68,12 @@ class VSceneExporter:
 
     def _init_converter(self, converter: ConverterType):
         """Initialize converter instance based on type"""
+        # Lazy imports to avoid importing optional dependencies at module load time
+        from vood.converter.cairo_svg_converter import CairoSvgConverter
+        from vood.converter.inkscape_svg_converter import InkscapeSvgConverter
+        from vood.converter.playwright_svg_converter import PlaywrightSvgConverter
+        from vood.converter.playwright_http_svg_converter import PlaywrightHttpSvgConverter
+
         converter_map = {
             ConverterType.CAIROSVG: CairoSvgConverter,
             ConverterType.INKSCAPE: InkscapeSvgConverter,
@@ -364,6 +366,270 @@ class VSceneExporter:
     # ANIMATION EXPORTS
     # ========================================================================
 
+    def to_gif(
+        self,
+        filename: str,
+        total_frames: int = 60,
+        framerate: int = DEFAULT_FRAMERATE,
+        easing: Optional[Callable[[float], float]] = None,
+        png_width_px: Optional[int] = None,
+        png_height_px: Optional[int] = None,
+        loop: int = 0,
+        optimize: bool = True,
+        cleanup_intermediate_files: bool = True,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> str:
+        """Export scene as animated GIF file.
+
+        Args:
+            filename: Output GIF filename (without extension)
+            total_frames: Number of frames to generate
+            framerate: Animation framerate (fps)
+            easing: Optional easing function
+            png_width_px: Width for frames
+            png_height_px: Height for frames
+            loop: Number of loops (0 = infinite)
+            optimize: Optimize GIF file size
+            cleanup_intermediate_files: Whether to delete frame images after encoding
+            progress_callback: Optional callback(frame_num, total_frames) for progress tracking
+
+        Returns:
+            Path to the exported GIF file
+        """
+        try:
+            from PIL import Image
+        except ImportError:
+            raise RuntimeError(
+                "Pillow (PIL) is required for GIF export. Install with: pip install Pillow"
+            )
+
+        # Validation
+        if total_frames < 1:
+            raise ValueError(f"total_frames must be >= 1, got {total_frames}")
+        if framerate < 1:
+            raise ValueError(f"framerate must be >= 1, got {framerate}")
+
+        # Setup output path
+        output_path = self._generate_output_path(filename, ".gif")
+        base_name = output_path.stem
+
+        # Setup frame directory
+        if cleanup_intermediate_files:
+            # Use temporary directory
+            temp_context = tempfile.TemporaryDirectory(prefix="vood_gif_frames_")
+            frames_dir = Path(temp_context.name)
+        else:
+            # Use persistent directory
+            frames_dir = self.output_dir / f"{base_name}_frames"
+            frames_dir.mkdir(parents=True, exist_ok=True)
+            temp_context = None
+
+        try:
+            # Generate PNG frames
+            logger.info(f"Generating {total_frames} frames for GIF...")
+
+            for frame_num, t in self.to_frames(
+                output_dir=str(frames_dir),
+                filename_pattern=self.DEFAULT_FRAME_PATTERN,
+                total_frames=total_frames,
+                format="png",
+                easing=easing,
+                png_width_px=png_width_px,
+                png_height_px=png_height_px,
+                cleanup_svg_after_png_conversion=True,
+                progress_callback=progress_callback,
+            ):
+                pass
+
+            # Load all frames
+            logger.info("Creating GIF from frames...")
+            frames = []
+            for i in range(total_frames):
+                frame_path = frames_dir / f"frame_{i:04d}.png"
+                if frame_path.exists():
+                    frames.append(Image.open(frame_path))
+                else:
+                    logger.warning(f"Frame {frame_path} not found")
+
+            if not frames:
+                raise RuntimeError("No frames were generated")
+
+            # Calculate duration per frame in milliseconds
+            duration_ms = int(1000 / framerate)
+
+            # Save as GIF
+            frames[0].save(
+                output_path,
+                save_all=True,
+                append_images=frames[1:],
+                duration=duration_ms,
+                loop=loop,
+                optimize=optimize,
+            )
+
+            # Close all image handles
+            for frame in frames:
+                frame.close()
+
+        finally:
+            # Cleanup temporary directory if it exists
+            if temp_context:
+                temp_context.cleanup()
+
+        logger.info(f'GIF exported to "{output_path}"')
+        return str(output_path)
+
+    def to_html(
+        self,
+        filename: str,
+        total_frames: int = 60,
+        framerate: int = DEFAULT_FRAMERATE,
+        interactive: bool = True,
+    ) -> str:
+        """Export scene as self-contained HTML file.
+
+        Creates a single HTML file with embedded SVG frames and JavaScript.
+        Perfect for embedding animations in websites - no external dependencies.
+
+        Args:
+            filename: Output HTML filename (without extension)
+            total_frames: Number of frames to generate
+            framerate: Playback framerate (fps)
+            interactive: If True, includes controls (play/pause, slider).
+                        If False, creates auto-playing looping animation.
+
+        Returns:
+            Path to the exported HTML file
+        """
+        from vood.vscene.preview import PreviewRenderer
+
+        # Validation
+        if total_frames < 2:
+            raise ValueError(f"total_frames must be >= 2, got {total_frames}")
+        if framerate < 1:
+            raise ValueError(f"framerate must be >= 1, got {framerate}")
+
+        # Setup output path
+        output_path = self._generate_output_path(filename, ".html")
+
+        # Generate times for frames
+        times = [i / (total_frames - 1) for i in range(total_frames)]
+
+        # Calculate play interval from framerate
+        play_interval_ms = int(1000 / framerate)
+
+        # Generate HTML based on mode
+        if interactive:
+            logger.info(f"Generating interactive HTML with {total_frames} frames...")
+            preview_renderer = PreviewRenderer(self.scene)
+            html_obj = preview_renderer._render_navigator(
+                times=times, play_interval_ms=play_interval_ms
+            )
+            html_content = html_obj.data
+        else:
+            logger.info(f"Generating animation-only HTML with {total_frames} frames...")
+            html_content = self._generate_animation_html(times, play_interval_ms)
+
+        # Wrap in complete HTML document
+        full_html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vood Animation</title>
+    <style>
+        body {{
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }}
+    </style>
+</head>
+<body>
+    {html_content}
+</body>
+</html>
+"""
+
+        # Write to file
+        output_path.write_text(full_html, encoding="utf-8")
+        logger.info(f'HTML exported to "{output_path}"')
+        return str(output_path)
+
+    def _generate_animation_html(self, times: list[float], play_interval_ms: int) -> str:
+        """Generate simple auto-playing animation HTML without controls.
+
+        Args:
+            times: List of time points to render
+            play_interval_ms: Milliseconds between frames
+
+        Returns:
+            HTML string with embedded SVG frames and auto-play script
+        """
+        import uuid
+
+        preview_id = str(uuid.uuid4())[:8]
+        num_frames = len(times)
+
+        # Generate all SVG frames
+        frames_html = []
+        for i, t in enumerate(times):
+            svg = self.scene.to_svg(frame_time=t, log=False)
+            active = 'active' if i == 0 else ''
+            frames_html.append(f'''
+                <div class="frame-{preview_id} {active}" id="frame-{preview_id}-{i}">
+                    {svg}
+                </div>
+            ''')
+
+        # Build complete HTML with minimal styling and auto-play
+        html = f'''
+            <style>
+                .animation-container-{preview_id} {{
+                    display: inline-block;
+                }}
+                .frame-{preview_id} {{
+                    display: none;
+                }}
+                .frame-{preview_id}.active {{
+                    display: block;
+                }}
+            </style>
+            <div class="animation-container-{preview_id}">
+                {''.join(frames_html)}
+            </div>
+            <script>
+                (function() {{
+                    let currentFrame = 0;
+                    const totalFrames = {num_frames};
+                    const interval = {play_interval_ms};
+
+                    function showFrame(index) {{
+                        const frames = document.querySelectorAll('.frame-{preview_id}');
+                        frames.forEach(f => f.classList.remove('active'));
+                        if (frames[index]) {{
+                            frames[index].classList.add('active');
+                        }}
+                    }}
+
+                    function nextFrame() {{
+                        currentFrame = (currentFrame + 1) % totalFrames;
+                        showFrame(currentFrame);
+                    }}
+
+                    // Auto-start animation
+                    setInterval(nextFrame, interval);
+                }})();
+            </script>
+        '''
+
+        return html
+
     def to_frames(
         self,
         output_dir: str,
@@ -414,6 +680,7 @@ class VSceneExporter:
 
         for frame_num in range(total_frames):
             # Calculate frame time
+
             t = self._calculate_frame_time(frame_num, total_frames, easing)
 
             # Progress tracking

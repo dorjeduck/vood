@@ -5,9 +5,13 @@ from typing import List, Tuple
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.component.registry import renderer
+from vood.component.renderer.polygon import PolygonRenderer
+from vood.core.point2d import Point2D
 import math
 
 
+@renderer(PolygonRenderer)
 @dataclass(frozen=True)
 class PolygonState(VertexState):
     """Regular polygon with n sides"""
@@ -21,11 +25,6 @@ class PolygonState(VertexState):
         "num_sides": easing.step,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.polygon import PolygonRenderer
-
-        return PolygonRenderer
 
     def need_morph(self, state):
         return not isinstance(state, PolygonState) or state.num_sides != self.num_sides
@@ -36,11 +35,11 @@ class PolygonState(VertexState):
         corners = []
         for i in range(self.num_sides):
             angle = math.radians(i * 360 / self.num_sides)
-            corners.append((self.size * math.sin(angle), -self.size * math.cos(angle)))
+            corners.append(Point2D(self.size * math.sin(angle), -self.size * math.cos(angle)))
 
         # Calculate edge lengths
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+        def distance(p1:Point2D, p2:Point2D):
+            return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
         edge_lengths = [
             distance(corners[i], corners[(i + 1) % self.num_sides])
@@ -63,9 +62,9 @@ class PolygonState(VertexState):
                     v2 = corners[(edge_idx + 1) % self.num_sides]
                     t = distance_along_edge / edge_lengths[edge_idx]
 
-                    x = v1[0] + t * (v2[0] - v1[0])
-                    y = v1[1] + t * (v2[1] - v1[1])
-                    vertices.append((x, y))
+                    x = v1.x + t * (v2.x - v1.x)
+                    y = v1.y + t * (v2.y - v1.y)
+                    vertices.append(Point2D(x, y))
                     vertex_added = True
                     break
                 cumulative += edge_lengths[edge_idx]

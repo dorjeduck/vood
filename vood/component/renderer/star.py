@@ -1,21 +1,25 @@
 """Star renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import math
 import drawsvg as dw
 
 from .base import Renderer
 
+if TYPE_CHECKING:
+    from ..state.star import StarState
 
-from ..state.star import StarState
+
 
 
 class StarRenderer(Renderer):
     """Renderer class for rendering star elements"""
 
-    def _render_core(self, state: StarState, drawing: Optional[dw.Drawing] = None) -> dw.Lines:
+    def _render_core(
+        self, state: "StarState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Lines:
         """Render the star renderer (geometry only) with the given state
 
         Args:

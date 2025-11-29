@@ -20,7 +20,7 @@ from vood.core.logger import configure_logging
 from vood.converter.converter_type import ConverterType
 
 # Import hole matching strategies
-from vood.transition.interpolation.hole_mapping import (
+from vood.transition.hole_mapping import (
     SimpleMapper,
     GreedyNearestMapper,
     DiscreteMapper,
@@ -28,7 +28,7 @@ from vood.transition.interpolation.hole_mapping import (
 
 # Try to import ClusteringMapper (might not be implemented yet)
 try:
-    from vood.transition.interpolation.hole_mapping import ClusteringMapper
+    from vood.transition.hole_mapping import ClusteringMapper
     HAS_CLUSTERING = True
 except ImportError:
     HAS_CLUSTERING = False

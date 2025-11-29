@@ -3,10 +3,9 @@
 # ============================================================================
 """Rotate out, switch, rotate in animation"""
 
-from typing import List, Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def rotate(
     state1: State,
@@ -15,7 +14,7 @@ def rotate(
     duration: float = 0.3,
     angle: float = 360,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Rotate out first state, switch properties, rotate in second state
 
     Element rotates while fading out, properties change, then rotates
@@ -53,23 +52,23 @@ def rotate(
     orig_rot_2 = getattr(state2, "rotation", 0)
 
     keystates = [
-        (t_start, replace(state1, rotation=orig_rot_1, opacity=1.0)),
-        (
-            at_time,
-            replace(state1, rotation=orig_rot_1 + angle, opacity=0.0),
+        KeyState(time=t_start, state=replace(state1, rotation=orig_rot_1, opacity=1.0)),
+        KeyState(
+            time=at_time,
+            state=replace(state1, rotation=orig_rot_1 + angle, opacity=0.0),
         ),  # Rotated out
-        (
-            at_time,
-            replace(state2, rotation=orig_rot_2 - angle, opacity=0.0),
+        KeyState(
+            time=at_time,
+            state=replace(state2, rotation=orig_rot_2 - angle, opacity=0.0),
         ),  # Switch (rotated)
-        (t_end, replace(state2, rotation=orig_rot_2, opacity=1.0)),  # Rotated in
+        KeyState(time=t_end,state= replace(state2, rotation=orig_rot_2, opacity=1.0)),  # Rotated in
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, replace(state1, rotation=orig_rot_1, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, rotation=orig_rot_1, opacity=1.0)),
             *keystates,
-            (1.0, replace(state2, rotation=orig_rot_2)),
+            KeyState(time=1.0, state=replace(state2, rotation=orig_rot_2)),
         ]
 
     return keystates

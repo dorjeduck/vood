@@ -3,9 +3,8 @@
 # ============================================================================
 """Fade out, switch, fade in animation"""
 
-from typing import List, Tuple
-from dataclasses import replace
 from vood.component import State
+from vood.velement.keystate import KeyState, KeyStates
 
 
 def trim(
@@ -14,22 +13,22 @@ def trim(
     at_time: float = 0.5,
     duration: float = 0.2,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
 
     half = duration / 2
     t_start = at_time - half
     t_end = at_time + half
 
     keystates = [
-        (t_start, state1),
-        (t_end, state2),
+        KeyState(time=t_start, state=state1),
+        KeyState(time=t_end, state=state2),
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, state1),
+            KeyState(time=0.0, state=state1),
             *keystates,
-            (1.0, state2),
+            KeyState(time=1.0, state=state2),
         ]
 
     return keystates

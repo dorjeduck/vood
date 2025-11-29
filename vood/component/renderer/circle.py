@@ -1,13 +1,15 @@
 """Circle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.circle import CircleState
+if TYPE_CHECKING:
+    from ..state.circle import CircleState
+
 
 
 class CircleRenderer(Renderer):
@@ -23,7 +25,9 @@ class CircleRenderer(Renderer):
         """
         pass
 
-    def _render_core(self, state: CircleState, drawing: Optional[dw.Drawing] = None) -> dw.Circle:
+    def _render_core(
+        self, state: "CircleState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Circle:
         """Render the core circle geometry centered at origin (0,0)"""
         circle_kwargs = {
             "cx": 0,

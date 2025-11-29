@@ -29,13 +29,16 @@ def main():
     # Create the scene
     scene = VScene(width=1024, height=1024, background=Color("#000017"))
 
-    s1 = RingState(
+    # equivalent to a Ring but the stroke around the hole which is present here
+    # can smoothly morph into holes without surrounding strokes
+    s1 = PerforatedCircleState(
+        radius=200,
+        holes=[Circle(radius=100)],
         fill_color=FILL_COLOR,
         stroke_color=STROKE_COLOR,
-        inner_radius=100,
-        outer_radius=200,
         stroke_width=6,
     )
+
     s2 = PerforatedCircleState(
         radius=270,
         holes=[
@@ -46,6 +49,7 @@ def main():
         fill_color=FILL_COLOR,
         stroke_color=STROKE_COLOR,
         stroke_width=6,
+        holes_stroke_width=0,
     )
 
     s3 = PerforatedStarState(
@@ -59,6 +63,7 @@ def main():
         fill_color=FILL_COLOR,
         stroke_color=STROKE_COLOR,
         stroke_width=6,
+        holes_stroke_width=0,
     )
     states = [s1, s2, s3, s2, s1]
 
@@ -71,7 +76,7 @@ def main():
     # Create the exporter
     exporter = VSceneExporter(
         scene=scene,
-        converter=ConverterType.PLAYWRIGHT_HTTP,
+        converter=ConverterType.PLAYWRIGHT,
         output_dir="output/",
     )
 
@@ -81,7 +86,7 @@ def main():
         total_frames=240,
         framerate=30,
         png_width_px=1024,
-        num_thumbnails=100
+        num_thumbnails=100,
     )
 
 

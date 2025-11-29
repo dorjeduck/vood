@@ -1,62 +1,29 @@
-from vood.component import TextRenderer, TextState
-from vood.component.renderer.triangle import TriangleRenderer
-from vood.component.state.ring import RingState
-from vood.component.state.square import SquareState
-from vood.component.state.triangle import TriangleState
-from vood.converter.converter_type import ConverterType
-from vood.core.logger import configure_logging
-from vood.velement import VElement
-from vood.vscene import VScene
-from vood.vscene.vscene_exporter import VSceneExporter
-from vood.core.color import Color
-from dataclasses import replace
+from vood import VElement, VElementGroup
+from vood.animations import crossfade
+from vood.components import TextState, TextRenderer
 
-configure_logging(level="INFO")
+# Create renderer
+text_renderer = TextRenderer()
 
-START_COLOR = Color("#ff0000")
-END_COLOR = Color("#0000ff")
+# Create two states
+state1 = TextState(text="Hello", font_size=48, x=100, y=100)
+state2 = TextState(text="World", font_size=48, x=100, y=100)
 
+# Generate crossfade keyframes
+all_keyframes = crossfade(state1, state2, at_time=0.5, duration=0.3)
 
-def main():
+# Split into two element keyframes (first 3 for state1, last 3 for state2)
+elem1_keyframes = all_keyframes[:3]  # Fade out
+elem2_keyframes = all_keyframes[3:]  # Fade in
 
-    # Create the scene
-    scene = VScene(width=256, height=256, background=Color("#000017"))
+# Create elements
+elem1 = VElement(renderer=text_renderer, keyframes=elem1_keyframes)
+elem2 = VElement(renderer=text_renderer, keyframes=elem2_keyframes)
 
-    start_state = TriangleState(size=20)
-    end_state = RingState(
-        outer_radius=70,
-        inner_radius=30,
-    )
-    middle_state = SquareState(size=20)
+# Group them
+group = VElementGroup(elements=[elem1, elem2])
 
-    triangle_element = VElement(
-        keystates=[
-            (0, start_state),
-            (0.5, middle_state),
-            (1, end_state),
-        ],
-        property_keystates={
-            "fill_color": [(0, START_COLOR), (0.5, START_COLOR), (1, END_COLOR)]
-        },
-    )
-
-    scene.add_element(triangle_element)
-
-    # Create the exporter
-    exporter = VSceneExporter(
-        scene=scene,
-        converter=ConverterType.CAIROSVG,
-        output_dir="output/",
-    )
-
-    # Export to PNG file
-    exporter.to_mp4(
-        filename="x.mp4",
-        total_frames=120,
-        framerate=30,
-        png_width_px=1024,
-    )
-
-
-if __name__ == "__main__":
-    main()
+# Render at different times
+frame_0 = group.render_at_frame_time(0.0)   # Shows "Hello"
+frame_5 = group.render_at_frame_time(0.5)   # Mid-transition
+frame_1 = group.render_at_frame_time(1.0)   # Shows "World"

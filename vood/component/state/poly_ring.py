@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from .base import State
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexRegularPolygon
+from vood.component.registry import renderer
+from vood.component.renderer.poly_ring import PolyRingRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(PolyRingRenderer)
 @dataclass(frozen=True)
 class PolyRingState(VertexState):
     """State class for polygon ring elements (polygon with polygon hole)
@@ -36,12 +39,6 @@ class PolyRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.poly_ring import PolyRingRenderer
-
-        return PolyRingRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate polygon ring contours with outer and inner polygons

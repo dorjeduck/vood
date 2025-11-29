@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vood Dev Server - {{ filename }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #1a1a1a;
+            color: #e0e0e0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            padding: 16px;
+            background: #2a2a2a;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        .header .filename {
+            font-size: 14px;
+            color: #888;
+            font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.disconnected {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        #error-display {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            display: none;
+        }
+
+        #error-display h3 {
+            color: #ef4444;
+            margin-bottom: 12px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        #error-display pre {
+            color: #fca5a5;
+            font-size: 13px;
+            font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        #preview-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        #preview-container.loading {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Make sure the preview content is centered */
+        #preview-container > div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .footer a {
+            color: #888;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: #aaa;
+        }
+
+        .export-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+
+        .export-panel h3 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .format-selection {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .format-label {
+            font-size: 13px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .format-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #e0e0e0;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .format-checkbox input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .export-settings {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .setting-group label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .setting-group input {
+            padding: 8px 12px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 14px;
+            width: 120px;
+        }
+
+        .setting-group input:focus {
+            outline: none;
+            border-color: #4ade80;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #2563eb;
+        }
+
+        .export-btn:active {
+            background: #1d4ed8;
+        }
+
+        .export-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .export-btn-cancel {
+            padding: 10px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .export-btn-cancel:hover {
+            background: #dc2626;
+        }
+
+        .export-btn-cancel:active {
+            background: #b91c1c;
+        }
+
+        .export-status {
+            min-height: 24px;
+            font-size: 13px;
+            color: #e0e0e0;
+            margin-bottom: 8px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        .export-status.success {
+            color: #4ade80;
+        }
+
+        .export-status.error {
+            color: #ef4444;
+        }
+
+        .export-status.processing {
+            color: #fbbf24;
+        }
+
+        .export-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #444;
+            border-radius: 2px;
+            overflow: hidden;
+            display: none;
+            margin-bottom: 8px;
+        }
+
+        .export-progress-bar.active {
+            display: block;
+        }
+
+        .export-progress-fill {
+            height: 100%;
+            background: #fbbf24;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .export-downloads {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .download-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #1a1a1a;
+            border: 1px solid #4ade80;
+            border-radius: 6px;
+        }
+
+        .download-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .download-format {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4ade80;
+            text-transform: uppercase;
+        }
+
+        .download-ready {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .download-btn {
+            padding: 8px 16px;
+            background: #4ade80;
+            color: #1a1a1a;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .download-btn:hover {
+            background: #22c55e;
+        }
+
+        .download-btn:active {
+            background: #16a34a;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>Vood Dev Server</h1>
+            <div class="filename">{{ filename }}</div>
+        </div>
+        <div class="status-indicator" id="status-indicator"></div>
+    </div>
+
+    <div id="error-display">
+        <h3>Error</h3>
+        <pre id="error-content"></pre>
+    </div>
+
+    <div id="preview-container" class="loading">
+        Connecting to server...
+    </div>
+
+    <div class="export-panel">
+        <h3>Export Animation</h3>
+
+        <div class="format-selection">
+            <label class="format-label">Select formats:</label>
+            <label class="format-checkbox">
+                <input type="checkbox" id="format-mp4" value="mp4" checked>
+                MP4 Video
+            </label>
+            <label class="format-checkbox">
+                <input type="checkbox" id="format-gif" value="gif">
+                GIF Animation
+            </label>
+            <label class="format-checkbox">
+                <input type="checkbox" id="format-html-interactive" value="html-interactive">
+                HTML Interactive
+            </label>
+            <label class="format-checkbox">
+                <input type="checkbox" id="format-html-animation" value="html-animation">
+                HTML Animation Only
+            </label>
+        </div>
+
+        <div class="export-settings">
+            <div class="setting-group">
+                <label for="export-frames">Frames:</label>
+                <input type="number" id="export-frames" value="60" min="10" max="300">
+            </div>
+            <div class="setting-group">
+                <label for="export-fps">FPS:</label>
+                <input type="number" id="export-fps" value="30" min="1" max="60">
+            </div>
+            <div class="setting-group">
+                <label for="export-width">Width (px):</label>
+                <input type="number" id="export-width" value="1024" min="256" max="3840">
+            </div>
+        </div>
+
+        <div class="export-buttons">
+            <button onclick="startExport()" class="export-btn" id="export-start-btn">
+                Start Export
+            </button>
+            <button onclick="cancelExport()" class="export-btn-cancel" id="export-cancel-btn" style="display: none;">
+                Cancel Export
+            </button>
+        </div>
+
+        <div id="export-status" class="export-status"></div>
+        <div id="export-progress-bar" class="export-progress-bar">
+            <div id="export-progress-fill" class="export-progress-fill"></div>
+        </div>
+        <div id="export-downloads" class="export-downloads"></div>
+    </div>
+
+    <div class="footer">
+        Powered by <a href="https://github.com/dorjeduck/vood" target="_blank">Vood</a>
+    </div>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:{{ port }}/ws');
+        const errorDisplay = document.getElementById('error-display');
+        const errorContent = document.getElementById('error-content');
+        const previewContainer = document.getElementById('preview-container');
+        const statusIndicator = document.getElementById('status-indicator');
+
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            statusIndicator.classList.remove('disconnected');
+            previewContainer.classList.add('loading');
+            previewContainer.innerHTML = 'Loading animation...';
+        };
+
+        let wasPlaying = false;
+        let currentPreviewId = null;
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'error') {
+                // Show error
+                errorContent.textContent = data.error;
+                errorDisplay.style.display = 'block';
+                previewContainer.style.display = 'none';
+                console.error('Animation error:', data.error);
+            } else if (data.type === 'update') {
+                // Save play state before update
+                if (currentPreviewId) {
+                    const playBtn = document.querySelector(`[onclick*="togglePlay_${currentPreviewId}"]`);
+                    wasPlaying = playBtn && playBtn.textContent.trim() === '⏸';
+                }
+
+                // Hide error, show preview
+                errorDisplay.style.display = 'none';
+                previewContainer.style.display = 'flex';
+                previewContainer.classList.remove('loading');
+
+                // Set HTML content
+                previewContainer.innerHTML = data.html;
+
+                // Execute any script tags (innerHTML doesn't execute them)
+                const scripts = previewContainer.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    Array.from(oldScript.attributes).forEach(attr => {
+                        newScript.setAttribute(attr.name, attr.value);
+                    });
+                    newScript.textContent = oldScript.textContent;
+                    oldScript.parentNode.replaceChild(newScript, oldScript);
+                });
+
+                // Extract the new preview ID from the HTML
+                const match = data.html.match(/preview-container-(\w+)/);
+                if (match) {
+                    currentPreviewId = match[1];
+
+                    // Resume playback if it was playing (starts from frame 0)
+                    if (wasPlaying) {
+                        setTimeout(() => {
+                            const togglePlay = window[`togglePlay_${currentPreviewId}`];
+                            if (togglePlay) {
+                                togglePlay();
+                            }
+                        }, 150);
+                    }
+                }
+
+                console.log('Preview updated:', data.frame_count, 'frames');
+            }
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            statusIndicator.classList.add('disconnected');
+        };
+
+        ws.onclose = () => {
+            console.log('WebSocket disconnected');
+            statusIndicator.classList.add('disconnected');
+            previewContainer.innerHTML = '<h2 style="color: #ef4444;">Server disconnected</h2>';
+            previewContainer.classList.remove('loading');
+        };
+
+        // Keyboard shortcuts for preview control
+        document.addEventListener('keydown', (e) => {
+            // Don't trigger shortcuts when typing in input fields
+            if (e.target.tagName === 'INPUT') return;
+
+            if (!currentPreviewId) return;
+
+            switch(e.key) {
+                case ' ':  // Space - play/pause
+                    e.preventDefault();
+                    const togglePlay = window[`togglePlay_${currentPreviewId}`];
+                    if (togglePlay) togglePlay();
+                    break;
+
+                case 'ArrowLeft':  // Previous frame
+                    e.preventDefault();
+                    const prevFrame = window[`prevFrame_${currentPreviewId}`];
+                    if (prevFrame) prevFrame();
+                    break;
+
+                case 'ArrowRight':  // Next frame
+                    e.preventDefault();
+                    const nextFrame = window[`nextFrame_${currentPreviewId}`];
+                    if (nextFrame) nextFrame();
+                    break;
+
+                case 'Home':  // First frame
+                    e.preventDefault();
+                    const showFrameHome = window[`showFrame_${currentPreviewId}`];
+                    if (showFrameHome) showFrameHome(0);
+                    break;
+
+                case 'End':  // Last frame
+                    e.preventDefault();
+                    const frameCountSpan = document.getElementById(`current-frame-${currentPreviewId}`);
+                    if (frameCountSpan) {
+                        const totalFrames = parseInt(frameCountSpan.parentElement.textContent.match(/\/ (\d+)/)[1]);
+                        const showFrameEnd = window[`showFrame_${currentPreviewId}`];
+                        if (showFrameEnd) showFrameEnd(totalFrames - 1);
+                    }
+                    break;
+            }
+        });
+
+        // Export functionality
+        let exportJobs = [];
+        let activePollingIntervals = [];
+        const exportStatus = document.getElementById('export-status');
+        const exportProgressBar = document.getElementById('export-progress-bar');
+        const exportProgressFill = document.getElementById('export-progress-fill');
+        const exportDownloads = document.getElementById('export-downloads');
+        const startBtn = document.getElementById('export-start-btn');
+        const cancelBtn = document.getElementById('export-cancel-btn');
+
+        // Export settings inputs
+        const framesInput = document.getElementById('export-frames');
+        const fpsInput = document.getElementById('export-fps');
+        const widthInput = document.getElementById('export-width');
+
+        // Load saved export settings from localStorage
+        function loadExportSettings() {
+            const savedFrames = localStorage.getItem('vood_export_frames');
+            const savedFps = localStorage.getItem('vood_export_fps');
+            const savedWidth = localStorage.getItem('vood_export_width');
+
+            if (savedFrames) framesInput.value = savedFrames;
+            if (savedFps) fpsInput.value = savedFps;
+            if (savedWidth) widthInput.value = savedWidth;
+        }
+
+        // Save export settings to localStorage
+        function saveExportSettings() {
+            localStorage.setItem('vood_export_frames', framesInput.value);
+            localStorage.setItem('vood_export_fps', fpsInput.value);
+            localStorage.setItem('vood_export_width', widthInput.value);
+        }
+
+        // Load settings on page load
+        loadExportSettings();
+
+        // Save settings when inputs change
+        framesInput.addEventListener('change', saveExportSettings);
+        fpsInput.addEventListener('change', saveExportSettings);
+        widthInput.addEventListener('change', saveExportSettings);
+
+        async function startExport() {
+            // Get selected formats with their options
+            const formats = [];
+            const formatNames = [];
+
+            if (document.getElementById('format-mp4').checked) {
+                formats.push('mp4');
+                formatNames.push('MP4');
+            }
+            if (document.getElementById('format-gif').checked) {
+                formats.push('gif');
+                formatNames.push('GIF');
+            }
+            if (document.getElementById('format-html-interactive').checked) {
+                formats.push('html-interactive');
+                formatNames.push('HTML Interactive');
+            }
+            if (document.getElementById('format-html-animation').checked) {
+                formats.push('html-animation');
+                formatNames.push('HTML Animation');
+            }
+
+            if (formats.length === 0) {
+                exportStatus.className = 'export-status error';
+                exportStatus.textContent = 'Please select at least one export format';
+                return;
+            }
+
+            const frames = parseInt(document.getElementById('export-frames').value);
+            const fps = parseInt(document.getElementById('export-fps').value);
+            const width = parseInt(document.getElementById('export-width').value);
+
+            // Clear previous exports
+            exportJobs = [];
+            exportDownloads.innerHTML = '';
+            activePollingIntervals.forEach(interval => clearInterval(interval));
+            activePollingIntervals = [];
+
+            // Show cancel button, hide start button
+            startBtn.style.display = 'none';
+            cancelBtn.style.display = 'inline-block';
+
+            exportStatus.className = 'export-status processing';
+
+            // Check if we need batch export (MP4+GIF combination benefits from frame reuse)
+            const hasMp4 = formats.includes('mp4');
+            const hasGif = formats.includes('gif');
+            const useBatchExport = (hasMp4 && hasGif) || formats.length > 2;
+
+            if (useBatchExport) {
+                // Use batch export for frame reuse optimization
+                exportStatus.textContent = `Starting batch export for ${formats.length} format(s) (frame reuse enabled)...`;
+
+                try {
+                    const response = await fetch('/export/batch', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            formats: formats,
+                            frames: frames,
+                            fps: fps,
+                            width_px: width,
+                            html_interactive: true
+                        }),
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Batch export failed');
+                    }
+
+                    // Track all jobs
+                    for (let i = 0; i < data.job_ids.length; i++) {
+                        exportJobs.push({ job_id: data.job_ids[i], format: formatNames[i] });
+                        pollExportStatus(data.job_ids[i], formatNames[i]);
+                    }
+
+                } catch (error) {
+                    exportStatus.className = 'export-status error';
+                    exportStatus.textContent = `Batch export error: ${error.message}`;
+                }
+            } else {
+                // Single format or no optimization benefit - use individual exports
+                exportStatus.textContent = `Starting export for ${formats.length} format(s)...`;
+
+                for (let i = 0; i < formats.length; i++) {
+                    const format = formats[i];
+                    const formatName = formatNames[i];
+
+                    try {
+                        let endpoint = '/export/mp4';
+                        let interactive = true;
+
+                        if (format === 'mp4') {
+                            endpoint = '/export/mp4';
+                        } else if (format === 'gif') {
+                            endpoint = '/export/gif';
+                        } else if (format === 'html-interactive') {
+                            endpoint = '/export/html';
+                            interactive = true;
+                        } else if (format === 'html-animation') {
+                            endpoint = '/export/html';
+                            interactive = false;
+                        }
+
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                frames: frames,
+                                fps: fps,
+                                width_px: format.startsWith('html') ? null : width,
+                                html_interactive: interactive
+                            }),
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Export failed');
+                        }
+
+                        exportJobs.push({ job_id: data.job_id, format: formatName });
+                        pollExportStatus(data.job_id, formatName);
+
+                    } catch (error) {
+                        exportStatus.className = 'export-status error';
+                        exportStatus.textContent = `Error starting ${formatName}: ${error.message}`;
+                    }
+                }
+            }
+        }
+
+        async function cancelExport() {
+            for (const job of exportJobs) {
+                try {
+                    await fetch(`/export/cancel/${job.job_id}`, { method: 'POST' });
+                } catch (error) {
+                    console.error(`Failed to cancel ${job.job_id}:`, error);
+                }
+            }
+
+            activePollingIntervals.forEach(interval => clearInterval(interval));
+            activePollingIntervals = [];
+
+            exportStatus.className = 'export-status error';
+            exportStatus.textContent = 'Export cancelled';
+            exportProgressBar.classList.remove('active');
+            exportProgressFill.style.width = '0%';
+
+            startBtn.style.display = 'inline-block';
+            cancelBtn.style.display = 'none';
+        }
+
+        async function pollExportStatus(jobId, format) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/export/status/${jobId}`);
+                    const job = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(job.error || 'Failed to get status');
+                    }
+
+                    if (job.status === 'processing') {
+                        const progress = Math.round(job.progress * 100);
+                        updateExportStatus(job.message || `Processing ${format}...`, progress);
+                    } else if (job.status === 'complete') {
+                        clearInterval(interval);
+                        activePollingIntervals = activePollingIntervals.filter(i => i !== interval);
+
+                        // Add download button
+                        const filename = job.output_file.split('/').pop();
+                        const downloadItem = document.createElement('div');
+                        downloadItem.className = 'download-item';
+                        downloadItem.innerHTML = `
+                            <div class="download-info">
+                                <div class="download-format">${format}</div>
+                                <div class="download-ready">Ready to download • Click button to save</div>
+                            </div>
+                            <a href="/export/download/${filename}"
+                               download="${filename}"
+                               class="download-btn">
+                                Download ${format.toUpperCase()}
+                            </a>
+                        `;
+                        exportDownloads.appendChild(downloadItem);
+
+                        updateExportStatus();
+                        checkAllComplete();
+                    } else if (job.status === 'error') {
+                        clearInterval(interval);
+                        activePollingIntervals = activePollingIntervals.filter(i => i !== interval);
+                        updateExportStatus();
+                        checkAllComplete();
+                    } else if (job.status === 'cancelled') {
+                        clearInterval(interval);
+                        activePollingIntervals = activePollingIntervals.filter(i => i !== interval);
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                    activePollingIntervals = activePollingIntervals.filter(i => i !== interval);
+                    console.error('Error checking status:', error);
+                }
+            }, 500);
+
+            activePollingIntervals.push(interval);
+        }
+
+        function updateExportStatus(message = null, progress = null) {
+            if (activePollingIntervals.length > 0) {
+                exportStatus.className = 'export-status processing';
+
+                if (message && progress !== null) {
+                    exportStatus.textContent = `${message} (${progress}%)`;
+                    exportProgressBar.classList.add('active');
+                    exportProgressFill.style.width = `${progress}%`;
+                } else if (message) {
+                    exportStatus.textContent = message;
+                    exportProgressBar.classList.add('active');
+                } else {
+                    exportStatus.textContent = `Exporting ${exportJobs.length} format(s)... ${activePollingIntervals.length} in progress`;
+                    exportProgressBar.classList.add('active');
+                }
+            }
+        }
+
+        function checkAllComplete() {
+            if (activePollingIntervals.length === 0) {
+                exportStatus.className = 'export-status success';
+                const downloadCount = exportDownloads.children.length;
+                exportStatus.textContent = `✓ Export complete! ${downloadCount} file(s) ready to download below`;
+                exportProgressBar.classList.remove('active');
+                exportProgressFill.style.width = '0%';
+
+                startBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

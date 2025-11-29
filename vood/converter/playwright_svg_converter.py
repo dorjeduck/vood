@@ -1,5 +1,7 @@
 from __future__ import annotations
 import time
+import traceback
+
 from typing import Optional
 from vood.converter.svg_converter import SVGConverter
 from playwright.sync_api import sync_playwright
@@ -103,6 +105,7 @@ class PlaywrightSvgConverter(SVGConverter):
                 return ret
 
         except Exception as e:
+            traceback.print_exc()
             logger.error(f"PlaywrightSvgConverter error: {e}")
             return {"success": False, "error": str(e)}
 

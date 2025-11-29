@@ -1,19 +1,24 @@
 """Rectangle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.square import SquareState
+if TYPE_CHECKING:
+    from ..state.square import SquareState
+
+
 
 
 class SquareRenderer(Renderer):
     """Renderer class for rendering rectangle elements"""
 
-    def _render_core(self, state: SquareState, drawing: Optional[dw.Drawing] = None) -> dw.Rectangle:
+    def _render_core(
+        self, state: "SquareState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Rectangle:
         """Render the rectangle renderer (geometry only, no transforms)
 
         Args:

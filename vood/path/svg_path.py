@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List
 
 from .commands import (
     PathCommand,
@@ -24,7 +24,7 @@ from .parser import tokenize_path, parse_coordinates
 from .arc_to_bezier import (
     arc_to_beziers,
 )  # New: Function to convert Arc to Cubic Beziers
-
+from vood.core.point2d import Point2D
 
 @dataclass
 class SVGPath:
@@ -35,7 +35,7 @@ class SVGPath:
     """
 
     commands: List[PathCommand]
-    path_string: str
+    path_string: Optional[str] = None
 
     @staticmethod
     def from_string(path_string: str) -> SVGPath:
@@ -53,6 +53,7 @@ class SVGPath:
         Raises:
             ValueError: If parsing encounters an unexpected command or missing coordinates.
         """
+        
         # 1. Tokenize the input string
         tokens = tokenize_path(path_string)
 
@@ -106,13 +107,13 @@ class SVGPath:
             elif cmd_type == "H":  # New: Horizontal Line
                 # H/h requires 1 arg (x)
                 coords, tokens = parse_coordinates(tokens, 1)
-                x = coords[0]
+                x = coords.x
                 parsed_commands.append(HorizontalLine(x, absolute))
 
             elif cmd_type == "V":  # New: Vertical Line
                 # V/v requires 1 arg (y)
                 coords, tokens = parse_coordinates(tokens, 1)
-                y = coords[0]
+                y = coords.y
                 parsed_commands.append(VerticalLine(y, absolute))
 
             elif cmd_type == "Q":
@@ -182,8 +183,9 @@ class SVGPath:
             SVG path data string (e.g., "M 0,0 L 100,100")
         """
         ## print types of all self.commands
+        if self.path_string is None:
+            self.path_string = " ".join(cmd.to_string() for cmd in self.commands)
         return self.path_string
-        # return " ".join(cmd.to_string() for cmd in self.commands)
 
     def to_absolute(self) -> SVGPath:
         """Convert all commands to absolute coordinates
@@ -248,7 +250,7 @@ class SVGPath:
         # Track previous curve's control point for S/T smooth commands
         # Stores the control point P2/C1 of the previous C/S command, or P1/C1 of Q/T command.
         # This point is required to calculate the reflection point for the smooth command.
-        previous_control_point: Tuple[float, float] = (0.0, 0.0)
+        previous_control_point  = (0.0, 0.0)
 
         for cmd in self.commands:
             # 1. Ensure command is absolute for easy calculation
@@ -307,28 +309,27 @@ class SVGPath:
 
             elif isinstance(abs_cmd, SmoothQuadraticBezier):
                 # Convert Smooth Quadratic (T) to QuadraticBezier, then CubicBezier
-                px, py = previous_control_point  # Last control point of Q or T
-                x2, y2 = abs_cmd.get_end_point(current_pos)
+                p1 = previous_control_point  # Last control point of Q or T
+                p2 = abs_cmd.get_end_point(current_pos)
 
                 # Calculate reflected control point (qc_reflected)
                 # Reflection formula: P' = 2*End - Control (where 'End' is the start of T command)
                 # Reflected control point (Pq1)
-                qc_reflected_x = current_pos[0] + (current_pos[0] - px)
-                qc_reflected_y = current_pos[1] + (current_pos[1] - py)
+                qc_reflected_x = current_pos.x + (current_pos.x - p1.x)
+                qc_reflected_y = current_pos.y + (current_pos.y - p1.y)
 
                 # Convert to Q
-                q_cmd = QuadraticBezier(qc_reflected_x, qc_reflected_y, x2, y2)
+                q_cmd = QuadraticBezier(qc_reflected_x, qc_reflected_y, p2.x, p2.y)
 
                 # Now convert Q to C (using logic from QuadraticBezier handling)
-                x1, y1 = current_pos
                 qcx, qcy = q_cmd.cx, q_cmd.cy
 
-                cx1 = x1 + 2 / 3 * (qcx - x1)
-                cy1 = y1 + 2 / 3 * (qcy - y1)
-                cx2 = x2 + 2 / 3 * (qcx - x2)
-                cy2 = y2 + 2 / 3 * (qcy - y2)
+                cx1 = current_pos.x + 2 / 3 * (qcx - current_pos.x)
+                cy1 = current_pos.y + 2 / 3 * (qcy - current_pos.y)
+                cx2 = p2.x + 2 / 3 * (qcx - p2.x)
+                cy2 = p2.y + 2 / 3 * (qcy - p2.y)
 
-                new_commands = [CubicBezier(cx1, cy1, cx2, cy2, x2, y2)]
+                new_commands = [CubicBezier(cx1, cy1, cx2, cy2, p2.x, p2.y)]
                 previous_control_point = (qc_reflected_x, qc_reflected_y)
 
             elif isinstance(abs_cmd, CubicBezier):
@@ -346,8 +347,8 @@ class SVGPath:
 
                 # Calculate reflected control point (P1_reflected)
                 # Reflection formula: P1 = 2*Start - P2_prev
-                cx1 = current_pos[0] + (current_pos[0] - px)
-                cy1 = current_pos[1] + (current_pos[1] - py)
+                cx1 = current_pos.x + (current_pos.x - px)
+                cy1 = current_pos.y + (current_pos.y - py)
 
                 # Control point 2 is explicitly given in the S command
                 cx2, cy2 = abs_cmd.cx2, abs_cmd.cy2
@@ -362,8 +363,8 @@ class SVGPath:
                 # Convert Arc to multiple Cubic Beziers
                 # Note: arc_to_beziers is assumed to be an existing function imported.
                 beziers = arc_to_beziers(
-                    current_pos[0],
-                    current_pos[1],
+                    current_pos.x,
+                    current_pos.y,
                     abs_cmd.rx,
                     abs_cmd.ry,
                     abs_cmd.x_axis_rotation,

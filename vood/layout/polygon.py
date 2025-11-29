@@ -3,21 +3,21 @@
 import math
 from typing import List, Optional, Callable
 from dataclasses import replace
-from vood.component import State
+from vood.component.state.base import States
 from .enums import ElementAlignment
 
 
 def polygon(
-    states: List[State],
+    states: States,
     sides: int = 5,
     radius: float = 100,
     rotation: float = 0,
-    center_x: float = 0,
-    center_y: float = 0,
+    cx: float = 0,
+    cy: float = 0,
     alignment: ElementAlignment = ElementAlignment.PRESERVE,
     element_rotation_offset: float = 0,
     element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
-) -> List[State]:
+) -> States:
     """
     Arrange states evenly distributed around a regular polygon.
     Elements are placed at vertices and along edges based on distribution.
@@ -27,8 +27,8 @@ def polygon(
         sides: Number of sides (vertices) of the polygon
         radius: Distance from center to each vertex
         rotation: Rotation in degrees (0° = top)
-        center_x: X coordinate of polygon center
-        center_y: Y coordinate of polygon center
+        cx: X coordinate of polygon center
+        cy: Y coordinate of polygon center
         alignment: How to align each element relative to the polygon.
                   PRESERVE keeps original rotation,
                   LAYOUT aligns to edge angle (or perpendicular at vertices),
@@ -64,10 +64,10 @@ def polygon(
         angle2_rad = math.radians(angle2)
 
         # Calculate vertex positions
-        x1 = center_x + radius * math.sin(angle1_rad)
-        y1 = center_y - radius * math.cos(angle1_rad)
-        x2 = center_x + radius * math.sin(angle2_rad)
-        y2 = center_y - radius * math.cos(angle2_rad)
+        x1 = cx + radius * math.sin(angle1_rad)
+        y1 = cy - radius * math.cos(angle1_rad)
+        x2 = cx + radius * math.sin(angle2_rad)
+        y2 = cy - radius * math.cos(angle2_rad)
 
         # Interpolate position along edge
         x = x1 + t * (x2 - x1)
@@ -115,3 +115,83 @@ def polygon(
         result.append(new_state)
 
     return result
+
+
+def polygon_in_bbox(
+    states: States,
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+    sides: int = 6,
+    rotation: float = 0,
+    alignment: ElementAlignment = ElementAlignment.PRESERVE,
+    element_rotation_offset: float = 0,
+    element_rotation_offset_fn: Optional[Callable[[float], float]] = None,
+) -> States:
+    """
+    Arrange states around a regular polygon inscribed in a bounding box.
+
+    Alternative specification to polygon() for users who think in terms of bounding boxes.
+    The polygon will be inscribed in the specified rectangle, with its size limited by
+    the smaller dimension.
+
+    Args:
+        states: List of states to arrange
+        x: X coordinate of bounding box top-left corner
+        y: Y coordinate of bounding box top-left corner
+        width: Width of bounding box
+        height: Height of bounding box
+        sides: Number of polygon sides
+        rotation: Rotation offset in degrees
+        alignment: How to align each element
+        element_rotation_offset: Additional rotation offset
+        element_rotation_offset_fn: Function(edge_angle) -> rotation offset
+
+    Returns:
+        New list of states with polygon positions
+
+    Raises:
+        ValueError: If sides < 3
+        ValueError: If width or height is zero or negative
+
+    Examples:
+        # Hexagon in 400x400 box
+        >>> polygon_in_bbox(states, 0, 0, 400, 400, sides=6)
+
+        # Pentagon in rectangular box (limited by height)
+        >>> polygon_in_bbox(states, -100, -150, 200, 300, sides=5)
+
+        # Equivalent to polygon():
+        # polygon_in_bbox(states, 0, 0, 400, 400, sides=6)
+        # == polygon(states, cx=200, cy=200, radius=200, sides=6)
+    """
+    if not states:
+        return []
+
+    # Validate parameters
+    if sides < 3:
+        raise ValueError(f"Polygon must have at least 3 sides, got {sides}")
+    if width <= 0:
+        raise ValueError(f"Width must be positive, got {width}")
+    if height <= 0:
+        raise ValueError(f"Height must be positive, got {height}")
+
+    # Convert bounding box to center + radius
+    cx = x + width / 2
+    cy = y + height / 2
+    # Radius is limited by smaller dimension (inscribed polygon)
+    radius = min(width, height) / 2
+
+    # Call canonical polygon function
+    return polygon(
+        states,
+        sides=sides,
+        radius=radius,
+        rotation=rotation,
+        cx=cx,
+        cy=cy,
+        alignment=alignment,
+        element_rotation_offset=element_rotation_offset,
+        element_rotation_offset_fn=element_rotation_offset_fn,
+    )

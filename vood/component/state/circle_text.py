@@ -2,10 +2,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Union, List, Optional
 from .text import TextState
+from vood.component.registry import renderer
+from vood.component.renderer.circle_text import CircleTextRenderer
 
 from vood.transition import easing
 
 
+@renderer(CircleTextRenderer)
 @dataclass(frozen=True)
 class CircleTextState(TextState):
     """State class for text elements"""
@@ -37,8 +40,3 @@ class CircleTextState(TextState):
         "dominant_baseline": easing.step,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.circle_text import CircleTextRenderer
-
-        return CircleTextRenderer

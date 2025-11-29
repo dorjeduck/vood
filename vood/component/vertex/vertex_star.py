@@ -4,7 +4,7 @@ from __future__ import annotations
 import math
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Point2D
 
 class VertexStar(VertexLoop):
     """Star shape as a VertexLoop
@@ -45,11 +45,11 @@ class VertexStar(VertexLoop):
             radius = outer_radius if i % 2 == 0 else inner_radius
             x = cx + radius * math.sin(angle)
             y = cy - radius * math.cos(angle)
-            corners.append((x, y))
+            corners.append(Point2D(x, y))
 
         # Calculate edge lengths between corners
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
+        def distance(p1: Point2D, p2: Point2D) -> float:
+            return math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2)
 
         num_edges = len(corners)
         edge_lengths = [
@@ -70,9 +70,9 @@ class VertexStar(VertexLoop):
                     v2 = corners[(edge_idx + 1) % num_edges]
                     t = distance_along_edge / edge_lengths[edge_idx]
 
-                    x = v1[0] + t * (v2[0] - v1[0])
-                    y = v1[1] + t * (v2[1] - v1[1])
-                    vertices.append((x, y))
+                    x = v1.x + t * (v2.x - v1.x)
+                    y = v1.y + t * (v2.y - v1.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += edge_lengths[edge_idx]
 

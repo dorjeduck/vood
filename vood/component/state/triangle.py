@@ -6,13 +6,16 @@ from typing import Tuple, Optional, List
 
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.component.registry import renderer
+from vood.component.renderer.triangle import TriangleRenderer
 
 from vood.transition import easing
 from vood.core.color import Color
-
+from vood.core.point2d import Point2D
 import math
 
 
+@renderer(TriangleRenderer)
 @dataclass(frozen=True)
 class TriangleState(VertexState):
     """State class for triangle elements"""
@@ -25,14 +28,10 @@ class TriangleState(VertexState):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.triangle import TriangleRenderer
-
-        return TriangleRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate triangle vertices distributed along perimeter
@@ -50,15 +49,13 @@ class TriangleState(VertexState):
         for i in range(3):
             angle = math.radians(i * 120)  # 0°, 120°, 240°
             triangle_verts.append(
-                (self.size * math.sin(angle), -self.size * math.cos(angle))
+                Point2D(self.size * math.sin(angle), -self.size * math.cos(angle))
             )
 
         # Calculate perimeter lengths between vertices
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
-
+        
         edge_lengths = [
-            distance(triangle_verts[i], triangle_verts[(i + 1) % 3]) for i in range(3)
+            triangle_verts[i].distance_to(triangle_verts[(i + 1) % 3]) for i in range(3)
         ]
         total_perimeter = sum(edge_lengths)
 
@@ -82,9 +79,9 @@ class TriangleState(VertexState):
             v2 = triangle_verts[(current_edge + 1) % 3]
             t = distance_along_edge / edge_lengths[current_edge]
 
-            x = v1[0] + t * (v2[0] - v1[0])
-            y = v1[1] + t * (v2[1] - v1[1])
-            vertices.append((x, y))
+            x = v1.x + t * (v2.x - v1.x)
+            y = v1.y + t * (v2.y - v1.y)
+            vertices.append(Point2D(x, y))
 
         # Last vertex equals first vertex (complete the loop)
         vertices.append(vertices[0])

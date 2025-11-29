@@ -1,14 +1,17 @@
 """Triangle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import math
 
 import drawsvg as dw
 
 from .base import Renderer
-from ..state.triangle import TriangleState
+
+if TYPE_CHECKING:
+    from ..state.triangle import TriangleState
+
 
 
 class TriangleRenderer(Renderer):
@@ -17,7 +20,9 @@ class TriangleRenderer(Renderer):
     Creates an equilateral triangle pointing upward
     """
 
-    def _render_core(self, state: TriangleState, drawing: Optional[dw.Drawing] = None) -> dw.Lines:
+    def _render_core(
+        self, state: "TriangleState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Lines:
         """Render the triangle renderer (geometry only)
 
         Args:

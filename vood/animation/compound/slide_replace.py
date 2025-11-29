@@ -3,10 +3,11 @@
 # ============================================================================
 """Slide replace with two elements sliding past each other"""
 
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 from dataclasses import replace
 from vood.component import State
 from ..enums import SlideDirection
+from vood.velement.keystate import KeyState, KeyStates
 
 
 def slide_replace(
@@ -17,7 +18,7 @@ def slide_replace(
     direction: Union[SlideDirection, str] = SlideDirection.LEFT,
     distance: float = 100,
     extend_timeline: bool = False,
-) -> Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]:
+) -> Tuple[KeyStates, KeyStates]:
     """Slide two elements past each other simultaneously
 
     First element slides out in one direction while second element slides
@@ -75,24 +76,30 @@ def slide_replace(
 
     # Element 1: Slide out
     keyframes1 = [
-        (t_start, replace(state1, opacity=1.0)),
-        (t_end, replace(state1, **{prop: orig_pos_1 + out_offset}, opacity=0.0)),
+        KeyState(time=t_start, state=replace(state1, opacity=1.0)),
+        KeyState(
+            time=t_end,
+            state=replace(state1, **{prop: orig_pos_1 + out_offset}, opacity=0.0),
+        ),
     ]
 
     # Element 2: Slide in (from opposite direction)
     keyframes2 = [
-        (t_start, replace(state2, **{prop: orig_pos_2 + in_offset}, opacity=0.0)),
-        (t_end, replace(state2, **{prop: orig_pos_2}, opacity=1.0)),
+        KeyState(
+            time=t_start,
+            state=replace(state2, **{prop: orig_pos_2 + in_offset}, opacity=0.0),
+        ),
+        KeyState(time=t_end, state=replace(state2, **{prop: orig_pos_2}, opacity=1.0)),
     ]
 
     if extend_timeline:
         keyframes1 = [
-            (0.0, replace(state1, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, opacity=1.0)),
             *keyframes1,
         ]
         keyframes2 = [
             *keyframes2,
-            (1.0, replace(state2, opacity=1.0)),
+            KeyState(time=1.0, state=replace(state2, opacity=1.0)),
         ]
 
     return keyframes1, keyframes2

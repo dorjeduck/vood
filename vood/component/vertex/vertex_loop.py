@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from typing import List, Tuple, Optional
+from vood.core.point2d import Points2D,Point2D
 import math
 
 
@@ -14,7 +15,7 @@ class VertexLoop:
 
     def __init__(
         self,
-        vertices: List[Tuple[float, float]],
+        vertices: Points2D,
         closed: bool = True
     ):
         """Initialize a vertex loop
@@ -26,11 +27,15 @@ class VertexLoop:
         if not vertices:
             raise ValueError("VertexLoop requires at least one vertex")
 
-        self._vertices = list(vertices)  # Make a copy
+        # Ensure vertices are Point2D objects
+        self._vertices = [
+            v if isinstance(v, Point2D) else Point2D(v[0], v[1])
+            for v in vertices
+        ]
         self._closed = closed
 
     @property
-    def vertices(self) -> List[Tuple[float, float]]:
+    def vertices(self) -> Points2D:
         """Get vertices as list of tuples"""
         return self._vertices.copy()
 
@@ -43,25 +48,25 @@ class VertexLoop:
         """Number of vertices in the loop"""
         return len(self._vertices)
 
-    def __getitem__(self, index: int) -> Tuple[float, float]:
+    def __getitem__(self, index: int) -> Point2D:
         """Get vertex at index"""
         return self._vertices[index]
 
-    def centroid(self) -> Tuple[float, float]:
+    def centroid(self) -> Point2D:
         """Calculate the centroid (geometric center) of the vertices
 
         For closed loops, uses the signed area formula.
         For open loops, uses simple average.
         """
         if not self._vertices:
-            return (0.0, 0.0)
+            return Point2D(0.0, 0.0)
 
         if not self._closed:
             # Simple average for open loops
-            x_sum = sum(v[0] for v in self._vertices)
-            y_sum = sum(v[1] for v in self._vertices)
+            x_sum = sum(v.x for v in self._vertices)
+            y_sum = sum(v.y for v in self._vertices)
             n = len(self._vertices)
-            return (x_sum / n, y_sum / n)
+            return Point2D(x_sum / n, y_sum / n)
 
         # Signed area formula for closed loops
         area = 0.0
@@ -70,24 +75,24 @@ class VertexLoop:
 
         n = len(self._vertices)
         for i in range(n):
-            x1, y1 = self._vertices[i]
-            x2, y2 = self._vertices[(i + 1) % n]
-            cross = x1 * y2 - x2 * y1
+            v1 = self._vertices[i]
+            v2 = self._vertices[(i + 1) % n]
+            cross = v1.x * v2.y - v2.x * v1.y
             area += cross
-            cx += (x1 + x2) * cross
-            cy += (y1 + y2) * cross
+            cx += (v1.x + v2.x) * cross
+            cy += (v1.y + v2.y) * cross
 
         if abs(area) < 1e-10:
             # Degenerate case - fall back to simple average
-            x_sum = sum(v[0] for v in self._vertices)
-            y_sum = sum(v[1] for v in self._vertices)
-            return (x_sum / n, y_sum / n)
+            x_sum = sum(v.x for v in self._vertices)
+            y_sum = sum(v.y for v in self._vertices)
+            return Point2D(x_sum / n, y_sum / n)
 
         area *= 0.5
         cx /= (6.0 * area)
         cy /= (6.0 * area)
 
-        return (cx, cy)
+        return Point2D(cx, cy)
 
     def area(self) -> float:
         """Calculate the signed area of the loop
@@ -102,9 +107,9 @@ class VertexLoop:
         n = len(self._vertices)
 
         for i in range(n):
-            x1, y1 = self._vertices[i]
-            x2, y2 = self._vertices[(i + 1) % n]
-            area += x1 * y2 - x2 * y1
+            v1 = self._vertices[i]
+            v2 = self._vertices[(i + 1) % n]
+            area += v1.x * v2.y - v2.x * v1.y
 
         return area * 0.5
 
@@ -113,8 +118,8 @@ class VertexLoop:
         if not self._vertices:
             return (0.0, 0.0, 0.0, 0.0)
 
-        xs = [v[0] for v in self._vertices]
-        ys = [v[1] for v in self._vertices]
+        xs = [v.x for v in self._vertices]
+        ys = [v.y for v in self._vertices]
 
         return (min(xs), min(ys), max(xs), max(ys))
 
@@ -127,47 +132,56 @@ class VertexLoop:
         return VertexLoop(list(reversed(self._vertices)), self._closed)
 
     def translate(self, dx: float, dy: float) -> VertexLoop:
-        """Return a new VertexLoop translated by (dx, dy)"""
-        translated = [(x + dx, y + dy) for x, y in self._vertices]
-        return VertexLoop(translated, self._closed)
+        """Translate vertices in-place by (dx, dy)
+
+        Returns self for method chaining.
+        """
+        for v in self._vertices:
+            v.x += dx
+            v.y += dy
+        return self
 
     def scale(self, sx: float, sy: Optional[float] = None) -> VertexLoop:
-        """Return a new VertexLoop scaled by (sx, sy)
+        """Scale vertices in-place by (sx, sy)
 
         If sy is None, uses sx for both dimensions (uniform scaling).
+        Returns self for method chaining.
         """
         if sy is None:
             sy = sx
 
-        scaled = [(x * sx, y * sy) for x, y in self._vertices]
-        return VertexLoop(scaled, self._closed)
+        for v in self._vertices:
+            v.x *= sx
+            v.y *= sy
+        return self
 
-    def rotate(self, angle_degrees: float, center: Optional[Tuple[float, float]] = None) -> VertexLoop:
-        """Return a new VertexLoop rotated by angle_degrees around center
+    def rotate(self, angle_degrees: float, center: Optional[Point2D] = None) -> VertexLoop:
+        """Rotate vertices in-place by angle_degrees around center
 
         Args:
             angle_degrees: Rotation angle in degrees (positive = counter-clockwise)
             center: Center of rotation (default is origin)
+
+        Returns self for method chaining.
         """
         if center is None:
-            center = (0.0, 0.0)
+            center = Point2D(0.0, 0.0)
 
-        cx, cy = center
         angle_rad = math.radians(angle_degrees)
         cos_a = math.cos(angle_rad)
         sin_a = math.sin(angle_rad)
 
-        rotated = []
-        for x, y in self._vertices:
+        for v in self._vertices:
             # Translate to origin
-            x_rel = x - cx
-            y_rel = y - cy
+            x_rel = v.x - center.x
+            y_rel = v.y - center.y
 
             # Rotate
             x_new = x_rel * cos_a - y_rel * sin_a
             y_new = x_rel * sin_a + y_rel * cos_a
 
             # Translate back
-            rotated.append((x_new + cx, y_new + cy))
+            v.x = x_new + center.x
+            v.y = y_new + center.y
 
-        return VertexLoop(rotated, self._closed)
+        return self

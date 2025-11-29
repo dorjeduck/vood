@@ -11,7 +11,7 @@ These functions generate coordinated keystates for multiple elements that
 animate simultaneously. Each function returns a tuple of keystate lists,
 one for each element involved in the transition.
 
-All functions return: Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]
+All functions return: Tuple[KeyStates, KeyStates]
 
 Available animations:
 - crossfade: Two elements fade simultaneously (one out, one in)

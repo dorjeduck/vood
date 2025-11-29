@@ -1,7 +1,10 @@
 from dataclasses import dataclass
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.raw_svg import RawSvgRenderer
 
 
+@renderer(RawSvgRenderer)
 @dataclass(frozen=True)
 class RawSvgState(State):
     """
@@ -10,8 +13,3 @@ class RawSvgState(State):
 
     svg_data: str = ""
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.raw_svg import RawSvgRenderer
-
-        return RawSvgRenderer

@@ -1,24 +1,23 @@
-from typing import List, Tuple, Callable, Any
-from vood.component import State
-
+from typing import Callable, Any,TYPE_CHECKING
+from vood.component.state.base import States
+from vood.velement.keystate import KeyState, KeyStates
 
 # Type for any atomic transition function
-AtomicTransitionFunc = Callable[..., List[Tuple[float, State]]]
-
+AtomicTransitionFunc = Callable[..., KeyStates]
 
 def sequential_transition(
-    states: List[State],
+    states: States,
     transition_func: AtomicTransitionFunc,
     transition_factor: float,
     **transition_kwargs: Any,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """
     Applies an atomic transition function sequentially across a list of states,
     centering transitions on the midpoints between states across the [0.0, 1.0] timeline.
 
     Args:
         states: List of states to transition between (must have at least 2).
-        transition_func: The atomic transition function (must return List[Tuple[float, State]]).
+        transition_func: The atomic transition function (must return List[KeyState]).
         transition_factor: A factor (0.0 to 1.0) applied to the segment_unit to
                           determine the transition duration.
         **transition_kwargs: Additional keyword arguments to pass to the transition function
@@ -69,10 +68,10 @@ def sequential_transition(
     segment_unit = 1.0 / num_transitions
     transition_duration = segment_unit * transition_factor
 
-    all_keyframes: List[Tuple[float, State]] = []
+    all_keystates: KeyStates = []
 
     # 1. Add the initial keystate at 0.0
-    all_keyframes.append((0.0, states[0]))
+    all_keystates.append(KeyState(time=0.0, state=states[0]))
 
     # 2. Iterate through all N-1 transitions
     for i in range(num_transitions):
@@ -83,7 +82,7 @@ def sequential_transition(
         at_time = (2 * i + 1) / time_denominator
 
         # 3. Call the atomic transition function with additional kwargs
-        transition_keyframes = transition_func(
+        transition_keystates = transition_func(
             state1=state1,
             state2=state2,
             at_time=at_time,
@@ -91,18 +90,17 @@ def sequential_transition(
             **transition_kwargs,  # Pass through all extra parameters
         )
 
-        all_keyframes.extend(transition_keyframes)
+        all_keystates.extend(transition_keystates)
 
     # 4. Add the final keystate at 1.0
-    all_keyframes.append((1.0, states[-1]))
+    all_keystates.append(KeyState(time=1.0, state=states[-1]))
 
     # 5. Clean up, sort, and clamp all keystate times to [0.0, 1.0]
-    unique_keyframes = {}
-    for t_raw, state in all_keyframes:
-        # Clamp the time to ensure it is in [0.0, 1.0]
-        t = max(0.0, min(1.0, t_raw))
-        unique_keyframes[t] = state
+    
+    unique_keystates = [
+        KeyState(time=max(0.0, min(1.0, ks.time)), state=ks.state) for ks in all_keystates
+    ]
 
-    final_keyframes = sorted(unique_keyframes.items(), key=lambda item: item[0])
-
-    return final_keyframes
+    final_keystates = sorted(unique_keystates, key=lambda item: item.time)
+   
+    return final_keystates

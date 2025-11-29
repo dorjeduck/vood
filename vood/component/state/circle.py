@@ -4,10 +4,12 @@ from dataclasses import dataclass
 from .base import State
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexCircle
+from vood.component.registry import renderer
+from vood.component.renderer.circle import CircleRenderer
 from vood.transition import easing
-from vood.core.color import Color
 
 
+@renderer(CircleRenderer)
 @dataclass(frozen=True)
 class CircleState(VertexState):
     """State class for circle elements"""
@@ -20,19 +22,7 @@ class CircleState(VertexState):
         "radius": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.circle import CircleRenderer
 
-        return CircleRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate circle contours

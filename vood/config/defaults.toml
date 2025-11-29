@@ -51,6 +51,26 @@ closed = true
 #   "simple"     - All old holes disappear, all new holes appear (simplest)
 hole_mapper = "clustering"
 
+# Vertex alignment distance norms
+# Controls how vertices are matched during morphing for optimal alignment
+# Options:
+#   "l1"   - Sum of distances (default, economical, minimizes total travel)
+#   "l2"   - Root mean square distance (balanced, statistically optimal, penalizes outliers)
+#   "linf" - Maximum distance (minimax, ensures fairness, no vertex travels too far)
+#
+#  | Norm         | Formula         | Best For                            |
+#  |--------------|-----------------|-------------------------------------|
+#  | L1 (default) | Σ distances     | Economical, minimizes total travel  |
+#  | L2           | √(Σ distances²) | Balanced, statistically optimal     |
+#  | L∞ (linf)    | max(distances)  | Fairness, no vertex travels too far |
+
+# Global default for all alignment (can be overridden per-aligner below)
+vertex_alignment_norm = "l2"
+
+# Aligner-specific norm overrides (optional)
+# angular_alignment_norm = "l1"    # For closed ↔ closed shape morphing
+# euclidean_alignment_norm = "l1"  # For open ↔ closed shape morphing
+
 [morphing.clustering]
 # Clustering-specific settings (only used when hole_mapper = "clustering")
 balance_clusters = true      # Balance cluster sizes to avoid extreme imbalances (e.g., 4-1 splits)
@@ -75,3 +95,45 @@ log_level = "INFO"      # Server log level: "DEBUG", "INFO", "WARNING", "ERROR"
 [logging]
 # Default logging level: "DEBUG", "INFO", "WARNING", "ERROR"
 level = "INFO"
+
+[preview]
+# Preview animation UI settings (used by Jupyter notebooks and dev server)
+
+# Color scheme preset
+# Options:
+#   "light"      - Clean white background with blue accents (default)
+#   "dark"       - Dark gray background with blue accents
+#   "slate"      - Subtle slate gray, professional
+#   "neutral"    - Neutral grays, minimal
+#   "ocean"      - Light blue background with ocean accents
+#   "forest"     - Light green background with forest accents
+#   "purple"     - Light purple background with purple accents
+#   "rose"       - Light rose background with rose accents
+#   "amber"      - Light amber background with warm accents
+#   "monokai"    - Dark monokai editor theme
+color_scheme = "light"
+
+# Individual color overrides (optional - overrides the color_scheme preset)
+# Uncomment and customize any of these to fine-tune the UI colors:
+# background = "#ffffff"       # Container background
+# control_bg = "#f5f5f5"       # Button/control backgrounds
+# control_hover = "#e0e0e0"    # Button hover state
+# accent = "#2563eb"           # Play button, slider thumb
+# accent_hover = "#1d4ed8"     # Accent hover state
+# text = "#111827"             # Main text color
+# text_muted = "#6b7280"       # Secondary text color
+
+[devserver]
+# Development server settings
+
+# Default server port
+port = 8000
+
+# Default number of preview frames
+default_frames = 20
+
+# Default playback framerate (frames per second)
+default_fps = 10
+
+# Automatically open browser when server starts
+auto_open_browser = true

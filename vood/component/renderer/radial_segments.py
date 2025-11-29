@@ -1,16 +1,22 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
 """RadialSegmentsRenderer: draws radial line segments from a center point."""
 
 import math
 
 import drawsvg as dw
 from .base import Renderer
-from ..state.radial_segments import RadialSegmentsState
+
+if TYPE_CHECKING:
+    from ..state.radial_segments import RadialSegmentsState
+
 
 
 class RadialSegmentsRenderer(Renderer):
 
-    def _render_core(self, state: RadialSegmentsState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "RadialSegmentsState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """
         Render radial line segments centered at origin (0,0).
         Each line is made of segments defined by (from_px, to_px) tuples.

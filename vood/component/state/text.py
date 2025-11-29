@@ -5,10 +5,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.text import TextRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(TextRenderer)
 @dataclass(frozen=True)
 class TextState(State):
     """State class for text elements"""
@@ -48,10 +51,6 @@ class TextState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("fill_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.text import TextRenderer
-
-        return TextRenderer

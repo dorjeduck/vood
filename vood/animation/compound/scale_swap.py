@@ -3,10 +3,10 @@
 # ============================================================================
 """Scale swap with two elements scaling in opposite directions"""
 
-from typing import List, Tuple
+from typing import Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def scale_swap(
     state1: State,
@@ -15,7 +15,7 @@ def scale_swap(
     duration: float = 0.3,
     min_scale: float = 0.0,
     extend_timeline: bool = False,
-) -> Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]:
+) -> Tuple[KeyStates, KeyStates]:
     """Scale down first element while scaling up second element
 
     First element scales down to minimum while second element scales up
@@ -55,24 +55,24 @@ def scale_swap(
 
     # Element 1: Scale from 1.0 to min_scale
     keyframes1 = [
-        (t_start, replace(state1, scale=1.0, opacity=1.0)),
-        (t_end, replace(state1, scale=min_scale, opacity=0.0)),
+        KeyState(time=t_start, state=replace(state1, scale=1.0, opacity=1.0)),
+        KeyState(time=t_end, state=replace(state1, scale=min_scale, opacity=0.0)),
     ]
 
     # Element 2: Scale from min_scale to 1.0
     keyframes2 = [
-        (t_start, replace(state2, scale=min_scale, opacity=0.0)),
-        (t_end, replace(state2, scale=1.0, opacity=1.0)),
+        KeyState(time=t_start, state=replace(state2, scale=min_scale, opacity=0.0)),
+        KeyState(time=t_end, state=replace(state2, scale=1.0, opacity=1.0)),
     ]
 
     if extend_timeline:
         keyframes1 = [
-            (0.0, replace(state1, scale=1.0, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, scale=1.0, opacity=1.0)),
             *keyframes1,
         ]
         keyframes2 = [
             *keyframes2,
-            (1.0, replace(state2, scale=1.0, opacity=1.0)),
+            KeyState(time=1.0, state=replace(state2, scale=1.0, opacity=1.0)),
         ]
 
     return keyframes1, keyframes2

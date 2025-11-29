@@ -3,10 +3,10 @@
 # ============================================================================
 """Crossfade between two elements with simultaneous fade"""
 
-from typing import List, Tuple
+from typing import Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def crossfade(
     state1: State,
@@ -14,7 +14,7 @@ def crossfade(
     at_time: float = 0.5,
     duration: float = 0.3,
     extend_timeline: bool = False,
-) -> Tuple[List[Tuple[float, State]], List[Tuple[float, State]]]:
+) -> Tuple[KeyStates, KeyStates]:
     """Crossfade between two elements with simultaneous opacity transition
 
     First element fades out while second element fades in at the same time.
@@ -51,24 +51,24 @@ def crossfade(
 
     # Element 1: Fade from 1.0 to 0.0
     keyframes1 = [
-        (t_start, replace(state1, opacity=1.0)),
-        (t_end, replace(state1, opacity=0.0)),
+        KeyState(time=t_start, state=replace(state1, opacity=1.0)),
+        KeyState(time=t_end, state=replace(state1, opacity=0.0)),
     ]
 
     # Element 2: Fade from 0.0 to 1.0
     keyframes2 = [
-        (t_start, replace(state2, opacity=0.0)),
-        (t_end, replace(state2, opacity=1.0)),
+        KeyState(time=t_start, state=replace(state2, opacity=0.0)),
+        KeyState(time=t_end, state=replace(state2, opacity=1.0)),
     ]
 
     if extend_timeline:
         keyframes1 = [
-            (0.0, replace(state1, opacity=1.0)),
+            KeyState(time=0.0, state=replace(state1, opacity=1.0)),
             *keyframes1,
         ]
         keyframes2 = [
             *keyframes2,
-            (1.0, replace(state2, opacity=1.0)),
+            KeyState(time=1.0, state=replace(state2, opacity=1.0)),
         ]
 
     return keyframes1, keyframes2

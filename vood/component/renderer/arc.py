@@ -1,14 +1,14 @@
 """Circle renderer implementation using new architecture"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import Optional,TYPE_CHECKING
 
 import drawsvg as dw
 
 from .base import Renderer
 
-from ..state.arc import ArcState
-
+if TYPE_CHECKING:
+    from vood.component.state.arc import ArcState
 
 class ArcRenderer(Renderer):
 
@@ -19,7 +19,9 @@ class ArcRenderer(Renderer):
         """
         pass
 
-    def _render_core(self, state: ArcState, drawing: Optional[dw.Drawing] = None) -> dw.Path:
+    def _render_core(
+        self, state: ArcState, drawing: Optional[dw.Drawing] = None
+    ) -> dw.Path:
         """Render arc using SVG path primitive"""
         import math
 

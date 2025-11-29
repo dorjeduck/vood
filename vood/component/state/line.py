@@ -6,12 +6,15 @@ from typing import Optional, List, Tuple
 
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.component.registry import renderer
+from vood.component.renderer.line import LineRenderer
 
 from .base import State
 
 from vood.transition import easing
 
 
+@renderer(LineRenderer)
 @dataclass(frozen=True)
 class LineState(VertexState):
     """State class for line elements"""
@@ -32,11 +35,6 @@ class LineState(VertexState):
         super().__post_init__()
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.line import LineRenderer
-
-        return LineRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate line contours from -length/2 to +length/2 along x-axis"""

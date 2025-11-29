@@ -6,10 +6,13 @@ from dataclasses import dataclass
 from .base import State
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexSquare, rotate_vertices
+from vood.component.registry import renderer
+from vood.component.renderer.square_ring import SquareRingRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
 
+@renderer(SquareRingRenderer)
 @dataclass(frozen=True)
 class SquareRingState(VertexState):
     """State class for square ring elements (square with square hole)
@@ -30,12 +33,6 @@ class SquareRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.square_ring import SquareRingRenderer
-
-        return SquareRingRenderer
 
 
     def _generate_contours(self) -> VertexContours:

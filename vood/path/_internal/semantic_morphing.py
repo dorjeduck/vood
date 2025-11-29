@@ -287,7 +287,7 @@ def semantic_morph(path1: SVGPath, path2: SVGPath, t: float) -> SVGPath:
     # Step 2: Rotate paths for better correspondence
     aligned_commands1 = rotate_path_commands(path1.commands, offset1)
     aligned_commands2 = rotate_path_commands(path2.commands, offset2)
-
+   
     # Step 3: Create aligned paths
     aligned_path1 = SVGPath(aligned_commands1)
     aligned_path2 = SVGPath(aligned_commands2)

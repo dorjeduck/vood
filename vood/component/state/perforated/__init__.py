@@ -5,6 +5,7 @@ from .base import (
     Shape,
     Circle,
     Ellipse,
+    Square,
     Rectangle,
     Polygon,
     Star,

@@ -1,10 +1,11 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, Field
 from typing import Any, Optional
 
 from vood.transition import easing
 from vood.core.color import Color
+from vood.component.registry import get_renderer_class_for_state
 
 
 @dataclass(frozen=True)
@@ -25,7 +26,9 @@ class State(ABC):
     rotation: Optional[float] = None
 
     # Fields that should not be interpolated (structural/configuration properties)
-    NON_INTERPOLATABLE_FIELDS: frozenset[str] = frozenset()
+    NON_INTERPOLATABLE_FIELDS: frozenset[str] = frozenset(
+        ["NON_INTERPOLATABLE_FIELDS", "DEFAULT_EASING"]
+    )
 
     DEFAULT_EASING = {
         "x": easing.in_out,
@@ -40,30 +43,46 @@ class State(ABC):
 
     def __post_init__(self):
         """Apply configuration defaults for common properties if not explicitly set"""
-        from vood.config import get_config
+        from vood.config import get_config, ConfigKey
 
         config = get_config()
 
         # Apply config defaults for common properties if they are None
         if self.x is None:
-            self._set_field("x", config.get("state.x", 0.0))
+            self._set_field("x", config.get(ConfigKey.STATE_X, 0.0))
         if self.y is None:
-            self._set_field("y", config.get("state.y", 0.0))
+            self._set_field("y", config.get(ConfigKey.STATE_Y, 0.0))
         if self.scale is None:
-            self._set_field("scale", config.get("state.scale", 1.0))
+            self._set_field("scale", config.get(ConfigKey.STATE_SCALE, 1.0))
         if self.opacity is None:
-            self._set_field("opacity", config.get("state.opacity", 1.0))
+            self._set_field("opacity", config.get(ConfigKey.STATE_OPACITY, 1.0))
         if self.rotation is None:
-            self._set_field("rotation", config.get("state.rotation", 0.0))
+            self._set_field("rotation", config.get(ConfigKey.STATE_ROTATION, 0.0))
 
-    @staticmethod
-    @abstractmethod
-    def get_renderer_class():
-        pass
+    def get_renderer_class(self):
+        """Get the renderer class for this state.
 
-    @staticmethod
-    def get_vertex_renderer_class():
-        return State.get_renderer_class()
+        Returns the renderer registered via the @renderer decorator.
+        Subclasses can override this method to provide custom renderers.
+
+        Returns:
+            The renderer class for this state, or None if not registered
+
+        Note:
+            This method should return None to use the registry,
+            or return a specific renderer class to override.
+        """
+        # Base implementation returns None to signal "use the registry"
+        # Subclasses can override to return a specific renderer class
+        return None
+
+    def get_vertex_renderer_class(self):
+        """Get the vertex renderer class for morphing transitions.
+
+        By default, returns the same as get_renderer_class().
+        VertexState subclass overrides this to return VertexRenderer.
+        """
+        return self.get_renderer_class()
 
     def need_morph(self, state):
         return type(state) is not type(self)
@@ -96,3 +115,6 @@ class State(ABC):
     def _set_field(self, name: str, value: Any) -> None:
         """Helper to set fields in frozen dataclass during __post_init__"""
         object.__setattr__(self, name, value)
+
+
+States = list[State]

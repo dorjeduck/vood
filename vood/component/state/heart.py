@@ -1,13 +1,16 @@
 from __future__ import annotations
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
 
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.core.point2d import Point2D
+from vood.component.registry import renderer
+from vood.component.renderer.heart import HeartRenderer
 
 
+@renderer(HeartRenderer)
 @dataclass(frozen=True)
 class HeartState(VertexState):
     """Heart shape using parametric equations"""
@@ -38,7 +41,7 @@ class HeartState(VertexState):
 
             # Scale to desired size
             scale = self.size / 20
-            vertices.append((x * scale, y * scale))
+            vertices.append(Point2D(x * scale, y * scale))
 
         vertices.append(vertices[0])
         return VertexContours.from_single_loop(vertices, closed=True)

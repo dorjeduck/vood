@@ -1,13 +1,17 @@
 from __future__ import annotations
 import math
 from dataclasses import dataclass
-from typing import List, Tuple
 
+
+from vood.component.registry import renderer
+from vood.component.renderer.arc import ArcRenderer
 from vood.transition import easing
 from vood.component.state.base_vertex import VertexState
 from vood.component.vertex import VertexContours
+from vood.core.point2d import Point2D
 
 
+@renderer(ArcRenderer)
 @dataclass(frozen=True)
 class ArcState(VertexState):
     """Circular arc - OPEN shape"""
@@ -37,13 +41,7 @@ class ArcState(VertexState):
             angle = start_rad + t * angle_range
 
             vertices.append(
-                (self.radius * math.sin(angle), -self.radius * math.cos(angle))
+                Point2D(self.radius * math.sin(angle), -self.radius * math.cos(angle))
             )
 
         return VertexContours.from_single_loop(vertices, closed=self.closed)
-
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.arc import ArcRenderer
-
-        return ArcRenderer

@@ -19,9 +19,28 @@ playwright-server = [
     "requests>=2.31.0",
 ]
 
+# Development server dependencies
+devserver = [
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "watchdog>=3.0.0",
+    "websockets>=12.0",
+    "jinja2>=3.1.0",
+]
+
+# Testing dependencies
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-xdist>=3.3.0",
+]
+
 # All optional dependencies
 all = [
     "vood[playwright-server]",
+    "vood[devserver]",
+    "vood[dev]",
 ]
 
 [project.scripts]
@@ -33,3 +52,42 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["vood"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=vood",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
+markers = [
+    "unit: Unit tests for individual components",
+    "integration: Integration tests for complete workflows",
+    "benchmark: Performance benchmarks",
+    "slow: Tests that take longer to run",
+]
+
+[tool.coverage.run]
+source = ["vood"]
+omit = [
+    "*/tests/*",
+    "*/playground/*",
+    "*/cli/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

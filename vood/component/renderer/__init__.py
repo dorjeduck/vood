@@ -11,6 +11,8 @@ from .circle import CircleRenderer
 from .circle_text import CircleTextRenderer
 from .cross import CrossRenderer
 from .ellipse import EllipseRenderer
+from .heart import HeartRenderer
+from .infinity import InfinityRenderer
 from .path import PathRenderer
 from .path_and_text_variants import PathAndTextVariantsRenderer
 from .perforated_primitive import PerforatedPrimitiveRenderer
@@ -20,10 +22,12 @@ from .poly_ring import PolyRingRenderer
 from .ring import RingRenderer
 from .rectangle import RectangleRenderer
 from .raw_svg import RawSvgRenderer
+from .spiral import SpiralRenderer
 from .square import SquareRenderer
 from .square_ring import SquareRingRenderer
 from .text import TextRenderer
 from .triangle import TriangleRenderer
+from .wave import WaveRenderer
 
 __all__ = [
     "Renderer",
@@ -35,6 +39,8 @@ __all__ = [
     "CircleTextRenderer",
     "CrossRenderer",
     "EllipseRenderer",
+    "HeartRenderer",
+    "InfinityRenderer",
     "PathAndTextVariantsRenderer",
     "PathRenderer",
     "PerforatedPrimitiveRenderer",
@@ -44,8 +50,10 @@ __all__ = [
     "RawSvgRenderer",
     "RingRenderer",
     "RectangleRenderer",
+    "SpiralRenderer",
     "SquareRenderer",
     "SquareRingRenderer",
     "TextRenderer",
     "TriangleRenderer",
+    "WaveRenderer",
 ]

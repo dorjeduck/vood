@@ -1,12 +1,16 @@
 """Astroid renderer - SVG primitive-based for static/keystate rendering"""
 
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 import drawsvg as dw
 import math
 
 from .base import Renderer
-from ..state.astroid import AstroidState
+
+if TYPE_CHECKING:
+    from ..state.astroid import AstroidState
+
+from vood.core.point2d import Point2D
 
 
 class AstroidRenderer(Renderer):
@@ -21,7 +25,9 @@ class AstroidRenderer(Renderer):
     smooth transitions between different shapes.
     """
 
-    def _render_core(self, state: AstroidState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: "AstroidState", drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render astroid using SVG path primitives with quadratic Bezier curves"""
 
         group = dw.Group()
@@ -30,23 +36,37 @@ class AstroidRenderer(Renderer):
         path = dw.Path(
             fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
             fill_opacity=state.fill_opacity,
-            stroke=state.stroke_color.to_rgb_string() if state.stroke_color and state.stroke_width > 0 else "none",
-            stroke_width=state.stroke_width if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_opacity=state.stroke_opacity if state.stroke_color and state.stroke_width > 0 else 0,
-            stroke_linejoin='round',
-            stroke_linecap='round'
+            stroke=(
+                state.stroke_color.to_rgb_string()
+                if state.stroke_color and state.stroke_width > 0
+                else "none"
+            ),
+            stroke_width=(
+                state.stroke_width
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_opacity=(
+                state.stroke_opacity
+                if state.stroke_color and state.stroke_width > 0
+                else 0
+            ),
+            stroke_linejoin="round",
+            stroke_linecap="round",
         )
 
         # Calculate cusp positions (the pointed tips)
         cusps = []
         for i in range(state.num_cusps):
-            angle = math.radians(i * (360 / state.num_cusps) - 90)  # -90 to start at top
+            angle = math.radians(
+                i * (360 / state.num_cusps) - 90
+            )  # -90 to start at top
             x = state.radius * math.cos(angle)
             y = state.radius * math.sin(angle)
-            cusps.append((x, y))
+            cusps.append(Point2D(x, y))
 
         # Start at first cusp
-        path.M(*cusps[0])
+        path.M(cusps[0].x, cusps[0].y)
 
         # Draw curves connecting cusps
         for i in range(state.num_cusps):
@@ -55,15 +75,15 @@ class AstroidRenderer(Renderer):
 
             # Calculate control point for inward-bending curve
             # Midpoint between cusps
-            mid_x = (start_cusp[0] + end_cusp[0]) / 2
-            mid_y = (start_cusp[1] + end_cusp[1]) / 2
+            mid_x = (start_cusp.x + end_cusp.x) / 2
+            mid_y = (start_cusp.y + end_cusp.y) / 2
 
             # Pull control point toward center based on curvature
             control_x = mid_x * (1 - state.curvature)
             control_y = mid_y * (1 - state.curvature)
 
             # Draw quadratic Bezier curve to next cusp
-            path.Q(control_x, control_y, *end_cusp)
+            path.Q(control_x, control_y, end_cusp.x, end_cusp.y)
 
         path.Z()
         group.append(path)

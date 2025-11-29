@@ -5,6 +5,8 @@ import math
 
 from .vertex_loop import VertexLoop
 
+from vood.core.point2d import Point2D
+
 
 class VertexTriangle(VertexLoop):
     """Equilateral triangle as a VertexLoop
@@ -39,13 +41,10 @@ class VertexTriangle(VertexLoop):
             angle = math.radians(i * 120 - 90)  # -90 to point first vertex upward
             x = cx + size * math.cos(angle)
             y = cy + size * math.sin(angle)
-            corners.append((x, y))
+            corners.append(Point2D(x, y))
 
         # Calculate side lengths (all equal for equilateral triangle)
-        def distance(p1, p2):
-            return math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2)
-
-        side_length = distance(corners[0], corners[1])
+        side_length = corners[0].distance_to(corners[1])
         perimeter = 3 * side_length
         side_lengths = [side_length, side_length, side_length]
 
@@ -66,9 +65,9 @@ class VertexTriangle(VertexLoop):
                     end_corner = corners[(side_idx + 1) % 3]
                     t = distance_along_side / side_lengths[side_idx]
 
-                    x = start_corner[0] + t * (end_corner[0] - start_corner[0])
-                    y = start_corner[1] + t * (end_corner[1] - start_corner[1])
-                    vertices.append((x, y))
+                    x = start_corner.x + t * (end_corner.x - start_corner.x)
+                    y = start_corner.y + t * (end_corner.y - start_corner.y)
+                    vertices.append(Point2D(x, y))
                     break
                 cumulative += side_lengths[side_idx]
 

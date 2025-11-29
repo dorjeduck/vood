@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Optional, Callable, Dict, Any, Tuple
+from typing import Iterable, List, Optional, Callable, Dict, Any, Tuple, TYPE_CHECKING
 from dataclasses import replace
 from enum import StrEnum
 
 import drawsvg as dw
-from vood.component.state.base_vertex import VertexState
-from vood.transition.interpolation.align_vertices import (
+
+
+from vood.transition.align_vertices import (
     get_aligned_vertices,
 )
-from vood.component import State
-from vood.transition import interpolation
+
+from vood.transition import (
+    lerp, step, angle, inbetween, circular_midpoint
+)
 
 # Import the extracted modules
 from vood.velement.keystate_parser import (
@@ -20,11 +23,15 @@ from vood.velement.keystate_parser import (
     parse_property_keystates,
     FlexibleKeystateInput,
     PropertyKeyframeTuple,
-    PropertyTimelineConfig,
+    PropertyKeyStatesConfig,
 )
-from vood.velement.keystate import KeyState
+from vood.velement.keystate import KeyState, KeyStates
 from vood.transition.easing_resolver import EasingResolver
 from vood.transition.interpolation_engine import InterpolationEngine
+
+
+from vood.component import VertexState
+from vood.component import State
 
 
 class BaseVElement(ABC):
@@ -77,7 +84,7 @@ class BaseVElement(ABC):
         # Store property keystates (will be parsed on first use)
         self.property_keystates_raw = property_keystates or {}
         self.property_keystates: Dict[str, List[PropertyKeyframeTuple]] = {}
-        self.keystates: List[KeyState] = []
+        self.keystates: KeyStates = []
 
         # Parse and set keystates
         if state is not None:
@@ -120,7 +127,9 @@ class BaseVElement(ABC):
         pass
 
     @abstractmethod
-    def render_at_frame_time(self, t: float) -> Optional[dw.DrawingElement]:
+    def render_at_frame_time(
+        self, t: float, drawing: Optional[dw.Drawing] = None
+    ) -> Optional[dw.DrawingElement]:
         """Render the element at a specific animation time"""
         if not self.keystates:
             raise ValueError("No state, states, or keystates set for rendering.")
@@ -129,6 +138,133 @@ class BaseVElement(ABC):
     def is_animatable(self) -> bool:
         """Check if this element can be animated"""
         return len(self.keystates) > 1 or bool(self.property_keystates)
+
+    def _ensure_segment_preprocessed(self, i: int) -> None:
+        """
+        Ensure segment i→(i+1) has static alignment preprocessing applied.
+
+        Only runs for non-rotating morphs (rotation doesn't change).
+        Stores aligned contours in keystates for reuse across all frames.
+
+        Args:
+            i: Segment index (processes keystates[i] and keystates[i+1])
+        """
+        ks1 = self.keystates[i]
+        ks2 = self.keystates[i + 1]
+
+        state1, state2 = ks1.state, ks2.state
+        t1, t2 = ks1.time, ks2.time
+
+        # Check if preprocessing needed
+        if not (
+            isinstance(state1, VertexState)
+            and isinstance(state2, VertexState)
+            and state2._aligned_contours == None
+        ):
+            return  # Already preprocessed or not a vertex morph
+
+        # Extract morphing config (prefer ks2's config)
+        from vood.velement.keystate import Morphing
+
+        morphing_config = ks2.morphing or ks1.morphing
+
+        if isinstance(morphing_config, Morphing):
+            morphing_dict = morphing_config.to_dict()
+        elif isinstance(morphing_config, dict):
+            morphing_dict = morphing_config
+        else:
+            morphing_dict = None
+
+        # Only preprocess if rotation doesn't change
+        # (rotating morphs use dynamic alignment per-frame)
+        if state1.rotation != state2.rotation:
+            return  # Skip static preprocessing for rotating morphs
+
+        # Perform static alignment
+        hole_mapper = morphing_dict.get("hole_mapper") if morphing_dict else None
+        vertex_aligner = morphing_dict.get("vertex_aligner") if morphing_dict else None
+
+        contours1_aligned, contours2_aligned = get_aligned_vertices(
+            state1,
+            state2,
+            vertex_aligner=vertex_aligner,
+            hole_mapper=hole_mapper,
+        )
+
+        # Adjust fill colors for open↔closed transitions
+        fill_color1 = (
+            state2.fill_color
+            if not state1.closed and state2.closed
+            else state1.fill_color
+        )
+        fill_color2 = (
+            state1.fill_color
+            if not state2.closed and state1.closed
+            else state2.fill_color
+        )
+
+        fill_opacity1 = state1.fill_opacity if state1.closed else 0
+        fill_opacity2 = state2.fill_opacity if state2.closed else 0
+
+        # Create new states with aligned contours
+        state1 = replace(
+            state1,
+            _aligned_contours=contours1_aligned,
+            fill_color=fill_color1,
+            fill_opacity=fill_opacity1,
+        )
+        state2 = replace(
+            state2,
+            _aligned_contours=contours2_aligned,
+            fill_color=fill_color2,
+            fill_opacity=fill_opacity2,
+        )
+
+        # Update keystates with aligned states (cached for all frames)
+        self.keystates[i] = KeyState(
+            state=state1, time=t1, easing=ks1.easing, morphing=ks1.morphing
+        )
+        self.keystates[i + 1] = KeyState(
+            state=state2, time=t2, easing=ks2.easing, morphing=ks2.morphing
+        )
+
+    def _get_dynamically_aligned_states(
+        self, state1: State, state2: State, segment_t: float
+    ) -> Tuple[State, State]:
+        """
+        Get states with dynamic alignment based on current interpolated rotation.
+
+        Only applies to rotating morphs (rotation changes during morph).
+        Computes alignment fresh for each frame based on current rotation.
+
+        Args:
+            state1: Start state
+            state2: End state
+            segment_t: Position in segment (0.0 to 1.0)
+
+        Returns:
+            (state1, state2) with aligned contours if rotating, otherwise unchanged
+        """
+        # Only align if both are VertexStates and rotation changes
+        if not (isinstance(state1, VertexState) and isinstance(state2, VertexState)):
+            return state1, state2
+
+        if state1.rotation == state2.rotation:
+            return state1, state2  # Use static preprocessing instead
+
+        # Compute current rotation for optimal alignment
+        rotation_target = state1.rotation + (state2.rotation - state1.rotation) * segment_t
+
+        # Get aligned contours for this frame's rotation
+        contours1_aligned, contours2_aligned = get_aligned_vertices(
+            state1, state2, rotation_target=rotation_target
+        )
+
+        # Return states with aligned contours (temporary for this frame only)
+        return (
+            replace(state1, _aligned_contours=contours1_aligned),
+            replace(state2, _aligned_contours=contours2_aligned),
+        )
 
     def _get_state_at_time(self, t: float) -> Tuple[Optional[State], bool]:
         """
@@ -173,76 +309,10 @@ class BaseVElement(ABC):
             t1, state1 = ks1.time, ks1.state
             t2, state2 = ks2.time, ks2.state
 
-            # align vertex contours when new segment begins
-            if (
-                isinstance(state1, VertexState)
-                and isinstance(state2, VertexState)
-                and state2._aligned_contours == None
-            ):
-                # Extract morphing overrides from segment config (prefer ks2's config)
-                from vood.velement.keystate import Morphing
-
-                morphing_config = ks2.morphing or ks1.morphing
-
-                # Convert Morphing instance to dict if needed
-                if isinstance(morphing_config, Morphing):
-                    morphing_dict = morphing_config.to_dict()
-                elif isinstance(morphing_config, dict):
-                    morphing_dict = morphing_config
-                else:
-                    morphing_dict = None
-
-                hole_mapper = morphing_dict.get("hole_mapper") if morphing_dict else None
-                vertex_aligner = morphing_dict.get("vertex_aligner") if morphing_dict else None
-
-                contours1_aligned, contours2_aligned = get_aligned_vertices(
-                    state1, state2,
-                    vertex_aligner=vertex_aligner,
-                    hole_mapper=hole_mapper
-                )
-
-                # Create new states with aligned contours
-
-                fill_color1 = (
-                    state2.fill_color
-                    if not state1.closed and state2.closed
-                    else state1.fill_color
-                )
-                fill_color2 = (
-                    state1.fill_color
-                    if not state2.closed and state1.closed
-                    else state2.fill_color
-                )
-
-                fill_opacity1 = state1.fill_opacity if state1.closed else 0
-                fill_opacity2 = state2.fill_opacity if state2.closed else 0
-
-                state1 = replace(
-                    state1,
-                    _aligned_contours=contours1_aligned,
-                    fill_color=fill_color1,
-                    fill_opacity=fill_opacity1,
-                )
-                state2 = replace(
-                    state2,
-                    _aligned_contours=contours2_aligned,
-                    fill_color=fill_color2,
-                    fill_opacity=fill_opacity2,
-                )
-
-                # Update keystates with new aligned states
-                self.keystates[i] = KeyState(
-                    state=state1,
-                    time=t1,
-                    easing=ks1.easing,
-                    morphing=ks1.morphing
-                )
-                self.keystates[i + 1] = KeyState(
-                    state=state2,
-                    time=t2,
-                    easing=ks2.easing,
-                    morphing=ks2.morphing
-                )
+            # ============================================================
+            # STATIC PREPROCESSING (once per segment, non-rotating only)
+            # ============================================================
+            self._ensure_segment_preprocessed(i)
 
             if t1 <= t <= t2:
                 # Handle coincident keystates
@@ -255,12 +325,41 @@ class BaseVElement(ABC):
                 # Interpolate between keystates
                 segment_t = (t - t1) / (t2 - t1)
 
+                # ============================================================
+                # DYNAMIC ALIGNMENT (every frame, rotating morphs only)
+                # ============================================================
+                state1, state2 = self._get_dynamically_aligned_states(
+                    state1, state2, segment_t
+                )
+
+                # Get vertex buffer for optimized interpolation (if available)
+                vertex_buffer = None
+                if (
+                    isinstance(state1, VertexState)
+                    and isinstance(state2, VertexState)
+                    and hasattr(self, "_get_vertex_buffer")
+                ):
+                    # Both states are VertexStates and we have buffer support
+                    num_verts = (
+                        len(state1._aligned_contours.outer.vertices)
+                        if state1._aligned_contours
+                        else 0
+                    )
+                    num_holes = (
+                        len(state1._aligned_contours.holes)
+                        if (state1._aligned_contours and state1._aligned_contours.holes)
+                        else 0
+                    )
+                    if num_verts > 0:
+                        vertex_buffer = self._get_vertex_buffer(num_verts, num_holes)
+
                 interpolated_state = self.interpolation_engine.create_eased_state(
                     state1,
                     state2,
                     segment_t,
                     segment_easing_overrides=ks1.easing,
                     property_keystates_fields=set(self.property_keystates.keys()),
+                    vertex_buffer=vertex_buffer,
                 )
 
                 return (
@@ -351,7 +450,7 @@ class BaseVElement(ABC):
                 # Interpolate the value
                 base_state = self.keystates[0].state if self.keystates else None
                 if not base_state:
-                    return interpolation.lerp(val1, val2, eased_t)
+                    return lerp(val1, val2, eased_t)
 
                 return self.interpolation_engine.interpolate_value(
                     base_state, base_state, field_name, val1, val2, eased_t

@@ -30,9 +30,9 @@ def main():
     ]
 
     # Arrange the numbers along a line for start and end positions
-    start_states = layout.line(states, center_x=-100, spacing=20, rotation=90)
+    start_states = layout.line(states, cx=-100, spacing=20, rotation=90)
     middle_states = layout.line(states, spacing=20, rotation=90)
-    end_states = layout.line(states, center_x=100, spacing=20, rotation=90)
+    end_states = layout.line(states, cx=100, spacing=20, rotation=90)
 
     # lets animate also a change of color
     middle_states = [

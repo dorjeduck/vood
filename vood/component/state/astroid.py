@@ -6,10 +6,12 @@ from dataclasses import dataclass
 from .base import State
 from .base_vertex import VertexState
 from vood.component.vertex import VertexContours, VertexAstroid
+from vood.component.registry import renderer
+from vood.component.renderer.astroid import AstroidRenderer
 from vood.transition import easing
-from vood.core.color import Color
 
 
+@renderer(AstroidRenderer)
 @dataclass(frozen=True)
 class AstroidState(VertexState):
     """State class for astroid elements - star-like shape with inward-curving cusps
@@ -33,20 +35,6 @@ class AstroidState(VertexState):
         "num_cusps": easing.step,  # Discrete values, no smooth interpolation
         "curvature": easing.in_out,
     }
-
-    @staticmethod
-    def get_renderer_class():
-        """Get the primitive renderer for static/keystate rendering"""
-        from ..renderer.astroid import AstroidRenderer
-
-        return AstroidRenderer
-
-    @staticmethod
-    def get_vertex_renderer_class():
-        """Get the vertex renderer for morphing transitions"""
-        from ..renderer.base_vertex import VertexRenderer
-
-        return VertexRenderer
 
     def _generate_contours(self) -> VertexContours:
         """Generate astroid contours

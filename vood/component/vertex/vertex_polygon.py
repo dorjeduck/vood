@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import List, Tuple
 
 from .vertex_loop import VertexLoop
-
+from vood.core.point2d import Points2D,Point2D
 
 class VertexPolygon(VertexLoop):
     """Arbitrary polygon as a VertexLoop
@@ -15,7 +15,7 @@ class VertexPolygon(VertexLoop):
 
     def __init__(
         self,
-        vertices: List[Tuple[float, float]],
+        vertices: Points2D,
         closed: bool = True,
         auto_close: bool = True,
         num_vertices: int = None
@@ -38,7 +38,7 @@ class VertexPolygon(VertexLoop):
             # Check if already closed
             first = verts[0]
             last = verts[-1]
-            distance = ((last[0] - first[0]) ** 2 + (last[1] - first[1]) ** 2) ** 0.5
+            distance = ((last.x - first.x) ** 2 + (last.y - first.y) ** 2) ** 0.5
 
             if distance > 1e-6:  # Not already closed
                 verts.append(first)
@@ -51,10 +51,10 @@ class VertexPolygon(VertexLoop):
 
     @staticmethod
     def _redistribute_vertices(
-        vertices: List[Tuple[float, float]],
+        vertices: Points2D,
         num_vertices: int,
         closed: bool
-    ) -> List[Tuple[float, float]]:
+    ) -> Points2D:
         """Redistribute vertices evenly along the polygon perimeter
 
         Args:
@@ -73,9 +73,9 @@ class VertexPolygon(VertexLoop):
         total_distance = 0.0
 
         for i in range(len(vertices) - 1):
-            x1, y1 = vertices[i]
-            x2, y2 = vertices[i + 1]
-            dist = ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+            v1 = vertices[i]
+            v2 = vertices[i + 1]
+            dist = ((v2.x - v1.x) ** 2 + (v2.y - v1.y) ** 2) ** 0.5
             total_distance += dist
             distances.append(total_distance)
 
@@ -101,12 +101,12 @@ class VertexPolygon(VertexLoop):
                     else:
                         t = 0.0
 
-                    x1, y1 = vertices[j]
-                    x2, y2 = vertices[j + 1]
+                    v1 = vertices[j]
+                    v2 = vertices[j + 1]
 
-                    x = x1 + t * (x2 - x1)
-                    y = y1 + t * (y2 - y1)
-                    new_vertices.append((x, y))
+                    x = v1.x + t * (v2.x - v1.x)
+                    y = v1.y + t * (v2.y - v1.y)
+                    new_vertices.append(Point2D(x, y))
                     break
 
         # Close the loop if needed

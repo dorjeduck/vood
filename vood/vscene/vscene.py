@@ -5,7 +5,7 @@ from typing import List, Optional, Union, TYPE_CHECKING, Literal
 import drawsvg as dw
 
 from vood.core import get_logger, Color
-from vood.config import get_config
+from vood.config import get_config, ConfigKey
 
 if TYPE_CHECKING:
     from vood.velement import VElement, VElementGroup
@@ -57,15 +57,15 @@ class VScene:
 
         # Apply config defaults for None values
         if width is None:
-            width = config.get('scene.width', 800)
+            width = config.get(ConfigKey.SCENE_WIDTH, 800)
         if height is None:
-            height = config.get('scene.height', 800)
+            height = config.get(ConfigKey.SCENE_HEIGHT, 800)
         if background is None:
-            background = config.get('scene.background_color', Color.NONE)
+            background = config.get(ConfigKey.SCENE_BACKGROUND_COLOR, Color.NONE)
         if background_opacity is None:
-            background_opacity = config.get('scene.background_opacity', 1.0)
+            background_opacity = config.get(ConfigKey.SCENE_BACKGROUND_OPACITY, 1.0)
         if origin is None:
-            origin = config.get('scene.origin_mode', 'center')
+            origin = config.get(ConfigKey.SCENE_ORIGIN_MODE, "center")
 
         # Validation
         if width <= 0 or height <= 0:
@@ -301,8 +301,8 @@ class VScene:
         times = []
         for element in self.elements:
             if hasattr(element, "keystates") and element.keystates:
-                times.append(element.keystates[0][0])  # First keystate time
-                times.append(element.keystates[-1][0])  # Last keystate time
+                times.append(element.keystates[0].time)  # First keystate time
+                times.append(element.keystates[-1].time)  # Last keystate time
 
         if not times:
             return (0.0, 1.0)
@@ -322,6 +322,83 @@ class VScene:
     def aspect_ratio(self) -> float:
         """Get scene aspect ratio (width / height)"""
         return self.width / self.height
+
+    # ========================================================================
+    # Jupyter Notebook Display
+    # ========================================================================
+
+    def _repr_svg_(self):
+        """Display in Jupyter notebook (auto-called by Jupyter)."""
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).repr_svg()
+
+    def display_inline(self, frame_time: float = 0.0):
+        """Display inline in the Jupyter web page.
+
+        Args:
+            frame_time: Time point to render (0.0 to 1.0)
+
+        Returns:
+            JupyterSvgInline object that displays in notebooks
+        """
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).display_inline(frame_time)
+
+    def display_iframe(self, frame_time: float = 0.0):
+        """Display within an iframe in the Jupyter web page.
+
+        Args:
+            frame_time: Time point to render (0.0 to 1.0)
+
+        Returns:
+            JupyterSvgFrame object that displays in notebooks
+        """
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).display_iframe(frame_time)
+
+    def display_image(self, frame_time: float = 0.0):
+        """Display within an img tag in the Jupyter web page.
+
+        Args:
+            frame_time: Time point to render (0.0 to 1.0)
+
+        Returns:
+            JupyterSvgImage object that displays in notebooks
+        """
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).display_image(frame_time)
+
+    def preview_grid(self, num_frames: int = 10, scale: float = 1.0):
+        """Preview animation by showing all frames in a grid layout.
+
+        Useful for quickly checking animations in Jupyter without video export.
+        Shows all frames at once for easy visual comparison.
+
+        Args:
+            num_frames: Number of frames to display (default: 10)
+            scale: Scale factor for frame size, e.g. 0.5 for half size (default: 1.0)
+
+        Returns:
+            HTML object that displays in Jupyter notebooks
+        """
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).preview_grid(num_frames, scale)
+
+    def preview_animation(self, num_frames: int = 10, play_interval_ms: int = 100):
+        """Preview animation with interactive controls (play/pause, slider, prev/next).
+
+        Useful for checking animations in Jupyter without video export.
+        Shows one frame at a time with playback controls.
+
+        Args:
+            num_frames: Number of frames to display (default: 10)
+            play_interval_ms: Milliseconds between frames when playing (default: 100)
+
+        Returns:
+            HTML object that displays in Jupyter notebooks
+        """
+        from vood.vscene.preview import PreviewRenderer
+        return PreviewRenderer(self).preview_animation(num_frames, play_interval_ms)
 
     def __repr__(self) -> str:
         """Developer-friendly representation"""

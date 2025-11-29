@@ -7,6 +7,8 @@ from enum import StrEnum
 
 
 from .base import State
+from vood.component.registry import renderer
+from vood.component.renderer.image import ImageRenderer
 from vood.transition import easing
 from vood.core.color import Color
 
@@ -24,6 +26,7 @@ class ImageFitMode(StrEnum):
     )
 
 
+@renderer(ImageRenderer)
 @dataclass(frozen=True)
 class ImageState(State):
     """State class for image elements"""
@@ -47,10 +50,6 @@ class ImageState(State):
     }
 
     def __post_init__(self):
+        super().__post_init__()
         self._none_color("stroke_color")
 
-    @staticmethod
-    def get_renderer_class():
-        from ..renderer.image import ImageRenderer
-
-        return ImageRenderer

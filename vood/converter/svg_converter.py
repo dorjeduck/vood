@@ -7,7 +7,6 @@ from typing import Optional
 from pathlib import Path
 
 from vood.core.logger import get_logger
-from PIL import Image
 
 from typing import TYPE_CHECKING
 
@@ -64,18 +63,23 @@ class SVGConverter(ABC):
 
         if "png" in formats and do_thumb:
 
-            thumb_path = Path(result["png"]).with_suffix(".thumb.png")
-            # create thumbnail for result['png']
+            try:
+                from PIL import Image
+            except ImportError:
+                logger.warning("Pillow not installed. Skipping thumbnail generation. Install with: pip install Pillow")
+            else:
+                thumb_path = Path(result["png"]).with_suffix(".thumb.png")
+                # create thumbnail for result['png']
 
-            png_thumb_width_px, png_thumb_height_px = self._infer_dimensions(
-                scene, png_thumb_width_px, png_thumb_height_px
-            )
+                png_thumb_width_px, png_thumb_height_px = self._infer_dimensions(
+                    scene, png_thumb_width_px, png_thumb_height_px
+                )
 
-            with Image.open(result["png"]) as img:
-                img.thumbnail((png_thumb_width_px, png_thumb_height_px))
-                img.save(thumb_path)
+                with Image.open(result["png"]) as img:
+                    img.thumbnail((png_thumb_width_px, png_thumb_height_px))
+                    img.save(thumb_path)
 
-                result["png_thumb"] = str(Path(output_file).with_suffix(".thumb.png"))
+                    result["png_thumb"] = str(Path(output_file).with_suffix(".thumb.png"))
 
         return result
 

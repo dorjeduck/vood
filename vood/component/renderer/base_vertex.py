@@ -27,7 +27,9 @@ class VertexRenderer(Renderer):
     - Hole strokes rendered separately at normal width
     """
 
-    def _render_core(self, state: VertexState, drawing: Optional[dw.Drawing] = None) -> dw.Group:
+    def _render_core(
+        self, state: VertexState, drawing: Optional[dw.Drawing] = None
+    ) -> dw.Group:
         """Render the vertex-based shape
 
         Args:
@@ -51,10 +53,15 @@ class VertexRenderer(Renderer):
         stroke_opacity = getattr(state, "stroke_opacity", 1)
         stroke_width = getattr(state, "stroke_width", 0)
 
+        holes_stroke_color = getattr(state, "holes_stroke_color", stroke_color)
+        holes_stroke_opacity = getattr(state, "holes_stroke_opacity", stroke_opacity)
+        holes_stroke_width = getattr(state, "holes_stroke_width", stroke_width)
+
         # Determine rendering strategy
         has_fill = fill_color and state.fill_opacity > 0
         has_stroke = stroke_color and stroke_width > 0 and state.stroke_opacity > 0
 
+       
         # Check if vertices form a closed shape
         vertices_are_closed = self._check_closed(contours.outer.vertices)
 
@@ -62,17 +69,35 @@ class VertexRenderer(Renderer):
         if contours.has_holes:
             # Use mask-based rendering for shapes with holes
             self._render_with_holes(
-                group, contours, has_fill, has_stroke,
-                fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width,
-                state, drawing
+                group,
+                contours,
+                has_fill,
+                has_stroke,
+                fill_color,
+                fill_opacity,
+                stroke_color,
+                stroke_opacity,
+                stroke_width,
+                holes_stroke_color,
+                holes_stroke_opacity,
+                holes_stroke_width,
+                state,
+                drawing,
             )
         else:
             # Simple rendering for shapes without holes
             self._render_simple(
-                group, contours.outer.vertices, vertices_are_closed,
-                has_fill, has_stroke,
-                fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width,
-                state
+                group,
+                contours.outer.vertices,
+                vertices_are_closed,
+                has_fill,
+                has_stroke,
+                fill_color,
+                fill_opacity,
+                stroke_color,
+                stroke_opacity,
+                stroke_width,
+                state,
             )
 
         return group
@@ -84,17 +109,25 @@ class VertexRenderer(Renderer):
 
         first_vertex = vertices[0]
         last_vertex = vertices[-1]
-        distance = (
-            (last_vertex[0] - first_vertex[0]) ** 2
-            + (last_vertex[1] - first_vertex[1]) ** 2
-        ) ** 0.5
+        
+        
+        distance = last_vertex.distance_to(first_vertex)
+        
         return distance < 1.0  # Tolerance of 1 pixel
 
     def _render_simple(
-        self, group, vertices, vertices_are_closed,
-        has_fill, has_stroke,
-        fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width,
-        state
+        self,
+        group,
+        vertices,
+        vertices_are_closed,
+        has_fill,
+        has_stroke,
+        fill_color,
+        fill_opacity,
+        stroke_color,
+        stroke_opacity,
+        stroke_width,
+        state,
     ):
         """Render a simple shape without holes"""
         first_vertex = vertices[0]
@@ -107,9 +140,9 @@ class VertexRenderer(Renderer):
                 stroke="none",
             )
 
-            fill_path.M(first_vertex[0], first_vertex[1])
-            for x, y in vertices[1:]:
-                fill_path.L(x, y)
+            fill_path.M(first_vertex.x, first_vertex.y)
+            for v in vertices[1:]:
+                fill_path.L(v.x, v.y)
             fill_path.Z()
 
             group.append(fill_path)
@@ -128,9 +161,9 @@ class VertexRenderer(Renderer):
                 **kwargs,
             )
 
-            stroke_path.M(first_vertex[0], first_vertex[1])
-            for x, y in vertices[1:]:
-                stroke_path.L(x, y)
+            stroke_path.M(first_vertex.x, first_vertex.y)
+            for v in vertices[1:]:
+                stroke_path.L(v.x, v.y)
 
             if vertices_are_closed:
                 stroke_path.Z()
@@ -138,10 +171,21 @@ class VertexRenderer(Renderer):
             group.append(stroke_path)
 
     def _render_with_holes(
-        self, group, contours: VertexContours,
-        has_fill, has_stroke,
-        fill_color, fill_opacity, stroke_color, stroke_opacity, stroke_width,
-        state, drawing: Optional[dw.Drawing]
+        self,
+        group,
+        contours: VertexContours,
+        has_fill,
+        has_stroke,
+        fill_color,
+        fill_opacity,
+        stroke_color,
+        stroke_opacity,
+        stroke_width,
+        holes_stroke_color,
+        holes_stroke_opacity,
+        holes_stroke_width,
+        state,
+        drawing: Optional[dw.Drawing],
     ):
         """Render a shape with holes using SVG masks
 
@@ -152,6 +196,7 @@ class VertexRenderer(Renderer):
         4. Render strokes separately
         """
         import random
+
         mask_id = f"hole-mask-{random.randint(1000000, 9999999)}"
 
         outer_verts = contours.outer.vertices
@@ -162,9 +207,9 @@ class VertexRenderer(Renderer):
         # Mask: White outer contour (reveals)
         outer_mask_path = dw.Path(fill="white")
         if outer_verts:
-            outer_mask_path.M(outer_verts[0][0], outer_verts[0][1])
-            for x, y in outer_verts[1:]:
-                outer_mask_path.L(x, y)
+            outer_mask_path.M(outer_verts[0].x, outer_verts[0].y)
+            for v in outer_verts[1:]:
+                outer_mask_path.L(v.x, v.y)
             outer_mask_path.Z()
         mask.append(outer_mask_path)
 
@@ -173,9 +218,9 @@ class VertexRenderer(Renderer):
             hole_mask_path = dw.Path(fill="black")
             hole_verts = hole.vertices
             if hole_verts:
-                hole_mask_path.M(hole_verts[0][0], hole_verts[0][1])
-                for x, y in hole_verts[1:]:
-                    hole_mask_path.L(x, y)
+                hole_mask_path.M(hole_verts[0].x, hole_verts[0].y)
+                for v in hole_verts[1:]:
+                    hole_mask_path.L(v.x, v.y)
                 hole_mask_path.Z()
             mask.append(hole_mask_path)
 
@@ -189,12 +234,12 @@ class VertexRenderer(Renderer):
                 fill=fill_color.to_rgb_string(),
                 fill_opacity=fill_opacity,
                 stroke="none",
-                mask=f"url(#{mask_id})"
+                mask=f"url(#{mask_id})",
             )
 
-            fill_path.M(outer_verts[0][0], outer_verts[0][1])
-            for x, y in outer_verts[1:]:
-                fill_path.L(x, y)
+            fill_path.M(outer_verts[0].x, outer_verts[0].y)
+            for v in outer_verts[1:]:
+                fill_path.L(v.x, v.y)
             fill_path.Z()
 
             group.append(fill_path)
@@ -214,9 +259,9 @@ class VertexRenderer(Renderer):
                 **kwargs,
             )
 
-            outer_stroke_path.M(outer_verts[0][0], outer_verts[0][1])
-            for x, y in outer_verts[1:]:
-                outer_stroke_path.L(x, y)
+            outer_stroke_path.M(outer_verts[0].x, outer_verts[0].y)
+            for v in outer_verts[1:]:
+                outer_stroke_path.L(v.x, v.y)
             outer_stroke_path.Z()
 
             group.append(outer_stroke_path)
@@ -228,16 +273,17 @@ class VertexRenderer(Renderer):
                 if hole_verts:
                     hole_stroke_path = dw.Path(
                         fill="none",
-                        stroke=stroke_color.to_rgb_string(),
-                        stroke_opacity=stroke_opacity,
-                        stroke_width=stroke_width * 2,  # Double width - mask hides half
+                        stroke=holes_stroke_color.to_rgb_string(),
+                        stroke_opacity=holes_stroke_opacity,
+                        stroke_width=holes_stroke_width
+                        * 2,  # Double width - mask hides half
                         mask=f"url(#{mask_id})",  # Apply mask to hide overlapping hole strokes
                         **kwargs,
                     )
 
-                    hole_stroke_path.M(hole_verts[0][0], hole_verts[0][1])
-                    for x, y in hole_verts[1:]:
-                        hole_stroke_path.L(x, y)
+                    hole_stroke_path.M(hole_verts[0].x, hole_verts[0].y)
+                    for v in hole_verts[1:]:
+                        hole_stroke_path.L(v.x, v.y)
                     hole_stroke_path.Z()
 
                     group.append(hole_stroke_path)

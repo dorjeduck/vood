@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from vood.component.state.base import State
 
 import drawsvg as dw
-from ..state.base import State
 
 class Renderer(ABC):
     """Abstract base class for all renderer classes

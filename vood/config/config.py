@@ -11,6 +11,7 @@ from typing import Any, Optional
 from copy import deepcopy
 
 from vood.core.color import Color
+from .config_key import ConfigKey
 
 
 class VoodConfig:
@@ -148,26 +149,31 @@ class VoodConfig:
 
         return result
 
-    def get(self, path: str, default: Any = None) -> Any:
-        """Get configuration value by dot-separated path
+    def get(self, key: ConfigKey, default: Any = None) -> Any:
+        """Get configuration value by config key enum
 
         Automatically normalizes color values to Color objects.
 
         Args:
-            path: Dot-separated path (e.g., "scene.width" or "state.visual.fill_color")
-            default: Default value if path not found
+            key: ConfigKey enum value (e.g., ConfigKey.SCENE_WIDTH)
+            default: Default value if key not found
 
         Returns:
             Configuration value with appropriate type conversion
 
         Examples:
-            >>> config.get("scene.width")
+            >>> config.get(ConfigKey.SCENE_WIDTH)
             800
-            >>> config.get("state.visual.fill_color")
+            >>> config.get(ConfigKey.STATE_VISUAL_FILL_COLOR)
             Color.NONE
-            >>> config.get("nonexistent.path", 42)
-            42
         """
+        if not isinstance(key, ConfigKey):
+            raise TypeError(
+                f"Config key must be a ConfigKey enum, got {type(key).__name__}. "
+                f"Use ConfigKey.{key.upper().replace('.', '_')} instead of '{key}'"
+            )
+
+        path = key.value
         parts = path.split(".")
         current = self._config
 
@@ -222,13 +228,20 @@ class VoodConfig:
 
         return Color.NONE
 
-    def set(self, path: str, value: Any):
-        """Set configuration value by dot-separated path
+    def set(self, key: ConfigKey, value: Any):
+        """Set configuration value by config key enum
 
         Args:
-            path: Dot-separated path (e.g., "scene.width")
+            key: ConfigKey enum value (e.g., ConfigKey.SCENE_WIDTH)
             value: Value to set
         """
+        if not isinstance(key, ConfigKey):
+            raise TypeError(
+                f"Config key must be a ConfigKey enum, got {type(key).__name__}. "
+                f"Use ConfigKey.{key.upper().replace('.', '_')} instead of '{key}'"
+            )
+
+        path = key.value
         parts = path.split(".")
         current = self._config
 

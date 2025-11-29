@@ -45,9 +45,9 @@ def configure_logging(
 
     # Get level from config if not specified
     if level is None:
-        from vood.config import get_config
+        from vood.config import get_config, ConfigKey
         config = get_config()
-        level = config.get('logging.level', 'INFO')
+        level = config.get(ConfigKey.LOGGING_LEVEL, 'INFO')
 
     # Convert level string to logging constant
     log_level = getattr(logging, level.upper(), logging.INFO)

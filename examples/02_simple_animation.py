@@ -44,7 +44,7 @@ def main():
     # pairing each start state with its corresponding end state
     elements = [
         VElement(
-            renderer=renderer,
+            #renderer=renderer,
             keystates=states,
         )
         for states in zip(start_states, end_states)

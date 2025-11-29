@@ -12,7 +12,7 @@ from vood.vscene import VScene
 from vood.vscene.vscene_exporter import VSceneExporter
 from dataclasses import replace
 from vood.core.color import Color
-
+from vood.core.point2d import Point2D
 from vood.animation.atomic import sequential_transition, fade, trim
 
 configure_logging(level="INFO")
@@ -116,7 +116,7 @@ def main():
     layout_states.append(
         layout.bezier(
             base_states,
-            control_points=[(-110, -80), (-60, 80), (60, -80), (110, 80)],
+            control_points=[Point2D(-110, -80), Point2D(-60, 80), Point2D(60, -80), Point2D(110, 80)],
             alignment=layout.ElementAlignment.LAYOUT,
         )
     )
@@ -138,7 +138,7 @@ def main():
     layout_states.append(
         layout.path_points(
             base_states,
-            points=[(-110, -100), (-60, 0), (0, 60), (60, 0), (110, 100)],
+            points=[Point2D(-110, -100), Point2D(-60, 0), Point2D(0, 60), Point2D(60, 0), Point2D(110, 100)],
             smooth=True,
             alignment=layout.ElementAlignment.LAYOUT,
         )

@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import List, Tuple
 from dataclasses import dataclass
 import math
+from vood.core.point2d import Point2D
 
 from vood.path.commands import (
     PathCommand,
@@ -28,20 +29,6 @@ from vood.path.commands import (
     ClosePath,
 )
 from vood.path.svg_path import SVGPath
-
-
-@dataclass
-class Point:
-    """Simple 2D point"""
-
-    x: float
-    y: float
-
-    def distance_to(self, other: Point) -> float:
-        """Euclidean distance to another point"""
-        dx = other.x - self.x
-        dy = other.y - self.y
-        return math.sqrt(dx * dx + dy * dy)
 
 
 # ============================================================================
@@ -68,26 +55,26 @@ class PolyBezier:
         """Number of cubic bezier curves in this poly-bezier"""
         return max(0, (len(self.data) - 2) // 6)
 
-    def get_start_point(self) -> Point:
+    def get_start_point(self) -> Point2D:
         """Get the starting point of the path"""
-        return Point(self.data[0], self.data[1])
+        return Point2D(self.data[0], self.data[1])
 
-    def get_curves(self) -> List[Tuple[Point, Point, Point, Point]]:
+    def get_curves(self) -> List[Tuple[Point2D, Point2D, Point2D, Point2D]]:
         """Get all curves as (start, c1, c2, end) tuples"""
         curves = []
         if len(self.data) < 8:  # Need at least start + one curve
             return curves
 
         # First curve uses the initial start point
-        start = Point(self.data[0], self.data[1])
+        start = Point2D(self.data[0], self.data[1])
 
         for i in range(2, len(self.data), 6):
             if i + 5 >= len(self.data):
                 break
 
-            c1 = Point(self.data[i], self.data[i + 1])
-            c2 = Point(self.data[i + 2], self.data[i + 3])
-            end = Point(self.data[i + 4], self.data[i + 5])
+            c1 = Point2D(self.data[i], self.data[i + 1])
+            c2 = Point2D(self.data[i + 2], self.data[i + 3])
+            end = Point2D(self.data[i + 4], self.data[i + 5])
 
             curves.append((start, c1, c2, end))
             start = end  # Next curve starts where this one ended
@@ -115,7 +102,6 @@ class PolyBezier:
                     self.data[i + 5],  # end
                 )
             )
-
         return SVGPath(commands)
 
 
@@ -139,15 +125,15 @@ def convert_to_poly_bezier(path: SVGPath) -> PolyBezier:
         return PolyBezier([])
 
     data: List[float] = []
-    current_pos = Point(0, 0)
-    start_pos = Point(0, 0)
+    current_pos = Point2D(0, 0)
+    start_pos = Point2D(0, 0)
 
     for cmd in path.commands:
         abs_cmd = cmd.to_absolute((current_pos.x, current_pos.y))
 
         if isinstance(abs_cmd, MoveTo):
             # Start a new subpath
-            current_pos = Point(abs_cmd.x, abs_cmd.y)
+            current_pos = Point2D(abs_cmd.x, abs_cmd.y)
             start_pos = current_pos
 
             # If this is the first command, set the starting point
@@ -163,7 +149,7 @@ def convert_to_poly_bezier(path: SVGPath) -> PolyBezier:
             c2y = current_pos.y + 2 * (abs_cmd.y - current_pos.y) / 3
 
             data.extend([c1x, c1y, c2x, c2y, abs_cmd.x, abs_cmd.y])
-            current_pos = Point(abs_cmd.x, abs_cmd.y)
+            current_pos = Point2D(abs_cmd.x, abs_cmd.y)
 
         elif isinstance(abs_cmd, CubicBezier):
             # Already a cubic curve - just add it
@@ -177,15 +163,15 @@ def convert_to_poly_bezier(path: SVGPath) -> PolyBezier:
                     abs_cmd.y,
                 ]
             )
-            current_pos = Point(abs_cmd.x, abs_cmd.y)
+            current_pos = Point2D(abs_cmd.x, abs_cmd.y)
 
         elif isinstance(abs_cmd, QuadraticBezier):
             # Convert quadratic to cubic using standard formula
             # For quadratic P0, P1, P2:
             # Cubic control points are P0 + 2/3*(P1-P0) and P2 + 2/3*(P1-P2)
             p0 = current_pos
-            p1 = Point(abs_cmd.cx, abs_cmd.cy)
-            p2 = Point(abs_cmd.x, abs_cmd.y)
+            p1 = Point2D(abs_cmd.cx, abs_cmd.cy)
+            p2 = Point2D(abs_cmd.x, abs_cmd.y)
 
             c1x = p0.x + 2 / 3 * (p1.x - p0.x)
             c1y = p0.y + 2 / 3 * (p1.y - p0.y)
@@ -215,7 +201,7 @@ def convert_to_poly_bezier(path: SVGPath) -> PolyBezier:
 
 
 def normalize_poly_bezier_start(
-    poly: PolyBezier, origin: Point = Point(0, 0)
+    poly: PolyBezier, origin: Point2D = Point2D(0, 0)
 ) -> PolyBezier:
     """
     Normalize poly-bezier to start from the point closest to origin
@@ -263,7 +249,7 @@ def normalize_poly_bezier_start(
 
 
 # ============================================================================
-# Point Filling (Polymorph Style)
+# Point2D Filling (Polymorph Style)
 # ============================================================================
 
 
@@ -299,8 +285,8 @@ def fill_poly_bezier_to_length(poly: PolyBezier, target_length: int) -> PolyBezi
         last_x = poly.data[-2]
         last_y = poly.data[-1]
     else:
-        last_x = poly.data[0]
-        last_y = poly.data[1]
+        last_x = poly.data.x
+        last_y = poly.data.y
 
     # Add duplicate curves (point curves where all control points = end point)
     for _ in range(curves_to_add):
@@ -348,7 +334,7 @@ def interpolate_poly_beziers(
 
 
 def polymorph_interpolate(
-    path1: SVGPath, path2: SVGPath, t: float, origin: Point = Point(0, 0)
+    path1: SVGPath, path2: SVGPath, t: float, origin: Point2D = Point2D(0, 0)
 ) -> SVGPath:
     """
     Polymorph-style path interpolation

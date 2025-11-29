@@ -3,10 +3,9 @@
 # ============================================================================
 """Pop animation - scale to zero and back with bounce"""
 
-from typing import List, Tuple
 from dataclasses import replace
 from vood.component import State
-
+from vood.velement.keystate import KeyState, KeyStates
 
 def pop(
     state1: State,
@@ -14,7 +13,7 @@ def pop(
     at_time: float = 0.5,
     duration: float = 0.2,
     extend_timeline: bool = False,
-) -> List[Tuple[float, State]]:
+) -> KeyStates:
     """Quick scale down to zero, switch, and scale back with overshoot
 
     Creates a "pop" effect by quickly scaling to zero and back.
@@ -53,17 +52,17 @@ def pop(
     t_end = at_time + half
 
     keystates = [
-        (t_start, replace(state1, scale=1.0)),
-        (at_time, replace(state1, scale=0.0)),  # Popped to zero
-        (at_time, replace(state2, scale=0.0)),  # Switch (invisible)
-        (t_end, replace(state2, scale=1.0)),  # Pop back
+        KeyState(time=t_start, state=replace(state1, scale=1.0)),
+        KeyState(time=at_time, state=replace(state1, scale=0.0)),  # Popped to zero
+        KeyState(time=at_time, state=replace(state2, scale=0.0)),  # Switch (invisible)
+        KeyState(time=t_end, state=replace(state2, scale=1.0)),  # Pop back
     ]
 
     if extend_timeline:
         keystates = [
-            (0.0, replace(state1, scale=1.0)),
+            KeyState(time=0.0, state=replace(state1, scale=1.0)),
             *keystates,
-            (1.0, replace(state2, scale=1.0)),
+            KeyState(time=1.0, state=replace(state2, scale=1.0)),
         ]
 
     return keystates
