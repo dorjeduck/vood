@@ -1,24 +1,23 @@
-"""Perforated ellipse state - ellipse with holes"""
+"""Perforated ellipse state - ellipse with  holes"""
 
 from __future__ import annotations
 from dataclasses import dataclass
 
 from .base import PerforatedVertexState
-from vood.component.state.base import State
 from vood.component.vertex import VertexEllipse, VertexLoop
 from vood.transition import easing
 
 
 @dataclass(frozen=True)
 class PerforatedEllipseState(PerforatedVertexState):
-    """Ellipse with holes
+    """Ellipse with  holes
 
-    An elliptical outer shape with zero or more holes of arbitrary shapes.
+    An elliptical outer shape with zero or more vertex loops of arbitrary shapes.
 
     Args:
         rx: Horizontal radius (semi-major axis)
         ry: Vertical radius (semi-minor axis)
-        holes: List of Shape objects specifying hole geometry and positions
+         holes : List of Shape objects specifying hole geometry and positions
 
     Example:
         PerforatedEllipseState(
@@ -41,8 +40,5 @@ class PerforatedEllipseState(PerforatedVertexState):
     def _generate_outer_contour(self) -> VertexLoop:
         """Generate elliptical outer contour"""
         return VertexEllipse(
-            cx=0, cy=0,
-            rx=self.rx,
-            ry=self.ry,
-            num_vertices=self._num_vertices
+            cx=0, cy=0, rx=self.rx, ry=self.ry, num_vertices=self._num_vertices
         )

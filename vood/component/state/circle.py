@@ -22,12 +22,10 @@ class CircleState(VertexState):
         "radius": easing.in_out,
     }
 
-
-
     def _generate_contours(self) -> VertexContours:
         """Generate circle contours
 
-        Returns VertexContours with a single circular outer contour, no holes.
+        Returns VertexContours with a single circular outer contour, no  vertex_loops .
         """
         circle = VertexCircle(
             cx=0,

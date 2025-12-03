@@ -67,7 +67,7 @@ class TestBasicMorphing:
 
 @pytest.mark.integration
 class TestHoleMorphing:
-    """Test morphing with holes (perforated shapes)"""
+    """Test morphing with vertex loops (perforated shapes)"""
 
     def test_circle_to_ring_morph(self):
         """Test morphing solid circle to ring (hole appears)"""
@@ -128,7 +128,8 @@ class TestColorTransitions:
         """Test morphing through multiple colors"""
         colors = ["#FF0000", "#00FF00", "#0000FF", "#FFFF00"]
         keystates = [
-            CircleState(radius=50, fill_color=Color(c), _num_vertices=64) for c in colors
+            CircleState(radius=50, fill_color=Color(c), _num_vertices=64)
+            for c in colors
         ]
 
         element = VElement(keystates=keystates)
@@ -171,7 +172,11 @@ class TestTransformAnimations:
         """Test morphing with scale change"""
         state1 = CircleState(radius=50, scale=0.5, _num_vertices=64)
         state2 = StarState(
-            outer_radius=80, inner_radius=40, num_points_star=5, scale=2.0, _num_vertices=64
+            outer_radius=80,
+            inner_radius=40,
+            num_points_star=5,
+            scale=2.0,
+            _num_vertices=64,
         )
 
         element = VElement(keystates=[state1, state2])
@@ -182,7 +187,13 @@ class TestTransformAnimations:
         """Test complex sequence with all transforms"""
         keystates = [
             CircleState(
-                x=0, y=0, radius=50, scale=1.0, rotation=0, fill_opacity=1.0, _num_vertices=64
+                x=0,
+                y=0,
+                radius=50,
+                scale=1.0,
+                rotation=0,
+                fill_opacity=1.0,
+                _num_vertices=64,
             ),
             CircleState(
                 x=100,
@@ -227,7 +238,10 @@ class TestEasingIntegration:
         state1 = CircleState(radius=50, _num_vertices=64)
         state2 = RectangleState(width=80, height=60, _num_vertices=64)
 
-        element = VElement(keystates=[state1, state2], property_easing={"radius": linear, "width": linear, "height": linear})
+        element = VElement(
+            keystates=[state1, state2],
+            property_easing={"radius": linear, "width": linear, "height": linear},
+        )
 
         assert element is not None
 

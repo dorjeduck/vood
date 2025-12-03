@@ -6,7 +6,7 @@ Uses centroid-based angular positions to find optimal vertex correspondence.
 
 from __future__ import annotations
 import math
-from typing import List, Tuple, Optional, Union, Callable
+from typing import List, Tuple, Optional, Union
 import inspect
 
 from vood.component.vertex import (

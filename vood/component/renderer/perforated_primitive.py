@@ -11,16 +11,15 @@ from .base import Renderer
 
 if TYPE_CHECKING:
     from ..state.perforated.base import (
-
-    PerforatedVertexState,
-    Shape,
-    Circle,
-    Ellipse,
-    Rectangle,
-    Polygon,
-    Star,
-    Astroid,
-)
+        PerforatedVertexState,
+        Shape,
+        Circle,
+        Ellipse,
+        Rectangle,
+        Polygon,
+        Star,
+        Astroid,
+    )
 from vood.core.point2d import Point2D
 
 
@@ -31,7 +30,7 @@ class PerforatedPrimitiveRenderer(Renderer):
     by converting their vertex-based outer contours to SVG paths.
 
     Uses evenodd fill-rule with SVG paths for clean, high-quality rendering.
-    Renders any outer shape with multiple holes of any shape at different
+    Renders any outer shape with multiple vertex loops of any shape at different
     positions, sizes, and rotations.
 
     This is used for static rendering and at keystate endpoints (t=0, t=1).
@@ -77,24 +76,27 @@ class PerforatedPrimitiveRenderer(Renderer):
 
         hole_stroke_path = dw.Path(
             fill=(
-                state.holes_fill_color.to_rgb_string()
-                if state.holes_fill_color
+                state.vertex_loops_fill_color.to_rgb_string()
+                if state.vertex_loops_fill_color
                 else "none"
             ),
-            fill_opacity=state.holes_fill_opacity,
+            fill_opacity=state.vertex_loops_fill_opacity,
             stroke=(
-                state.holes_stroke_color.to_rgb_string()
-                if state.holes_stroke_color and state.holes_stroke_width > 0
+                state.vertex_loops_stroke_color.to_rgb_string()
+                if state.vertex_loops_stroke_color
+                and state.vertex_loops_stroke_width > 0
                 else "none"
             ),
             stroke_width=(
-                state.holes_stroke_width
-                if state.holes_stroke_color and state.holes_stroke_width > 0
+                state.vertex_loops_stroke_width
+                if state.vertex_loops_stroke_color
+                and state.vertex_loops_stroke_width > 0
                 else 0
             ),
             stroke_opacity=(
-                state.holes_stroke_opacity
-                if state.holes_stroke_color and state.holes_stroke_width > 0
+                state.vertex_loops_stroke_opacity
+                if state.vertex_loops_stroke_color
+                and state.vertex_loops_stroke_width > 0
                 else 0
             ),
             stroke_linejoin="round",
@@ -107,8 +109,8 @@ class PerforatedPrimitiveRenderer(Renderer):
 
         self._add_vertex_loop_to_path(fill_path, outer_contour.vertices, clockwise=True)
 
-        # Draw hole shapes (counter-clockwise - creates holes due to even-odd rule)
-        for hole_shape in state.holes:
+        # Draw hole shapes (counter-clockwise - creates vertex loops due to even-odd rule)
+        for hole_shape in state.vertex_loops:
             self._add_shape_to_path(fill_path, hole_shape, clockwise=False)
 
         group.append(fill_path)
@@ -117,10 +119,14 @@ class PerforatedPrimitiveRenderer(Renderer):
             self._add_vertex_loop_to_path(outer_stroke_path, outer_contour.vertices)
             group.append(outer_stroke_path)
 
-        if (state.holes_stroke_width > 0 and state.holes_stroke_opacity > 0) or (
-            state.holes_fill_color != Color.NONE and state.holes_fill_opacity > 0
+        if (
+            state.vertex_loops_stroke_width > 0
+            and state.vertex_loops_stroke_opacity > 0
+        ) or (
+            state.vertex_loops_fill_color != Color.NONE
+            and state.vertex_loops_fill_opacity > 0
         ):
-            for hole_shape in state.holes:
+            for hole_shape in state.vertex_loops:
                 self._add_shape_to_path(hole_stroke_path, hole_shape)
             group.append(hole_stroke_path)
 

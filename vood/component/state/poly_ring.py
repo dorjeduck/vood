@@ -39,7 +39,6 @@ class PolyRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-
     def _generate_contours(self) -> VertexContours:
         """Generate polygon ring contours with outer and inner polygons
 
@@ -56,7 +55,7 @@ class PolyRingState(VertexState):
             size=self.outer_size,
             num_sides=self.num_edges,
             num_vertices=self._num_vertices,
-            rotation=0
+            rotation=0,
         )
 
         # Generate inner polygon as a hole (clockwise winding)
@@ -67,7 +66,7 @@ class PolyRingState(VertexState):
             size=self.inner_size,
             num_sides=self.num_edges,
             num_vertices=self._num_vertices,
-            rotation=self.inner_rotation
+            rotation=self.inner_rotation,
         )
 
         inner_polygon_reversed = inner_polygon.reverse()

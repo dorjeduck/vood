@@ -9,6 +9,8 @@ from vood.config import get_config, ConfigKey
 
 if TYPE_CHECKING:
     from vood.velement import VElement, VElementGroup
+    from vood.component.state.base import State
+
 
 # Type alias for any renderable element
 RenderableElement = Union["VElement", "VElementGroup"]
@@ -38,6 +40,9 @@ class VScene:
         offset_y: float = 0.0,
         scale: float = 1.0,
         rotation: float = 0.0,
+        # Scene-level clipping/masking
+        clip_state: Optional["State"] = None,
+        mask_state: Optional["State"] = None,
     ) -> None:
         """Initialize a new scene with given dimensions and styling
 
@@ -51,6 +56,8 @@ class VScene:
             offset_y: Global Y offset for entire scene
             scale: Global scale factor for entire scene
             rotation: Global rotation in degrees for entire scene
+            clip_state: Optional clip path applied to entire scene
+            mask_state: Optional mask applied to entire scene
         """
         # Load config for defaults
         config = get_config()
@@ -92,6 +99,10 @@ class VScene:
         self.offset_y = offset_y
         self.scale = scale
         self.rotation = rotation
+
+        # Scene-level clipping/masking
+        self.clip_state = clip_state
+        self.mask_state = mask_state
 
         # Elements list
         self.elements: List[RenderableElement] = []
@@ -212,6 +223,10 @@ class VScene:
             if rendered is not None:
                 group.append(rendered)
 
+        # Apply scene-level clipping/masking
+        if self.clip_state or self.mask_state:
+            group = self._apply_scene_clipping(group, drawing)
+
         drawing.append(group)
         return drawing
 
@@ -286,6 +301,93 @@ class VScene:
 
         return " ".join(transforms)
 
+    def _apply_scene_clipping(self, group: dw.Group, drawing: dw.Drawing) -> dw.Group:
+        """Apply scene-level clip/mask to root group
+
+        Uses the same clipping logic as Renderer._apply_clipping_and_masking
+        but at the scene level.
+
+        Args:
+            group: The group containing all scene elements
+            drawing: Drawing for adding defs
+
+        Returns:
+            Group wrapped in clip/mask groups if needed
+        """
+        import uuid
+        from vood.component import get_renderer_instance_for_state
+
+        result = group
+
+        # Apply mask first (innermost)
+        if self.mask_state is not None:
+            mask_id = f"mask-{uuid.uuid4().hex[:8]}"
+            mask = dw.Mask(id=mask_id)
+
+            # Render the mask shape
+            renderer = get_renderer_instance_for_state(self.mask_state)
+            mask_elem = renderer._render_core(self.mask_state, drawing=drawing)
+
+            # Apply transforms and opacity
+            transforms = []
+            if self.mask_state.x != 0 or self.mask_state.y != 0:
+                transforms.append(f"translate({self.mask_state.x},{self.mask_state.y})")
+            if self.mask_state.rotation != 0:
+                transforms.append(f"rotate({self.mask_state.rotation})")
+            if self.mask_state.scale != 1.0:
+                transforms.append(f"scale({self.mask_state.scale})")
+
+            mask_group = dw.Group(opacity=self.mask_state.opacity)
+            if transforms:
+                mask_group.args["transform"] = " ".join(transforms)
+            mask_group.append(mask_elem)
+            mask.append(mask_group)
+
+            drawing.append_def(mask)
+
+            masked_group = dw.Group(mask=f"url(#{mask_id})")
+            masked_group.append(result)
+            result = masked_group
+
+        # Apply clip
+        if self.clip_state is not None:
+            clip_id = f"clip-{uuid.uuid4().hex[:8]}"
+            clip_path = dw.ClipPath(id=clip_id)
+
+            # Render the clip shape
+            renderer = get_renderer_instance_for_state(self.clip_state)
+            clip_elem = renderer._render_core(self.clip_state, drawing=drawing)
+
+            # Apply clip's own transforms
+            if (
+                self.clip_state.x != 0
+                or self.clip_state.y != 0
+                or self.clip_state.rotation != 0
+                or self.clip_state.scale != 1.0
+            ):
+                transforms = []
+                if self.clip_state.x != 0 or self.clip_state.y != 0:
+                    transforms.append(
+                        f"translate({self.clip_state.x},{self.clip_state.y})"
+                    )
+                if self.clip_state.rotation != 0:
+                    transforms.append(f"rotate({self.clip_state.rotation})")
+                if self.clip_state.scale != 1.0:
+                    transforms.append(f"scale({self.clip_state.scale})")
+                clip_group = dw.Group(transform=" ".join(transforms))
+                clip_group.append(clip_elem)
+                clip_path.append(clip_group)
+            else:
+                clip_path.append(clip_elem)
+
+            drawing.append_def(clip_path)
+
+            clipped_group = dw.Group(clip_path=f"url(#{clip_id})")
+            clipped_group.append(result)
+            result = clipped_group
+
+        return result
+
     def get_animation_time_range(self) -> tuple[float, float]:
         """Get the time range covered by all elements
 
@@ -330,6 +432,7 @@ class VScene:
     def _repr_svg_(self):
         """Display in Jupyter notebook (auto-called by Jupyter)."""
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).repr_svg()
 
     def display_inline(self, frame_time: float = 0.0):
@@ -342,6 +445,7 @@ class VScene:
             JupyterSvgInline object that displays in notebooks
         """
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).display_inline(frame_time)
 
     def display_iframe(self, frame_time: float = 0.0):
@@ -354,6 +458,7 @@ class VScene:
             JupyterSvgFrame object that displays in notebooks
         """
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).display_iframe(frame_time)
 
     def display_image(self, frame_time: float = 0.0):
@@ -366,6 +471,7 @@ class VScene:
             JupyterSvgImage object that displays in notebooks
         """
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).display_image(frame_time)
 
     def preview_grid(self, num_frames: int = 10, scale: float = 1.0):
@@ -382,6 +488,7 @@ class VScene:
             HTML object that displays in Jupyter notebooks
         """
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).preview_grid(num_frames, scale)
 
     def preview_animation(self, num_frames: int = 10, play_interval_ms: int = 100):
@@ -398,6 +505,7 @@ class VScene:
             HTML object that displays in Jupyter notebooks
         """
         from vood.vscene.preview import PreviewRenderer
+
         return PreviewRenderer(self).preview_animation(num_frames, play_interval_ms)
 
     def __repr__(self) -> str:

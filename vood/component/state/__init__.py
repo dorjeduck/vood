@@ -9,6 +9,7 @@ from .cross import CrossState
 from .ellipse import EllipseState
 from .line import LineState
 from .path import PathState
+from .point import PointState
 from .perforated import (
     PerforatedVertexState,
     PerforatedCircleState,
@@ -45,6 +46,7 @@ from .heart import HeartState
 from .infinity import InfinityState
 from .spiral import SpiralState
 from .wave import WaveState
+from .shape_collection import ShapeCollectionState
 
 
 __all__ = [
@@ -60,6 +62,7 @@ __all__ = [
     "EllipseState",
     "LineState",
     "PathState",
+    "PointState",
     "PerforatedVertexState",
     "PerforatedCircleState",
     "PerforatedStarState",
@@ -92,4 +95,5 @@ __all__ = [
     "InfinityState",
     "SpiralState",
     "WaveState",
+    "ShapeCollectionState",
 ]

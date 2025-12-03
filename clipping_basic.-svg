@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     width="400.0" height="400.0" viewBox="-200.0 -200.0 400.0 400.0">
+<defs>
+<clipPath id="clip-deca5f7d">
+<circle cx="0" cy="0" r="10" fill="none" />
+</clipPath>
+</defs>
+<rect x="-200.0" y="-200.0" width="400.0" height="400.0" fill="none" fill-opacity="1.0" />
+<g>
+<g opacity="1.0" transform="translate(-100,0.0)">
+<g clip-path="url(#clip-deca5f7d)">
+<rect x="-100.0" y="-100.0" width="200" height="200" fill="rgb(255,107,107)" />
+</g>
+</g>
+</g>
+</svg>

@@ -8,7 +8,7 @@ from vood.component.vertex import VertexContours
 from vood.core.point2d import Point2D
 from vood.component.registry import renderer
 from vood.component.renderer.wave import WaveRenderer
-
+from vood.component.state.line import line_endpoints_to_center_rotation_length
 
 @renderer(WaveRenderer)
 @dataclass(frozen=True)
@@ -26,6 +26,26 @@ class WaveState(VertexState):
         "amplitude": easing.in_out,
         "frequency": easing.in_out,
     }
+
+    @staticmethod
+    def from_endpoints(
+        x1:float,y1:float,x2:float,y2:float,
+        amplitude:float,
+        frequency:float,
+        scale:Optional[float]=None,
+        opacity:Optional[float]=None,
+    )-> WaveState:
+        cx, cy, calc_rotation, length =  line_endpoints_to_center_rotation_length(x1,y1,x2,y2)
+        return WaveState(
+            x=cx,
+            y=cy,
+            rotation=calc_rotation,
+            length=length,
+            amplitude=amplitude,
+            frequency=frequency,
+            scale=scale,
+            opacity=opacity,
+        )
 
     def _generate_contours(self) -> VertexContours:
         """Generate wave vertices"""

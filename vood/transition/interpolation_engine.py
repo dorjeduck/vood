@@ -12,6 +12,10 @@ from vood.path import SVGPath
 from vood.transition import lerp, step, angle, inbetween, circular_midpoint
 from vood.transition.morpher import NativeMorpher, FlubberMorpher
 from vood.core.color import Color
+from vood.transition.shape_list_interpolator import (
+    ShapeListInterpolator,
+    _normalize_to_state_list,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +31,7 @@ class InterpolationEngine:
             easing_resolver: EasingResolver instance for determining easing functions
         """
         self.easing_resolver = easing_resolver
+        self._shape_list_interpolator = ShapeListInterpolator(self)
 
     def create_eased_state(
         self,
@@ -65,7 +70,11 @@ class InterpolationEngine:
             # Skip non-interpolatable fields (structural/configuration properties)
             if field_name in start_state.NON_INTERPOLATABLE_FIELDS:
                 start_value = getattr(start_state, field_name)
-                interpolated_values[field_name] = start_value if t < 0.5 else getattr(end_state, field_name, start_value)
+                interpolated_values[field_name] = (
+                    start_value
+                    if t < 0.5
+                    else getattr(end_state, field_name, start_value)
+                )
                 continue
 
             start_value = getattr(start_state, field_name)
@@ -88,7 +97,13 @@ class InterpolationEngine:
 
             # Interpolate the value
             interpolated_values[field_name] = self.interpolate_value(
-                start_state, end_state, field_name, start_value, end_value, eased_t, vertex_buffer
+                start_state,
+                end_state,
+                field_name,
+                start_value,
+                end_value,
+                eased_t,
+                vertex_buffer,
             )
 
         # return replace(start_state, **interpolated_values)
@@ -123,6 +138,21 @@ class InterpolationEngine:
         Returns:
             Interpolated value
         """
+        # Check for List[State] interpolation (clip_states, mask_states, etc.)
+        # IMPORTANT: Only normalize if we have actual lists, not single State objects
+        # This prevents infinite recursion when interpolating states within lists
+        is_list_field = isinstance(start_value, list) or isinstance(end_value, list)
+
+        if is_list_field:
+            start_list = _normalize_to_state_list(start_value)
+            end_list = _normalize_to_state_list(end_value)
+
+            if start_list is not None and end_list is not None:
+                # Both are state lists (or normalizable to lists)
+                return self._shape_list_interpolator.interpolate_state_list(
+                    start_list, end_list, eased_t
+                )
+
         if (
             field_name == "_aligned_contours"
             and isinstance(start_value, VertexContours)
@@ -144,62 +174,43 @@ class InterpolationEngine:
                     f"Ensure both states have the same num_vertices parameter."
                 )
 
-            # Interpolate outer vertices
-            if vertex_buffer:
-                # Optimized path: Use pre-allocated buffer with in-place operations
-                outer_buffer, hole_buffers = vertex_buffer
-                num_verts = len(start_value.outer.vertices)
-
-                # Resize buffer if needed (grow only, never shrink)
-                if len(outer_buffer) < num_verts:
-                    from vood.core.point2d import Point2D
-                    outer_buffer.extend(Point2D(0.0, 0.0) for _ in range(num_verts - len(outer_buffer)))
-
-                # In-place interpolation using ilerp
-                for i, (v1, v2) in enumerate(zip(start_value.outer.vertices, end_value.outer.vertices)):
-                    p = outer_buffer[i]
-                    p.x = v1.x
-                    p.y = v1.y
-                    p.ilerp(v2, eased_t)  # Mutate in place
-
-                # Use slice of buffer (not the whole buffer, only the vertices we need)
-                interpolated_vertices = outer_buffer[:num_verts]
-            else:
-                # Fallback: Original behavior (for backward compatibility)
-                interpolated_vertices = [
-                    (
-                        lerp(v1.x, v2.x, eased_t),
-                        lerp(v1.y, v2.y, eased_t),
-                    )
-                    for v1, v2 in zip(start_value.outer.vertices, end_value.outer.vertices)
-                ]
-
             # Force closure ONLY if BOTH states are closed
             start_closed = getattr(
                 start_state, "closed", True
             )  # Default True for closed shapes
             end_closed = getattr(end_state, "closed", True)
 
-            if start_closed and end_closed and len(interpolated_vertices) > 1:
-                interpolated_vertices[-1] = interpolated_vertices[0]
+            # Interpolate outer vertices
+            outer_buffer = vertex_buffer[0] if vertex_buffer else None
+            interpolated_vertices = self._interpolate_vertex_list(
+                start_value.outer.vertices,
+                end_value.outer.vertices,
+                eased_t,
+                buffer=outer_buffer,
+                ensure_closure=(start_closed and end_closed),
+            )
 
-            # Interpolate holes
-            interpolated_holes = []
-            start_holes = start_value.holes
-            end_holes = end_value.holes
+            # Interpolate  vertex_loops
+            interpolated_vertex_loops = []
+            start_vertex_loops = start_value.holes
+            end_vertex_loops = end_value.holes
 
-            # Holes should have been matched during alignment, so counts should match
-            if len(start_holes) != len(end_holes):
+            # vertex loops should have been matched during alignment, so counts should match
+            if len(start_vertex_loops) != len(end_vertex_loops):
                 # Fallback: if counts don't match, just use start or end based on t
                 logger.warning(
-                    f"Hole count mismatch during interpolation: {len(start_holes)} != {len(end_holes)}. "
+                    f"Hole count mismatch during interpolation: {len(start_vertex_loops )} != {len(end_vertex_loops )}. "
                     f"This should not happen if vertex alignment was performed correctly. "
                     f"Using step interpolation at t=0.5 as fallback."
                 )
-                interpolated_holes = start_holes if eased_t < 0.5 else end_holes
+                interpolated_vertex_loops = (
+                    start_vertex_loops if eased_t < 0.5 else end_vertex_loops
+                )
             else:
                 # Interpolate each matched hole pair
-                for hole_idx, (hole1, hole2) in enumerate(zip(start_holes, end_holes)):
+                for hole_idx, (hole1, hole2) in enumerate(
+                    zip(start_vertex_loops, end_vertex_loops)
+                ):
                     if len(hole1.vertices) != len(hole2.vertices):
                         # If vertex counts don't match, just switch at t=0.5
                         logger.warning(
@@ -207,54 +218,81 @@ class InterpolationEngine:
                             f"This should not happen if hole alignment was performed correctly. "
                             f"Using step interpolation at t=0.5 as fallback."
                         )
-                        interpolated_holes.append(hole1 if eased_t < 0.5 else hole2)
+                        interpolated_vertex_loops.append(
+                            hole1 if eased_t < 0.5 else hole2
+                        )
                     else:
                         # Interpolate hole vertices
-                        if vertex_buffer and hole_idx < len(hole_buffers):
-                            # Optimized path: Use pre-allocated hole buffer
-                            hole_buffer = hole_buffers[hole_idx]
-                            num_hole_verts = len(hole1.vertices)
+                        hole_buffers = vertex_buffer[1] if vertex_buffer else []
+                        hole_buffer = (
+                            hole_buffers[hole_idx]
+                            if (vertex_buffer and hole_idx < len(hole_buffers))
+                            else None
+                        )
+                        interp_hole_verts = self._interpolate_vertex_list(
+                            hole1.vertices,
+                            hole2.vertices,
+                            eased_t,
+                            buffer=hole_buffer,
+                            ensure_closure=True,  # Holes always closed
+                        )
 
-                            # Resize hole buffer if needed
-                            if len(hole_buffer) < num_hole_verts:
-                                from vood.core.point2d import Point2D
-                                hole_buffer.extend(Point2D(0.0, 0.0) for _ in range(num_hole_verts - len(hole_buffer)))
+                        interpolated_vertex_loops.append(
+                            VertexLoop(interp_hole_verts, closed=True)
+                        )
 
-                            # In-place interpolation for hole vertices
-                            for i, (v1, v2) in enumerate(zip(hole1.vertices, hole2.vertices)):
-                                p = hole_buffer[i]
-                                p.x = v1.x
-                                p.y = v1.y
-                                p.ilerp(v2, eased_t)
-
-                            interp_hole_verts = hole_buffer[:num_hole_verts]
-                        else:
-                            # Fallback: Original behavior
-                            interp_hole_verts = [
-                                (
-                                    lerp(v1.x, v2.x, eased_t),
-                                    lerp(v1.y, v2.y, eased_t),
-                                )
-                                for v1, v2 in zip(hole1.vertices, hole2.vertices)
-                            ]
-
-                        # Ensure hole closure
-                        if len(interp_hole_verts) > 1:
-                            interp_hole_verts[-1] = interp_hole_verts[0]
-
-                        interpolated_holes.append(VertexLoop(interp_hole_verts, closed=True))
-
-            # Return a VertexContours object with interpolated outer and holes
+            # Return a VertexContours object with interpolated outer and  vertex_loops
             return VertexContours(
-                outer=VertexLoop(interpolated_vertices, closed=start_closed and end_closed),
-                holes=interpolated_holes if interpolated_holes else None
+                outer=VertexLoop(
+                    interpolated_vertices, closed=start_closed and end_closed
+                ),
+                holes=(
+                    interpolated_vertex_loops if interpolated_vertex_loops else None
+                ),
             )
 
-        # 1. SVG Path interpolation
+        # 1. State interpolation (for clip_state, mask_state)
+        if isinstance(start_value, State) and isinstance(end_value, State):
+            # Check if this is a morph between different VertexState types
+            from vood.component.state.base_vertex import VertexState
+
+            if (
+                isinstance(start_value, VertexState)
+                and isinstance(end_value, VertexState)
+                and type(start_value) != type(end_value)
+            ):
+                # Need to align vertices for morphing
+                from vood.transition.align_vertices import get_aligned_vertices
+
+                contours1_aligned, contours2_aligned = get_aligned_vertices(
+                    start_value, end_value
+                )
+                start_value = replace(start_value, _aligned_contours=contours1_aligned)
+                end_value = replace(end_value, _aligned_contours=contours2_aligned)
+
+            # Recursively interpolate the clip/mask state
+            return self.create_eased_state(
+                start_value,
+                end_value,
+                eased_t,
+                segment_easing_overrides=None,
+                property_keystates_fields=set(),
+                vertex_buffer=None,  # Don't use vertex buffer for clips
+            )
+
+        # Handle State ↔ None transitions
+        if isinstance(start_value, State) and end_value is None:
+            # Fade out: opacity → 0
+            return replace(start_value, opacity=lerp(start_value.opacity, 0.0, eased_t))
+        if start_value is None and isinstance(end_value, State):
+            # Fade in: opacity from 0
+            return replace(end_value, opacity=lerp(0.0, end_value.opacity, eased_t))
+
+        # 2. SVG Path interpolation
         if isinstance(start_value, SVGPath):
             return self._interpolate_path(start_state, start_value, end_value, eased_t)
 
-        # 2. Color interpolation
+        # 3. Color interpolation
         if isinstance(start_value, Color):
             return start_value.interpolate(end_value, eased_t)
 
@@ -363,3 +401,59 @@ class InterpolationEngine:
         ) ** 0.5
 
         return distance <= tolerance
+
+    def _interpolate_vertex_list(
+        self,
+        vertices1: List,
+        vertices2: List,
+        eased_t: float,
+        buffer: Optional[List] = None,
+        ensure_closure: bool = False,
+    ) -> List:
+        """Interpolate between two vertex lists with optional buffer optimization
+
+        Args:
+            vertices1: Start vertices
+            vertices2: End vertices (must match length)
+            eased_t: Interpolation parameter
+            buffer: Optional pre-allocated buffer for in-place operations
+            ensure_closure: If True, force last vertex to equal first
+
+        Returns:
+            List of interpolated vertices (tuples or Point2D objects)
+        """
+        if len(vertices1) != len(vertices2):
+            raise ValueError(
+                f"Vertex lists must have same length: {len(vertices1)} != {len(vertices2)}"
+            )
+
+        if buffer:
+            # Optimized path: Use pre-allocated buffer with in-place operations
+            num_verts = len(vertices1)
+
+            # Resize buffer if needed (grow only, never shrink)
+            if len(buffer) < num_verts:
+                from vood.core.point2d import Point2D
+
+                buffer.extend(Point2D(0.0, 0.0) for _ in range(num_verts - len(buffer)))
+
+            # In-place interpolation using ilerp
+            for i, (v1, v2) in enumerate(zip(vertices1, vertices2)):
+                p = buffer[i]
+                p.x = v1.x
+                p.y = v1.y
+                p.ilerp(v2, eased_t)  # Mutate in place
+
+            interpolated_vertices = buffer[:num_verts]
+        else:
+            # Fallback: Original behavior (for backward compatibility)
+            interpolated_vertices = [
+                (lerp(v1.x, v2.x, eased_t), lerp(v1.y, v2.y, eased_t))
+                for v1, v2 in zip(vertices1, vertices2)
+            ]
+
+        # Ensure closure if requested
+        if ensure_closure and len(interpolated_vertices) > 1:
+            interpolated_vertices[-1] = interpolated_vertices[0]
+
+        return interpolated_vertices

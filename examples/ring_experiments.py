@@ -31,15 +31,15 @@ def main():
 
     s1 = PerforatedCircleState(
         radius=200,
-        holes=[
+        vertex_loops=[
             Circle(radius=100),
         ],
         fill_color=FILL_COLOR,
         stroke_color=STROKE_COLOR,
         stroke_width=6,
-        holes_stroke_width=0,
-        holes_fill_color=Color(255, 100, 255),
-        holes_fill_opacity=0.4,
+        vertex_loops_stroke_width=0,
+        vertex_loops_fill_color=Color(255, 100, 255),
+        vertex_loops_fill_opacity=0.4,
         x=-10,
     )
 

@@ -13,7 +13,7 @@ from vood.component.vertex.vertex_loop import VertexLoop
 from vood.component.vertex.vertex_contours import VertexContours
 from vood.transition.interpolation_engine import InterpolationEngine
 from vood.transition.easing_resolver import EasingResolver
-from vood.transition.hole_mapping import GreedyNearestMapper
+from vood.transition.vertex_loop_mapping import GreedyNearestMapper
 from vood.transition.vertex_alignment import (
     AngularAligner,
     AlignmentContext,
@@ -169,7 +169,7 @@ class TestHoleMappingPerformance:
         assert len(result[0]) == len(result[1])
 
     def test_hole_mapping_many_holes(self, benchmark):
-        """Benchmark hole mapping with many holes"""
+        """Benchmark hole mapping with many  holes="""
         mapper = GreedyNearestMapper()
 
         holes1 = [self.create_hole_at(i * 10, (i * 7) % 200) for i in range(50)]
@@ -276,7 +276,6 @@ class TestVElementPerformance:
 
         result = benchmark(element.get_frame, 0.5)
         assert result is not None
-
 
 
 @pytest.mark.benchmark

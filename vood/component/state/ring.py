@@ -27,8 +27,6 @@ class RingState(VertexState):
         "outer_radius": easing.in_out,
     }
 
-
-
     def _generate_contours(self) -> VertexContours:
         """Generate ring contours with outer and inner circles
 

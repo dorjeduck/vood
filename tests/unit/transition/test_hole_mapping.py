@@ -1,9 +1,9 @@
 """Unit tests for hole mapping strategies"""
 
 import pytest
-from vood.transition.hole_mapping import (
+from vood.transition.vertex_loop_mapping import (
     GreedyNearestMapper,
-    create_zero_hole,
+    create_zero_vertex_loop,
 )
 from vood.component.vertex.vertex_loop import VertexLoop
 from vood.core.point2d import Point2D
@@ -65,9 +65,9 @@ def hole_at_150_150():
 class TestZeroHoleCreation:
     """Test zero-sized hole creation utility"""
 
-    def test_create_zero_hole_at_centroid(self, hole_at_origin):
+    def test_create_zero_vertex_loop_at_centroid(self, hole_at_origin):
         """Test that zero hole is created at centroid"""
-        zero = create_zero_hole(hole_at_origin)
+        zero = create_zero_vertex_loop(hole_at_origin)
 
         # All vertices should be at centroid (5, 5)
         centroid = hole_at_origin.centroid()
@@ -75,14 +75,14 @@ class TestZeroHoleCreation:
             assert vertex.x == centroid.x
             assert vertex.y == centroid.y
 
-    def test_create_zero_hole_preserves_count(self, hole_at_origin):
+    def test_create_zero_vertex_loop_preserves_count(self, hole_at_origin):
         """Test that zero hole has same vertex count as reference"""
-        zero = create_zero_hole(hole_at_origin)
+        zero = create_zero_vertex_loop(hole_at_origin)
         assert len(zero.vertices) == len(hole_at_origin.vertices)
 
-    def test_create_zero_hole_is_closed(self, hole_at_origin):
+    def test_create_zero_vertex_loop_is_closed(self, hole_at_origin):
         """Test that zero hole is marked as closed"""
-        zero = create_zero_hole(hole_at_origin)
+        zero = create_zero_vertex_loop(hole_at_origin)
         assert zero.closed is True
 
 
@@ -93,29 +93,29 @@ class TestGreedyMapperEqualCounts:
     def test_map_single_hole_to_single_hole(self, hole_at_origin, hole_at_100_100):
         """Test mapping 1 hole to 1 hole"""
         mapper = GreedyNearestMapper()
-        holes1 = [hole_at_origin]
-        holes2 = [hole_at_100_100]
+        vertex_loops1 = [hole_at_origin]
+        vertex_loops2 = [hole_at_100_100]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 1
         assert len(mapped2) == 1
         assert mapped1[0] is hole_at_origin
         assert mapped2[0] is hole_at_100_100
 
-    def test_map_two_holes_to_two_holes(
+    def test_map_two_vertex_loops_to_two_vertex_loops(
         self, hole_at_origin, hole_at_50_50, hole_at_100_100, hole_at_150_150
     ):
-        """Test mapping 2 holes to 2 holes by nearest centroids"""
+        """Test mapping 2 vertex loops to 2 vertex loops by nearest centroids"""
         mapper = GreedyNearestMapper()
 
-        # holes1: at (0,0) and (100,100)
-        # holes2: at (50,50) and (150,150)
+        # vertex_loops1: at (0,0) and (100,100)
+        # vertex_loops2: at (50,50) and (150,150)
         # Expected: (0,0) -> (50,50), (100,100) -> (150,150)
-        holes1 = [hole_at_origin, hole_at_100_100]
-        holes2 = [hole_at_50_50, hole_at_150_150]
+        vertex_loops1 = [hole_at_origin, hole_at_100_100]
+        vertex_loops2 = [hole_at_50_50, hole_at_150_150]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 2
         assert len(mapped2) == 2
@@ -133,10 +133,10 @@ class TestGreedyMapperEqualCounts:
     ):
         """Test that each hole is used exactly once with equal counts"""
         mapper = GreedyNearestMapper()
-        holes1 = [hole_at_origin, hole_at_100_100]
-        holes2 = [hole_at_50_50, hole_at_150_150]
+        vertex_loops1 = [hole_at_origin, hole_at_100_100]
+        vertex_loops2 = [hole_at_50_50, hole_at_150_150]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         # Each hole should appear exactly once
         assert len(set(id(h) for h in mapped1)) == len(mapped1)
@@ -145,20 +145,20 @@ class TestGreedyMapperEqualCounts:
 
 @pytest.mark.unit
 class TestGreedyMapperMoreSources:
-    """Test greedy mapper with N>M (more source holes - merging)"""
+    """Test greedy mapper with N>M (more source vertex loops - merging)"""
 
-    def test_map_two_holes_to_one(
+    def test_map_two_vertex_loops_to_one(
         self, hole_at_origin, hole_at_50_50, hole_at_100_100
     ):
-        """Test mapping 2 holes to 1 hole (merging)"""
+        """Test mapping 2 vertex loops to 1 hole (merging)"""
         mapper = GreedyNearestMapper()
 
-        # Two source holes, one dest hole
+        # Two source  vertex_loops , one dest hole
         # Both should map to the single dest
-        holes1 = [hole_at_origin, hole_at_50_50]
-        holes2 = [hole_at_100_100]
+        vertex_loops1 = [hole_at_origin, hole_at_50_50]
+        vertex_loops2 = [hole_at_100_100]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 2
         assert len(mapped2) == 2
@@ -169,16 +169,16 @@ class TestGreedyMapperMoreSources:
         assert mapped2[0] is hole_at_100_100
         assert mapped2[1] is hole_at_100_100  # Reused
 
-    def test_map_three_holes_to_two(
+    def test_map_three_vertex_loops_to_two(
         self, hole_at_origin, hole_at_50_50, hole_at_100_100, hole_at_150_150
     ):
-        """Test mapping 3 holes to 2 holes (some merging)"""
+        """Test mapping 3 vertex loops to 2 vertex loops (some merging)"""
         mapper = GreedyNearestMapper()
 
-        holes1 = [hole_at_origin, hole_at_50_50, hole_at_100_100]
-        holes2 = [hole_at_origin, hole_at_150_150]  # At 0 and 150
+        vertex_loops1 = [hole_at_origin, hole_at_50_50, hole_at_100_100]
+        vertex_loops2 = [hole_at_origin, hole_at_150_150]  # At 0 and 150
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 3
         assert len(mapped2) == 3
@@ -190,20 +190,18 @@ class TestGreedyMapperMoreSources:
 
 @pytest.mark.unit
 class TestGreedyMapperFewerSources:
-    """Test greedy mapper with N<M (fewer source holes - splitting)"""
+    """Test greedy mapper with N<M (fewer source vertex loops - splitting)"""
 
-    def test_map_one_hole_to_two(
-        self, hole_at_origin, hole_at_50_50, hole_at_100_100
-    ):
-        """Test mapping 1 hole to 2 holes (splitting)"""
+    def test_map_one_hole_to_two(self, hole_at_origin, hole_at_50_50, hole_at_100_100):
+        """Test mapping 1 hole to 2 vertex loops (splitting)"""
         mapper = GreedyNearestMapper()
 
-        # One source hole, two dest holes
+        # One source hole, two dest  vertex_loops
         # Source should be duplicated
-        holes1 = [hole_at_50_50]
-        holes2 = [hole_at_origin, hole_at_100_100]
+        vertex_loops1 = [hole_at_50_50]
+        vertex_loops2 = [hole_at_origin, hole_at_100_100]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 2
         assert len(mapped2) == 2
@@ -212,20 +210,20 @@ class TestGreedyMapperFewerSources:
         assert mapped1[0] is hole_at_50_50
         assert mapped1[1] is hole_at_50_50  # Reused
 
-        # Both dest holes should be present
+        # Both dest vertex loops should be present
         assert mapped2[0] is hole_at_origin
         assert mapped2[1] is hole_at_100_100
 
-    def test_map_two_holes_to_three(
+    def test_map_two_vertex_loops_to_three(
         self, hole_at_origin, hole_at_50_50, hole_at_100_100, hole_at_150_150
     ):
-        """Test mapping 2 holes to 3 holes (some splitting)"""
+        """Test mapping 2 vertex loops to 3 vertex loops (some splitting)"""
         mapper = GreedyNearestMapper()
 
-        holes1 = [hole_at_origin, hole_at_150_150]
-        holes2 = [hole_at_origin, hole_at_50_50, hole_at_150_150]
+        vertex_loops1 = [hole_at_origin, hole_at_150_150]
+        vertex_loops2 = [hole_at_origin, hole_at_50_50, hole_at_150_150]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 3
         assert len(mapped2) == 3
@@ -240,35 +238,35 @@ class TestGreedyMapperZeroHoles:
     """Test greedy mapper with N=0 or M=0 (creation/destruction)"""
 
     def test_map_zero_to_zero(self):
-        """Test mapping 0 holes to 0 holes"""
+        """Test mapping 0 vertex loops to 0  vertex_loops"""
         mapper = GreedyNearestMapper()
-        holes1 = []
-        holes2 = []
+        vertex_loops1 = []
+        vertex_loops2 = []
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         assert len(mapped1) == 0
         assert len(mapped2) == 0
 
-    def test_map_holes_to_zero(self, hole_at_origin, hole_at_50_50):
-        """Test mapping N holes to 0 holes (holes disappear)"""
+    def test_map_vertex_loops_to_zero(self, hole_at_origin, hole_at_50_50):
+        """Test mapping N vertex loops to 0 vertex loops ( vertex_loops  disappear)"""
         mapper = GreedyNearestMapper()
 
-        holes1 = [hole_at_origin, hole_at_50_50]
-        holes2 = []
+        vertex_loops1 = [hole_at_origin, hole_at_50_50]
+        vertex_loops2 = []
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
-        # Should have same number of mappings as source holes
+        # Should have same number of mappings as source  vertex_loops
         assert len(mapped1) == 2
         assert len(mapped2) == 2
 
-        # Source holes should be preserved
+        # Source vertex loops should be preserved
         assert mapped1[0] is hole_at_origin
         assert mapped1[1] is hole_at_50_50
 
-        # Dest should be zero-sized holes at source centroids
-        for i, source_hole in enumerate(holes1):
+        # Dest should be zero-sized vertex loops at source centroids
+        for i, source_hole in enumerate(vertex_loops1):
             centroid = source_hole.centroid()
             zero_hole = mapped2[i]
 
@@ -277,25 +275,25 @@ class TestGreedyMapperZeroHoles:
                 assert vertex.x == centroid.x
                 assert vertex.y == centroid.y
 
-    def test_map_zero_to_holes(self, hole_at_origin, hole_at_50_50):
-        """Test mapping 0 holes to M holes (holes appear)"""
+    def test_map_zero_to_vertex_loops(self, hole_at_origin, hole_at_50_50):
+        """Test mapping 0 vertex loops to M vertex loops ( vertex_loops  appear)"""
         mapper = GreedyNearestMapper()
 
-        holes1 = []
-        holes2 = [hole_at_origin, hole_at_50_50]
+        vertex_loops1 = []
+        vertex_loops2 = [hole_at_origin, hole_at_50_50]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
-        # Should have same number of mappings as dest holes
+        # Should have same number of mappings as dest  vertex_loops
         assert len(mapped1) == 2
         assert len(mapped2) == 2
 
-        # Dest holes should be preserved
+        # Dest vertex loops should be preserved
         assert mapped2[0] is hole_at_origin
         assert mapped2[1] is hole_at_50_50
 
-        # Source should be zero-sized holes at dest centroids
-        for i, dest_hole in enumerate(holes2):
+        # Source should be zero-sized vertex loops at dest centroids
+        for i, dest_hole in enumerate(vertex_loops2):
             centroid = dest_hole.centroid()
             zero_hole = mapped1[i]
 
@@ -309,56 +307,91 @@ class TestGreedyMapperZeroHoles:
 class TestGreedyMapperEdgeCases:
     """Test edge cases in hole mapping"""
 
-    def test_map_overlapping_holes(self):
-        """Test mapping holes that overlap spatially"""
+    def test_map_overlapping_vertex_loops(self):
+        """Test mapping vertex loops that overlap spatially"""
         mapper = GreedyNearestMapper()
 
-        # Create two holes at the same position
+        # Create two vertex loops at the same position
         hole1a = VertexLoop(
-            [Point2D(0, 0), Point2D(10, 0), Point2D(10, 10), Point2D(0, 10), Point2D(0, 0)],
-            closed=True
+            [
+                Point2D(0, 0),
+                Point2D(10, 0),
+                Point2D(10, 10),
+                Point2D(0, 10),
+                Point2D(0, 0),
+            ],
+            closed=True,
         )
         hole1b = VertexLoop(
-            [Point2D(5, 5), Point2D(15, 5), Point2D(15, 15), Point2D(5, 15), Point2D(5, 5)],
-            closed=True
+            [
+                Point2D(5, 5),
+                Point2D(15, 5),
+                Point2D(15, 15),
+                Point2D(5, 15),
+                Point2D(5, 5),
+            ],
+            closed=True,
         )
 
         hole2a = VertexLoop(
-            [Point2D(2, 2), Point2D(12, 2), Point2D(12, 12), Point2D(2, 12), Point2D(2, 2)],
-            closed=True
+            [
+                Point2D(2, 2),
+                Point2D(12, 2),
+                Point2D(12, 12),
+                Point2D(2, 12),
+                Point2D(2, 2),
+            ],
+            closed=True,
         )
         hole2b = VertexLoop(
-            [Point2D(7, 7), Point2D(17, 7), Point2D(17, 17), Point2D(7, 17), Point2D(7, 7)],
-            closed=True
+            [
+                Point2D(7, 7),
+                Point2D(17, 7),
+                Point2D(17, 17),
+                Point2D(7, 17),
+                Point2D(7, 7),
+            ],
+            closed=True,
         )
 
-        holes1 = [hole1a, hole1b]
-        holes2 = [hole2a, hole2b]
+        vertex_loops1 = [hole1a, hole1b]
+        vertex_loops2 = [hole2a, hole2b]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         # Should still produce valid mapping
         assert len(mapped1) == 2
         assert len(mapped2) == 2
 
-    def test_map_very_distant_holes(self):
-        """Test mapping holes that are very far apart"""
+    def test_map_very_distant_vertex_loops(self):
+        """Test mapping vertex loops that are very far apart"""
         mapper = GreedyNearestMapper()
 
         hole1 = VertexLoop(
-            [Point2D(0, 0), Point2D(10, 0), Point2D(10, 10), Point2D(0, 10), Point2D(0, 0)],
-            closed=True
+            [
+                Point2D(0, 0),
+                Point2D(10, 0),
+                Point2D(10, 10),
+                Point2D(0, 10),
+                Point2D(0, 0),
+            ],
+            closed=True,
         )
         hole2 = VertexLoop(
-            [Point2D(10000, 10000), Point2D(10010, 10000),
-             Point2D(10010, 10010), Point2D(10000, 10010), Point2D(10000, 10000)],
-            closed=True
+            [
+                Point2D(10000, 10000),
+                Point2D(10010, 10000),
+                Point2D(10010, 10010),
+                Point2D(10000, 10010),
+                Point2D(10000, 10000),
+            ],
+            closed=True,
         )
 
-        holes1 = [hole1]
-        holes2 = [hole2]
+        vertex_loops1 = [hole1]
+        vertex_loops2 = [hole2]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         # Should still map correctly despite distance
         assert len(mapped1) == 1
@@ -367,24 +400,29 @@ class TestGreedyMapperEdgeCases:
         assert mapped2[0] is hole2
 
     def test_map_with_different_vertex_counts(self):
-        """Test mapping holes with different vertex counts"""
+        """Test mapping vertex loops with different vertex counts"""
         mapper = GreedyNearestMapper()
 
         # Triangle hole
         hole1 = VertexLoop(
-            [Point2D(0, 0), Point2D(10, 0), Point2D(5, 10), Point2D(0, 0)],
-            closed=True
+            [Point2D(0, 0), Point2D(10, 0), Point2D(5, 10), Point2D(0, 0)], closed=True
         )
         # Square hole
         hole2 = VertexLoop(
-            [Point2D(0, 0), Point2D(10, 0), Point2D(10, 10), Point2D(0, 10), Point2D(0, 0)],
-            closed=True
+            [
+                Point2D(0, 0),
+                Point2D(10, 0),
+                Point2D(10, 10),
+                Point2D(0, 10),
+                Point2D(0, 0),
+            ],
+            closed=True,
         )
 
-        holes1 = [hole1]
-        holes2 = [hole2]
+        vertex_loops1 = [hole1]
+        vertex_loops2 = [hole2]
 
-        mapped1, mapped2 = mapper.map(holes1, holes2)
+        mapped1, mapped2 = mapper.map(vertex_loops1, vertex_loops2)
 
         # Should map successfully
         assert len(mapped1) == 1

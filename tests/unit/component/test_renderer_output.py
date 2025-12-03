@@ -5,19 +5,28 @@ import drawsvg as dw
 
 from vood.core.color import Color
 from vood.component.state import (
-    CircleState, RectangleState, TriangleState, PolygonState,
-    StarState, EllipseState, LineState, TextState, RingState,
+    CircleState,
+    RectangleState,
+    TriangleState,
+    PolygonState,
+    StarState,
+    EllipseState,
+    LineState,
+    TextState,
+    RingState,
 )
 from vood.component.renderer import (
-    CircleRenderer, RectangleRenderer, TriangleRenderer,
-    PolygonRenderer, EllipseRenderer,
+    CircleRenderer,
+    RectangleRenderer,
+    TriangleRenderer,
+    PolygonRenderer,
+    EllipseRenderer,
     TextRenderer,
 )
 from vood.component.registry import get_renderer_class_for_state
 
 
 @pytest.mark.unit
-
 @pytest.mark.unit
 class TestCircleRenderer:
     """Test CircleRenderer SVG output"""
@@ -34,10 +43,12 @@ class TestCircleRenderer:
     def test_render_circle_with_colors(self):
         """Test circle rendering with custom colors"""
         state = CircleState(
-            x=100, y=100, radius=50,
+            x=100,
+            y=100,
+            radius=50,
             fill_color=Color("#FF0000"),
             stroke_color=Color("#0000FF"),
-            stroke_width=3
+            stroke_width=3,
         )
         renderer = CircleRenderer()
         element = renderer.render(state)
@@ -47,10 +58,7 @@ class TestCircleRenderer:
     def test_render_circle_with_transforms(self):
         """Test circle rendering with transforms"""
         state = CircleState(
-            x=100, y=100, radius=50,
-            scale=2.0,
-            rotation=45,
-            opacity=0.5
+            x=100, y=100, radius=50, scale=2.0, rotation=45, opacity=0.5
         )
         renderer = CircleRenderer()
         element = renderer.render(state)
@@ -72,10 +80,7 @@ class TestRectangleRenderer:
 
     def test_render_rectangle_with_rotation(self):
         """Test rectangle rendering with rotation"""
-        state = RectangleState(
-            x=100, y=100, width=150, height=80,
-            rotation=30
-        )
+        state = RectangleState(x=100, y=100, width=150, height=80, rotation=30)
         renderer = RectangleRenderer()
         element = renderer.render(state)
 
@@ -178,11 +183,7 @@ class TestTextRenderer:
 
     def test_render_text_with_font_size(self):
         """Test text rendering with custom font size"""
-        state = TextState(
-            x=100, y=100,
-            text="Hello",
-            font_size=48
-        )
+        state = TextState(x=100, y=100, text="Hello", font_size=48)
         renderer = TextRenderer()
         element = renderer.render(state)
 
@@ -204,10 +205,7 @@ class TestRendererTransforms:
 
     def test_renderer_applies_rotation(self):
         """Test that renderers apply rotation"""
-        state = RectangleState(
-            x=100, y=100, width=100, height=60,
-            rotation=45
-        )
+        state = RectangleState(x=100, y=100, width=100, height=60, rotation=45)
         renderer = RectangleRenderer()
         element = renderer.render(state)
 
@@ -284,9 +282,7 @@ class TestRendererColorHandling:
     def test_render_with_color_none(self):
         """Test rendering with transparent color"""
         state = CircleState(
-            radius=50,
-            fill_color=Color.NONE,
-            stroke_color=Color("#000000")
+            radius=50, fill_color=Color.NONE, stroke_color=Color("#000000")
         )
         renderer = CircleRenderer()
         element = renderer.render(state)
@@ -295,11 +291,7 @@ class TestRendererColorHandling:
 
     def test_render_with_both_colors_none(self):
         """Test rendering with both colors transparent"""
-        state = CircleState(
-            radius=50,
-            fill_color=Color.NONE,
-            stroke_color=Color.NONE
-        )
+        state = CircleState(radius=50, fill_color=Color.NONE, stroke_color=Color.NONE)
         renderer = CircleRenderer()
         element = renderer.render(state)
 
@@ -336,13 +328,9 @@ class TestVertexRenderer:
 
         assert element is not None
 
-    def test_vertex_renderer_with_holes(self):
-        """Test vertex renderer for state with holes"""
-        state = RingState(
-            outer_radius=100,
-            inner_radius=50,
-            _num_vertices=16
-        )
+    def test_vertex_renderer_with_vertex_loops(self):
+        """Test vertex renderer for state with  vertex_loops"""
+        state = RingState(outer_radius=100, inner_radius=50, _num_vertices=16)
 
         vertex_renderer_class = state.get_vertex_renderer_class()
         assert vertex_renderer_class is not None

@@ -26,8 +26,8 @@ class VertexState(State):
     For open shapes (lines), fill_color creates a "ghost" closing edge for fill area
     without drawing the closing line. This allows smooth fill fade-in during morphing.
 
-    For shapes with holes:
-    - Holes are rendered using SVG masks (not evenodd fill-rule)
+    For shapes with  vertex_loops :
+    - vertex loops are rendered using SVG masks (not evenodd fill-rule)
     - Hole strokes need 2x width since mask cuts through middle
 
     Subclasses override _generate_contours() to define their geometry.

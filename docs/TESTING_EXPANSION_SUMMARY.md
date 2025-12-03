@@ -221,7 +221,7 @@ Features:
 Pre-configured test data:
 - `sample_circle_state`, `sample_rectangle_state`
 - `simple_vertex_loop`, `simple_vertex_contours`
-- `vertex_contours_with_hole`, `vertex_contours_with_multiple_holes`
+- `vertex_contours_with_hole`, `vertex_contours_with_multiple_vertex_loops `
 - `sample_colors`, `linear_easing`
 - `temp_config_dir`, `temp_export_dir`
 

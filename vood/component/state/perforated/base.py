@@ -23,7 +23,7 @@ class PerforatedVertexState(VertexState):
     """Base class for all perforated shapes (shapes with holes)
 
     Perforated shapes have an outer contour (defined by subclass) and
-    zero or more holes (specified via Shape objects).
+    zero or more vertex loops (specified via Shape objects).
 
     Subclasses implement _generate_outer_contour() to define their specific
     outer shape geometry (circle, star, ellipse, etc.).
@@ -48,7 +48,6 @@ class PerforatedVertexState(VertexState):
 
     holes: List[Shape] = field(default_factory=list)
 
-
     holes_fill_color: Optional[Color] = Color.NONE
     holes_fill_opacity: Optional[float] = 0
 
@@ -56,7 +55,7 @@ class PerforatedVertexState(VertexState):
     holes_stroke_opacity: Optional[float] = None
     holes_stroke_width: Optional[float] = None
 
-    # Mark holes as non-interpolatable (structural property)
+    # Mark vertex loops as non-interpolatable (structural property)
     NON_INTERPOLATABLE_FIELDS = frozenset(
         ["holes", "NON_INTERPOLATABLE_FIELDS", "DEFAULT_EASING"]
     )
@@ -73,15 +72,12 @@ class PerforatedVertexState(VertexState):
     def __post_init__(self):
         super().__post_init__()
 
-
         if self.holes_stroke_color is Color.NONE:
-            self._set_field("holes_stroke_color",self.stroke_color)
+            self._set_field("holes_stroke_color", self.stroke_color)
         if self.holes_stroke_opacity is None:
-            self._set_field("holes_stroke_opacity",self.stroke_opacity)
+            self._set_field("holes_stroke_opacity", self.stroke_opacity)
         if self.holes_stroke_width is None:
-            self._set_field("holes_stroke_width",self.stroke_width)
-
-
+            self._set_field("holes_stroke_width", self.stroke_width)
 
     @abstractmethod
     def _generate_outer_contour(self) -> VertexLoop:
@@ -97,19 +93,19 @@ class PerforatedVertexState(VertexState):
 
         Returns VertexContours with:
         - Outer: shape specified by subclass (counter-clockwise)
-        - Holes: list of shapes specified by holes field (clockwise)
+        - holes: list of shapes specified by vertex loops field (clockwise)
         """
         # Generate outer shape (counter-clockwise winding)
         outer = self._generate_outer_contour()
 
         # Generate hole shapes (clockwise winding for holes)
-        hole_loops = []
+        holes = []
         for hole_shape in self.holes:
             hole_loop = self._shape_to_loop(hole_shape)
             # Reverse for clockwise winding (creates hole in rendering)
-            hole_loops.append(hole_loop.reverse())
+            holes.append(hole_loop.reverse())
 
-        return VertexContours(outer=outer, holes=hole_loops)
+        return VertexContours(outer=outer, holes=holes)
 
     def _shape_to_loop(self, shape: Shape) -> VertexLoop:
         """Convert a Shape object to a VertexLoop
@@ -150,7 +146,9 @@ class PerforatedVertexState(VertexState):
             )
             if shape.rotation != 0:
                 # Rotate around the shape's center by translating to origin, rotating, translating back
-                translated = [Point2D(x - shape.x, y - shape.y) for x, y in loop.vertices]
+                translated = [
+                    Point2D(x - shape.x, y - shape.y) for x, y in loop.vertices
+                ]
                 rotated = rotate_vertices(translated, shape.rotation)
                 final = [Point2D(x + shape.x, y + shape.y) for x, y in rotated]
                 return VertexLoop(final, closed=True)

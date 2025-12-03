@@ -33,8 +33,6 @@ class SquareRingState(VertexState):
         "inner_rotation": easing.in_out,
     }
 
-
-
     def _generate_contours(self) -> VertexContours:
         """Generate square ring contours with outer and inner squares
 
@@ -63,8 +61,11 @@ class SquareRingState(VertexState):
 
         # Apply rotation to inner square if specified
         if self.inner_rotation != 0:
-            rotated_vertices = rotate_vertices(inner_square.vertices, self.inner_rotation)
+            rotated_vertices = rotate_vertices(
+                inner_square.vertices, self.inner_rotation
+            )
             from vood.component.vertex import VertexLoop
+
             inner_square = VertexLoop(rotated_vertices, closed=True)
 
         inner_square_reversed = inner_square.reverse()

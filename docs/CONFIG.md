@@ -160,10 +160,10 @@ Controls how shapes morph between different states, particularly when hole count
 [morphing]
 # Hole matching strategy for shapes with different hole counts
 # Options (ordered by sophistication): "clustering" (default), "hungarian", "greedy", "discrete", "simple"
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
-# Clustering-specific settings (only used when hole_mapper = "clustering")
+# Clustering-specific settings (only used when vertex_loop_mapper = "clustering")
 balance_clusters = true      # Enforce balanced cluster sizes (avoids 4-1 splits)
 max_iterations = 50          # Maximum k-means iterations
 random_seed = 42             # Random seed for reproducible clustering
@@ -186,7 +186,7 @@ from vood.component.state import PerforatedShapeState
 # Automatically uses config strategy (default: clustering)
 state1 = PerforatedShapeState(
     outer_shape={"type": "circle", "radius": 100},
-    holes=[
+     vertex_loops =[
         {"type": "circle", "radius": 20, "x": -30, "y": 0},
         {"type": "circle", "radius": 20, "x": 30, "y": 0},
     ]
@@ -201,14 +201,14 @@ from vood.transition.interpolation.hole_matching import HungarianMapper
 # Use different matcher for specific alignment
 contours1, contours2 = get_aligned_vertices(
     state1, state2,
-    hole_mapper=HungarianMapper()
+    vertex_loop_mapper=HungarianMapper()
 )
 ```
 
 **Strategy Details:**
 
 - **`clustering`** (Recommended): Uses k-means spatial clustering with optional balancing
-  - Groups N holes into M clusters based on proximity
+  - Groups N vertex loops into M clusters based on proximity
   - `balance_clusters=true` ensures roughly equal distribution (e.g., 2-3 instead of 1-4)
   - `max_iterations` controls k-means convergence
   - `random_seed` ensures reproducible results
@@ -225,15 +225,15 @@ contours1, contours2 = get_aligned_vertices(
   - No additional configuration options
 
 - **`discrete`**: Discrete transitions with selective matching
-  - Some holes move to new positions (matched pairs)
-  - Excess holes shrink to zero at their current positions
-  - New holes grow from zero at their final positions
+  - Some vertex loops move to new positions (matched pairs)
+  - Excess vertex loops shrink to zero at their current positions
+  - New vertex loops grow from zero at their final positions
   - Good for UI-style discrete animations
   - No additional configuration options
 
 - **`simple`**: Complete independence between old and new
-  - ALL old holes shrink to zero at their positions
-  - ALL new holes grow from zero at their positions
+  - ALL old vertex loops shrink to zero at their positions
+  - ALL new vertex loops grow from zero at their positions
   - No matching or movement between old and new
   - Simplest strategy (O(N+M) performance)
   - Best for completely different hole layouts
@@ -251,25 +251,25 @@ balance_clusters = false  # Pure k-means without rebalancing
 **Example - Use Hungarian (requires scipy):**
 ```toml
 [morphing]
-hole_mapper = "hungarian"
+vertex_loop_mapper = "hungarian"
 ```
 
 **Example - Use Greedy:**
 ```toml
 [morphing]
-hole_mapper = "greedy"
+vertex_loop_mapper = "greedy"
 ```
 
 **Example - Use Discrete (selective matching):**
 ```toml
 [morphing]
-hole_mapper = "discrete"
+vertex_loop_mapper = "discrete"
 ```
 
 **Example - Use Simple (all disappear/appear):**
 ```toml
 [morphing]
-hole_mapper = "simple"
+vertex_loop_mapper = "simple"
 ```
 
 **Per-Segment Alignment Overrides:**
@@ -286,10 +286,10 @@ element = VElement(
     keystates=[
         (0.0, state_a),
         # Segment 1: Use SimpleMapper for this specific transition
-        (0.33, state_b, None, {"hole_mapper": SimpleMapper()}),
+        (0.33, state_b, None, {"vertex_loop_mapper": SimpleMapper()}),
         # Segment 2: Both easing and custom matcher
         (0.66, state_c, {"opacity": easing.bounce}, {
-            "hole_mapper": DiscreteMapper()
+            "vertex_loop_mapper": DiscreteMapper()
         }),
         # Segment 3: Uses config default (no override)
         (1.0, state_d),
@@ -309,13 +309,13 @@ element = VElement(
         KeyState(
             state=state_b,
             time=0.33,
-            morphing={"hole_mapper": SimpleMapper()}
+            morphing={"vertex_loop_mapper": SimpleMapper()}
         ),
         KeyState(
             state=state_c,
             time=0.66,
             easing={"opacity": easing.bounce},
-            morphing={"hole_mapper": DiscreteMapper()}
+            morphing={"vertex_loop_mapper": DiscreteMapper()}
         ),
         KeyState(state=state_d, time=1.0),
     ]
@@ -346,7 +346,7 @@ keystates=[
     KeyState(
         state=state3,
         time=1.0,
-        morphing={"hole_mapper": SimpleMapper()}
+        morphing={"vertex_loop_mapper": SimpleMapper()}
     )
 ]
 ```
@@ -371,7 +371,7 @@ keystates=[
 - `morphing`: Morphing configuration dict (optional)
 
 **Morphing dict keys:**
-- `"hole_mapper"`: HoleMapper instance (SimpleMapper, DiscreteMapper, etc.)
+- `"vertex_loop_mapper"`: HoleMapper instance (SimpleMapper, DiscreteMapper, etc.)
 - `"vertex_aligner"`: VertexAligner instance (future use)
 
 See `examples/segment_hole_matcher.py` for complete example.
@@ -645,7 +645,7 @@ closed = true
 
 # Morphing/interpolation settings
 [morphing]
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
 balance_clusters = true

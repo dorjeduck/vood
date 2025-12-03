@@ -16,6 +16,7 @@ from .infinity import InfinityRenderer
 from .path import PathRenderer
 from .path_and_text_variants import PathAndTextVariantsRenderer
 from .perforated_primitive import PerforatedPrimitiveRenderer
+from .point import PointRenderer
 from .path_text import PathTextRenderer
 from .polygon import PolygonRenderer
 from .poly_ring import PolyRingRenderer
@@ -28,6 +29,7 @@ from .square_ring import SquareRingRenderer
 from .text import TextRenderer
 from .triangle import TriangleRenderer
 from .wave import WaveRenderer
+from .shape_collection import ShapeCollectionRenderer
 
 __all__ = [
     "Renderer",
@@ -44,6 +46,7 @@ __all__ = [
     "PathAndTextVariantsRenderer",
     "PathRenderer",
     "PerforatedPrimitiveRenderer",
+    "PointRenderer",
     "PathTextRenderer",
     "PolygonRenderer",
     "PolyRingRenderer",
@@ -56,4 +59,5 @@ __all__ = [
     "TextRenderer",
     "TriangleRenderer",
     "WaveRenderer",
+    "ShapeCollectionRenderer",
 ]

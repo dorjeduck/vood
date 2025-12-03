@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass, Field
-from typing import Any, Optional
+from typing import Any, Optional, List
 
 from vood.transition import easing
 from vood.core.color import Color
@@ -25,6 +25,12 @@ class State(ABC):
     opacity: Optional[float] = None
     rotation: Optional[float] = None
 
+    # Clipping and masking support
+    clip_state: Optional[State] = None
+    mask_state: Optional[State] = None
+    clip_states: Optional[List[State]] = None
+    mask_states: Optional[List[State]] = None
+
     # Fields that should not be interpolated (structural/configuration properties)
     NON_INTERPOLATABLE_FIELDS: frozenset[str] = frozenset(
         ["NON_INTERPOLATABLE_FIELDS", "DEFAULT_EASING"]
@@ -36,6 +42,10 @@ class State(ABC):
         "scale": easing.in_out,
         "opacity": easing.linear,
         "rotation": easing.in_out,
+        "clip_state": easing.linear,
+        "mask_state": easing.linear,
+        "clip_states": easing.linear,
+        "mask_states": easing.linear,
     }
 
     # can be overridden by subclasses to add further angle fields

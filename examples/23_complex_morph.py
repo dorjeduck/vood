@@ -30,7 +30,7 @@ def main():
     scene = VScene(width=1024, height=1024, background=Color("#000017"))
 
     # equivalent to a Ring but the stroke around the hole which is present here
-    # can smoothly morph into holes without surrounding strokes
+    # can smoothly morph into vertex loops without surrounding strokes
     s1 = PerforatedCircleState(
         radius=200,
         holes=[Circle(radius=100)],

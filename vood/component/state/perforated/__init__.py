@@ -1,4 +1,4 @@
-"""Perforated shapes submodule - shapes with holes"""
+"""Perforated shapes submodule - shapes with  vertex_loops"""
 
 from .base import (
     PerforatedVertexState,
@@ -21,7 +21,7 @@ from .triangle import PerforatedTriangleState
 __all__ = [
     # Base class
     "PerforatedVertexState",
-    # Shape helper classes (for specifying holes)
+    # Shape helper classes (for specifying  vertex_loops )
     "Shape",
     "Circle",
     "Ellipse",

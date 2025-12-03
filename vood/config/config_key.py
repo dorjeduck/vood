@@ -45,7 +45,7 @@ class ConfigKey(str, Enum):
     STATE_VISUAL_CLOSED = "state.visual.closed"
 
     # Morphing configuration
-    MORPHING_HOLE_MAPPER = "morphing.hole_mapper"
+    MORPHING_VERTEX_LOOP_MAPPER = "morphing.vertex_loop_mapper"
     MORPHING_CLUSTERING_BALANCE_CLUSTERS = "morphing.clustering.balance_clusters"
     MORPHING_CLUSTERING_MAX_ITERATIONS = "morphing.clustering.max_iterations"
     MORPHING_CLUSTERING_RANDOM_SEED = "morphing.clustering.random_seed"

@@ -116,7 +116,7 @@ Common fixtures are defined in `conftest.py`:
 - `sample_circle_state`: Pre-configured CircleState
 - `sample_rectangle_state`: Pre-configured RectangleState
 - `simple_vertex_loop`: Basic vertex loop
-- `simple_vertex_contours`: Vertex contours without holes
+- `simple_vertex_contours`: Vertex contours without  vertex_loops 
 - `vertex_contours_with_hole`: Vertex contours with one hole
-- `vertex_contours_with_multiple_holes`: Vertex contours with multiple holes
+- `vertex_contours_with_multiple_vertex_loops `: Vertex contours with multiple  vertex_loops 
 - `sample_colors`: Collection of Color objects

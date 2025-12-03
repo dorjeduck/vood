@@ -45,12 +45,10 @@ class RectangleState(VertexState):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-
-
     def _generate_contours(self) -> VertexContours:
         """Generate rectangle contours
 
-        Returns VertexContours with a single rectangular outer contour, no holes.
+        Returns VertexContours with a single rectangular outer contour, no  vertex_loops .
         """
         rectangle = VertexRectangle(
             cx=0,

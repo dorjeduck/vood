@@ -1,6 +1,6 @@
 # Hole Matching Strategies
 
-When morphing shapes with different numbers of holes (e.g., 5 holes → 2 holes), Vood needs to decide which holes merge together or split apart. This document explains the available strategies and how to configure them.
+When morphing shapes with different numbers of vertex loops (e.g., 5 vertex loops → 2  vertex_loops ), Vood needs to decide which vertex loops merge together or split apart. This document explains the available strategies and how to configure them.
 
 ## Available Strategies
 
@@ -8,20 +8,20 @@ When morphing shapes with different numbers of holes (e.g., 5 holes → 2 holes)
 
 **Best for:** Visual quality and balanced morphing
 
-Uses k-means spatial clustering to group holes into balanced clusters, ensuring roughly equal numbers of holes merge/split at each destination.
+Uses k-means spatial clustering to group vertex loops into balanced clusters, ensuring roughly equal numbers of vertex loops merge/split at each destination.
 
 **Algorithm:**
-- For N→M merging: Clusters N source holes into M groups
-- For N→M splitting: Clusters M destination holes into N groups
+- For N→M merging: Clusters N source vertex loops into M groups
+- For N→M splitting: Clusters M destination vertex loops into N groups
 - Uses k-means++ initialization for better results
 - Optional post-processing to balance cluster sizes
 
-**Example:** 5 holes → 2 holes produces a **2-3 split** instead of 4-1
+**Example:** 5 vertex loops → 2 vertex loops produces a **2-3 split** instead of 4-1
 
 **Configuration:**
 ```toml
 [morphing]
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
 balance_clusters = true      # Enforce balanced sizes (recommended)
@@ -45,7 +45,7 @@ Uses fast nearest-centroid matching. Each hole independently finds its closest d
 **Configuration:**
 ```toml
 [morphing]
-hole_mapper = "greedy"
+vertex_loop_mapper = "greedy"
 ```
 
 ### 3. Hungarian (Not Yet Implemented)
@@ -57,7 +57,7 @@ Would use the Hungarian algorithm to find the globally optimal matching that min
 **Configuration:**
 ```toml
 [morphing]
-hole_mapper = "hungarian"  # Will raise NotImplementedError
+vertex_loop_mapper = "hungarian"  # Will raise NotImplementedError
 ```
 
 ---
@@ -71,7 +71,7 @@ Create a `vood.toml` file in your project directory:
 ```toml
 [morphing]
 # Choose strategy: "clustering", "greedy", or "hungarian"
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
 # Clustering-specific options
@@ -91,7 +91,7 @@ from vood.transition.interpolation.hole_matching import GreedyNearestMapper
 # Use greedy matcher for this specific alignment
 contours1, contours2 = get_aligned_vertices(
     state1, state2,
-    hole_mapper=GreedyNearestMapper()
+    vertex_loop_mapper=GreedyNearestMapper()
 )
 ```
 
@@ -109,7 +109,7 @@ matcher = ClusteringMapper(
 
 contours1, contours2 = get_aligned_vertices(
     state1, state2,
-    hole_mapper=matcher
+    vertex_loop_mapper=matcher
 )
 ```
 
@@ -121,19 +121,19 @@ contours1, contours2 = get_aligned_vertices(
 
 ```toml
 [morphing]
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
 balance_clusters = true
 ```
 
-**Result:** 5 holes → 2 holes produces 2-3 or 3-2 split
+**Result:** 5 vertex loops → 2 vertex loops produces 2-3 or 3-2 split
 
 ### Pure K-Means (No Balancing)
 
 ```toml
 [morphing]
-hole_mapper = "clustering"
+vertex_loop_mapper = "clustering"
 
 [morphing.clustering]
 balance_clusters = false
@@ -145,7 +145,7 @@ balance_clusters = false
 
 ```toml
 [morphing]
-hole_mapper = "greedy"
+vertex_loop_mapper = "greedy"
 ```
 
 **Result:** Fast but may be unbalanced (1-4, 4-1 splits possible)
@@ -157,8 +157,8 @@ hole_mapper = "greedy"
 Using the example from `examples/y.py`:
 
 **Hole Configuration:**
-- **State A (5 holes):** Cross pattern at (0,0), (-50,0), (50,0), (0,-50), (0,50)
-- **State B (2 holes):** Diagonal pattern at (-70,-70), (70,70)
+- **State A (5  vertex_loops ):** Cross pattern at (0,0), (-50,0), (50,0), (0,-50), (0,50)
+- **State B (2  vertex_loops ):** Diagonal pattern at (-70,-70), (70,70)
 
 **Results:**
 
@@ -175,7 +175,7 @@ Using the example from `examples/y.py`:
 ### Use Clustering (Balanced) when:
 - Visual quality matters
 - You want smooth, balanced morphing
-- Holes are morphing between similar counts (2↔3, 3↔5, etc.)
+- vertex loops are morphing between similar counts (2↔3, 3↔5, etc.)
 - **This is the default and recommended choice**
 
 ### Use Greedy when:
@@ -226,7 +226,7 @@ python examples/test_config_matcher.py
 - **Greedy:** O(n²)
 - **Balancing:** O(n²) in worst case, usually O(n·k)
 
-For typical hole counts (2-10 holes), all strategies are fast (<1ms).
+For typical hole counts (2-10  vertex_loops ), all strategies are fast (<1ms).
 
 ---
 
@@ -246,4 +246,4 @@ Planned improvements:
 - `vood/transition/interpolation/hole_matching/` - Implementation
 - `vood/config/defaults.toml` - Default configuration
 - `CLAUDE.md` - Architecture documentation
-- `examples/perforated_astroid_test.py` - Shape with multiple holes
+- `examples/perforated_astroid_test.py` - Shape with multiple  vertex_loops 

@@ -4,23 +4,22 @@ from __future__ import annotations
 from typing import List, Tuple, Optional
 
 from .vertex_loop import VertexLoop
-from vood.core.point2d import Points2D,Point2D
+from vood.core.point2d import Points2D, Point2D
+
 
 class VertexContours:
     """A shape defined by an outer contour and optional holes
 
     This represents a potentially multi-contour shape:
     - outer: The outer boundary (VertexLoop, must be closed)
-    - holes: List of inner boundaries that create holes (all must be closed)
+    - holes: List of inner boundaries that create vertex loops (all must be closed)
 
     The outer contour should have counter-clockwise winding (positive area).
-    Holes should have clockwise winding (negative area).
+    vertex loops should have clockwise winding (negative area).
     """
 
     def __init__(
-        self,
-        outer: VertexLoop,
-        holes: Optional[List[VertexLoop]] = None
+        self, outer: VertexLoop, holes: Optional[List[VertexLoop]] = None
     ):
         """Initialize vertex contours
 
@@ -28,7 +27,7 @@ class VertexContours:
             outer: Outer boundary loop (must be closed)
             holes: Optional list of hole loops (all must be closed)
         """
-        if not outer.closed and (holes is not None and len(holes)>0):
+        if not outer.closed and (holes is not None and len(holes) > 0):
             raise ValueError("Outer contour must be closed")
 
         if holes:
@@ -95,7 +94,9 @@ class VertexContours:
             hole.scale(sx, sy)
         return self
 
-    def rotate(self, angle_degrees: float, center: Optional[Point2D] = None) -> VertexContours:
+    def rotate(
+        self, angle_degrees: float, center: Optional[Point2D] = None
+    ) -> VertexContours:
         """Rotate all contours in-place around center
 
         Args:
@@ -110,7 +111,9 @@ class VertexContours:
         return self
 
     @classmethod
-    def from_single_loop(cls, vertices: Points2D, closed: bool = True) -> VertexContours:
+    def from_single_loop(
+        cls, vertices: Points2D, closed: bool = True
+    ) -> VertexContours:
         """Create VertexContours from a single loop (no holes)
 
         Convenience method for simple shapes without holes.
@@ -120,23 +123,23 @@ class VertexContours:
 
     @classmethod
     def from_vertices_lists(
-        cls,
-        outer_vertices: Points2D,
-        holes_vertices: Optional[List[Points2D]] = None
+        cls, outer_vertices: Points2D,  holes_vertices: Optional[List[Points2D]] = None
     ) -> VertexContours:
         """Create VertexContours from lists of vertex tuples
 
         Args:
             outer_vertices: Vertices for outer contour
-            holes_vertices: Optional list of vertex lists for holes
+             holes_vertices: Optional list of vertex lists for holes
         """
         outer_loop = VertexLoop(outer_vertices, closed=True)
 
         holes_loops = None
-        if holes_vertices:
-            holes_loops = [VertexLoop(hole_verts, closed=True) for hole_verts in holes_vertices]
+        if  holes_vertices:
+             holes_loops = [
+                VertexLoop(hole_verts, closed=True) for hole_verts in  holes_vertices
+            ]
 
-        return cls(outer_loop, holes_loops)
+        return cls(outer_loop,  holes_loops)
 
     def __repr__(self) -> str:
         return f"VertexContours(outer={len(self._outer)} vertices, holes={len(self._holes)})"

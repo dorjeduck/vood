@@ -6,11 +6,11 @@ directly in the state via the _aligned_contours field.
 
 This is the main entry point - uses pluggable strategies from:
 - vertex_alignment/: Strategies for aligning outer vertex loops
-- hole_mapping/: Strategies for matching and aligning holes
+- hole_mapping/: Strategies for matching and aligning  vertex_loops
 """
 
 from __future__ import annotations
-from typing import Tuple, Optional,TYPE_CHECKING
+from typing import Tuple, Optional, TYPE_CHECKING
 
 from vood.component.vertex import VertexContours, VertexLoop
 from vood.config import get_config, ConfigKey
@@ -21,8 +21,8 @@ from .vertex_alignment import (
     AlignmentContext,
     AngularAligner,
 )
-from .hole_mapping import (
-    HoleMapper,
+from .vertex_loop_mapping import (
+    VertexLoopMapper,
     GreedyNearestMapper,
     ClusteringMapper,
     HungarianMapper,
@@ -33,14 +33,14 @@ from .hole_mapping import (
 from vood.component.state.base_vertex import VertexState
 
 
-def _get_hole_mapper_from_config() -> HoleMapper:
+def _get_vertex_loop_mapper_from_config() -> VertexLoopMapper:
     """Get hole matcher instance based on config settings
 
     Returns:
         HoleMapper instance configured from vood.toml settings
     """
     config = get_config()
-    strategy = config.get(ConfigKey.MORPHING_HOLE_MAPPER, "clustering")
+    strategy = config.get(ConfigKey.MORPHING_VERTEX_LOOP_MAPPER, "clustering")
 
     if strategy == "greedy":
         return GreedyNearestMapper()
@@ -68,24 +68,24 @@ def get_aligned_vertices(
     state1: VertexState,
     state2: VertexState,
     vertex_aligner: Optional[VertexAligner] = None,
-    hole_mapper: Optional[HoleMapper] = None,
+    vertex_loop_mapper: Optional[VertexLoopMapper] = None,
     rotation_target: Optional[float] = None,
 ) -> Tuple[VertexContours, VertexContours]:
     """Align vertex contours and return aligned contours
 
     This is called once per segment during keystate preprocessing.
     Returns new VertexContours instances with aligned outer vertices
-    and matched holes.
+    and matched  vertex_loops .
 
     Uses pluggable strategies:
     - VertexAligner: How to align outer vertex loops (auto-selected by default)
-    - HoleMapper: How to match holes between states (from config by default)
+    - HoleMapper: How to match vertex loops between states (from config by default)
 
     Args:
         state1: First state in the transition
         state2: Second state in the transition
         vertex_aligner: Custom vertex alignment strategy (default: auto-select based on closure)
-        hole_mapper: Custom hole matching strategy (default: from config [morphing.hole_mapper])
+        vertex_loop_mapper: Custom hole matching strategy (default: from config [morphing.vertex_loop_mapper])
         rotation_target: Target rotation for dynamic alignment (default: None, uses state2.rotation)
 
     Returns:
@@ -109,8 +109,10 @@ def get_aligned_vertices(
     if vertex_aligner is None:
         vertex_aligner = get_aligner(state1.closed, state2.closed)
 
-    if hole_mapper is None:
-        hole_mapper = _get_hole_mapper_from_config()  # Use strategy from config
+    if vertex_loop_mapper is None:
+        vertex_loop_mapper = (
+            _get_vertex_loop_mapper_from_config()
+        )  # Use strategy from config
 
     # Align outer vertices
     context = AlignmentContext(
@@ -120,47 +122,51 @@ def get_aligned_vertices(
         closed2=state2.closed,
     )
     verts1_aligned, verts2_aligned = vertex_aligner.align(
-        contours1.outer.vertices, contours2.outer.vertices, context,
-        rotation_target=rotation_target
+        contours1.outer.vertices,
+        contours2.outer.vertices,
+        context,
+        rotation_target=rotation_target,
     )
 
-    # Match and align holes
-    matched_holes1, matched_holes2 = hole_mapper.map(contours1.holes, contours2.holes)
+    # Match and align  vertex_loops
+    matched_vertex_loops1, matched_vertex_loops2 = vertex_loop_mapper.map(
+        contours1.holes, contours2.holes
+    )
 
     # Align vertices within each matched hole pair
-    aligned_holes1 = []
-    aligned_holes2 = []
+    aligned_vertex_loops1 = []
+    aligned_vertex_loops2 = []
 
-    # Create a hole-specific aligner (always use angular for closed holes)
+    # Create a hole-specific aligner (always use angular for closed  vertex_loops )
     hole_aligner = AngularAligner()
     hole_context = AlignmentContext(
         rotation1=0, rotation2=0, closed1=True, closed2=True
     )
 
-    for hole1, hole2 in zip(matched_holes1, matched_holes2):
+    for hole1, hole2 in zip(matched_vertex_loops1, matched_vertex_loops2):
         h1_verts = hole1.vertices
         h2_verts = hole2.vertices
 
-        # Both holes should be closed and have matching lengths
+        # Both vertex loops should be closed and have matching lengths
         if len(h1_verts) == len(h2_verts) and len(h1_verts) > 0:
             h1_aligned, h2_aligned = hole_aligner.align(
                 h1_verts, h2_verts, hole_context
             )
-            aligned_holes1.append(VertexLoop(h1_aligned, closed=True))
-            aligned_holes2.append(VertexLoop(h2_aligned, closed=True))
+            aligned_vertex_loops1.append(VertexLoop(h1_aligned, closed=True))
+            aligned_vertex_loops2.append(VertexLoop(h2_aligned, closed=True))
         else:
             # Keep as-is if lengths don't match (shouldn't happen with our matching)
-            aligned_holes1.append(hole1)
-            aligned_holes2.append(hole2)
+            aligned_vertex_loops1.append(hole1)
+            aligned_vertex_loops2.append(hole2)
 
-    # Create new VertexContours with aligned outer loops and aligned holes
+    # Create new VertexContours with aligned outer loops and aligned  vertex_loops
     contours1_aligned = VertexContours(
         outer=VertexLoop(verts1_aligned, closed=contours1.outer.closed),
-        holes=aligned_holes1,
+        holes=aligned_vertex_loops1,
     )
     contours2_aligned = VertexContours(
         outer=VertexLoop(verts2_aligned, closed=contours2.outer.closed),
-        holes=aligned_holes2,
+        holes=aligned_vertex_loops2,
     )
 
     return contours1_aligned, contours2_aligned

@@ -13,9 +13,7 @@ from vood.transition.align_vertices import (
     get_aligned_vertices,
 )
 
-from vood.transition import (
-    lerp, step, angle, inbetween, circular_midpoint
-)
+from vood.transition import lerp, step, angle, inbetween, circular_midpoint
 
 # Import the extracted modules
 from vood.velement.keystate_parser import (
@@ -181,14 +179,16 @@ class BaseVElement(ABC):
             return  # Skip static preprocessing for rotating morphs
 
         # Perform static alignment
-        hole_mapper = morphing_dict.get("hole_mapper") if morphing_dict else None
+        vertex_loop_mapper = (
+            morphing_dict.get("vertex_loop_mapper") if morphing_dict else None
+        )
         vertex_aligner = morphing_dict.get("vertex_aligner") if morphing_dict else None
 
         contours1_aligned, contours2_aligned = get_aligned_vertices(
             state1,
             state2,
             vertex_aligner=vertex_aligner,
-            hole_mapper=hole_mapper,
+            vertex_loop_mapper=vertex_loop_mapper,
         )
 
         # Adjust fill colors for open↔closed transitions
@@ -253,7 +253,9 @@ class BaseVElement(ABC):
             return state1, state2  # Use static preprocessing instead
 
         # Compute current rotation for optimal alignment
-        rotation_target = state1.rotation + (state2.rotation - state1.rotation) * segment_t
+        rotation_target = (
+            state1.rotation + (state2.rotation - state1.rotation) * segment_t
+        )
 
         # Get aligned contours for this frame's rotation
         contours1_aligned, contours2_aligned = get_aligned_vertices(
@@ -345,13 +347,15 @@ class BaseVElement(ABC):
                         if state1._aligned_contours
                         else 0
                     )
-                    num_holes = (
+                    num_vertex_loops = (
                         len(state1._aligned_contours.holes)
                         if (state1._aligned_contours and state1._aligned_contours.holes)
                         else 0
                     )
                     if num_verts > 0:
-                        vertex_buffer = self._get_vertex_buffer(num_verts, num_holes)
+                        vertex_buffer = self._get_vertex_buffer(
+                            num_verts, num_vertex_loops
+                        )
 
                 interpolated_state = self.interpolation_engine.create_eased_state(
                     state1,

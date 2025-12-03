@@ -33,12 +33,10 @@ class EllipseState(VertexState):
         self._none_color("fill_color")
         self._none_color("stroke_color")
 
-
-
     def _generate_contours(self) -> VertexContours:
         """Generate ellipse contours
 
-        Returns VertexContours with a single elliptical outer contour, no holes.
+        Returns VertexContours with a single elliptical outer contour, no  vertex_loops .
         """
         ellipse = VertexEllipse(
             cx=0,
@@ -49,4 +47,4 @@ class EllipseState(VertexState):
             start_angle=0.0,
         )
 
-        return VertexContours(outer=ellipse, holes=None)
+        return VertexContours(outer=ellipse, holes=[])

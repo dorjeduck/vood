@@ -63,7 +63,7 @@ def simple_vertex_loop():
 
 @pytest.fixture
 def simple_vertex_contours():
-    """Create simple vertex contours with outer loop and no holes"""
+    """Create simple vertex contours with outer loop and no  vertex_loops"""
     vertices = [
         Point2D(0, 0),
         Point2D(100, 0),
@@ -103,7 +103,7 @@ def vertex_contours_with_hole():
 
 @pytest.fixture
 def vertex_contours_with_multiple_holes():
-    """Create vertex contours with outer loop and multiple holes"""
+    """Create vertex contours with outer loop and multiple  holes="""
     # Outer square
     outer_vertices = [
         Point2D(0, 0),
@@ -147,9 +147,9 @@ def linear_easing():
 def sample_colors():
     """Sample colors for testing color interpolation"""
     return {
-        'red': Color("#FF0000"),
-        'green': Color("#00FF00"),
-        'blue': Color("#0000FF"),
-        'yellow': Color("#FFFF00"),
-        'transparent': Color.NONE,
+        "red": Color("#FF0000"),
+        "green": Color("#00FF00"),
+        "blue": Color("#0000FF"),
+        "yellow": Color("#FFFF00"),
+        "transparent": Color.NONE,
     }

@@ -7,14 +7,34 @@ from vood.core.color import Color
 from vood.core.point2d import Point2D
 from vood.component.state import (
     # Vertex-based states
-    AstroidState, CircleState, EllipseState, HeartState, InfinityState,
-    LineState, PolygonState, RectangleState, SquareState, StarState,
-    TriangleState, SpiralState, WaveState, FlowerState,
+    AstroidState,
+    CircleState,
+    EllipseState,
+    HeartState,
+    InfinityState,
+    LineState,
+    PolygonState,
+    RectangleState,
+    SquareState,
+    StarState,
+    TriangleState,
+    SpiralState,
+    WaveState,
+    FlowerState,
     # Perforated states
-    PolyRingState, RingState, SquareRingState, RadialSegmentsState,
+    PolyRingState,
+    RingState,
+    SquareRingState,
+    RadialSegmentsState,
     # Simple states
-    ArcState, ArrowState, CrossState, PathState,
-    PathTextState, CircleTextState, RawSvgState, TextState,
+    ArcState,
+    ArrowState,
+    CrossState,
+    PathState,
+    PathTextState,
+    CircleTextState,
+    RawSvgState,
+    TextState,
 )
 
 
@@ -78,10 +98,7 @@ class TestVertexBasedStates:
     def test_star_state_creation(self):
         """Test StarState creation"""
         state = StarState(
-            x=100, y=100,
-            outer_radius=80,
-            inner_radius=40,
-            num_points_star=5
+            x=100, y=100, outer_radius=80, inner_radius=40, num_points_star=5
         )
         assert state.outer_radius == 80
         assert state.inner_radius == 40
@@ -109,35 +126,21 @@ class TestVertexBasedStates:
 
     def test_spiral_state_creation(self):
         """Test SpiralState creation"""
-        state = SpiralState(
-            x=100, y=100,
-            start_radius=10,
-            end_radius=100,
-            turns=3
-        )
+        state = SpiralState(x=100, y=100, start_radius=10, end_radius=100, turns=3)
         assert state.start_radius == 10
         assert state.end_radius == 100
         assert state.turns == 3
 
     def test_wave_state_creation(self):
         """Test WaveState creation"""
-        state = WaveState(
-            x=100, y=100,
-            length=200,
-            amplitude=30,
-            frequency=2
-        )
+        state = WaveState(x=100, y=100, length=200, amplitude=30, frequency=2)
         assert state.length == 200
         assert state.amplitude == 30
         assert state.frequency == 2
 
     def test_flower_state_creation(self):
         """Test FlowerState creation"""
-        state = FlowerState(
-            x=100, y=100,
-            size=50,
-            num_petals=6
-        )
+        state = FlowerState(x=100, y=100, size=50, num_petals=6)
         assert state.size == 50
         assert state.num_petals == 6
 
@@ -148,42 +151,26 @@ class TestPerforatedStates:
 
     def test_ring_state_creation(self):
         """Test RingState creation"""
-        state = RingState(
-            x=100, y=100,
-            outer_radius=80,
-            inner_radius=50
-        )
+        state = RingState(x=100, y=100, outer_radius=80, inner_radius=50)
         assert state.outer_radius == 80
         assert state.inner_radius == 50
 
     def test_poly_ring_state_creation(self):
         """Test PolyRingState creation"""
-        state = PolyRingState(
-            x=100, y=100,
-            outer_size=80,
-            inner_size=50,
-            num_edges=6
-        )
+        state = PolyRingState(x=100, y=100, outer_size=80, inner_size=50, num_edges=6)
         assert state.outer_size == 80
         assert state.inner_size == 50
         assert state.num_edges == 6
 
     def test_square_ring_state_creation(self):
         """Test SquareRingState creation"""
-        state = SquareRingState(
-            x=100, y=100,
-            outer_size=100,
-            inner_size=60
-        )
+        state = SquareRingState(x=100, y=100, outer_size=100, inner_size=60)
         assert state.outer_size == 100
         assert state.inner_size == 60
 
     def test_radial_segments_state_creation(self):
         """Test RadialSegmentsState creation"""
-        state = RadialSegmentsState(
-            x=100, y=100,
-            num_lines=8
-        )
+        state = RadialSegmentsState(x=100, y=100, num_lines=8)
         assert state.num_lines == 8
 
 
@@ -199,23 +186,14 @@ class TestSimpleStates:
 
     def test_arc_state_creation(self):
         """Test ArcState creation"""
-        state = ArcState(
-            x=100, y=100,
-            radius=50,
-            start_angle=0,
-            end_angle=180
-        )
+        state = ArcState(x=100, y=100, radius=50, start_angle=0, end_angle=180)
         assert state.radius == 50
         assert state.start_angle == 0
         assert state.end_angle == 180
 
     def test_arrow_state_creation(self):
         """Test ArrowState creation"""
-        state = ArrowState(
-            length=100,
-            head_width=10,
-            head_length=15
-        )
+        state = ArrowState(length=100, head_width=10, head_length=15)
         assert state.length == 100
         assert state.head_width == 10
         assert state.head_length == 15
@@ -256,50 +234,54 @@ class TestSimpleStates:
 class TestStateCommonProperties:
     """Test common properties across all states"""
 
-    @pytest.mark.parametrize("state_class,kwargs", [
-        (CircleState, {"radius": 50}),
-        (RectangleState, {"width": 100, "height": 60}),
-        (TriangleState, {"size": 100}),
-        (TextState, {"text": "Test"}),
-    ])
+    @pytest.mark.parametrize(
+        "state_class,kwargs",
+        [
+            (CircleState, {"radius": 50}),
+            (RectangleState, {"width": 100, "height": 60}),
+            (TriangleState, {"size": 100}),
+            (TextState, {"text": "Test"}),
+        ],
+    )
     def test_common_position_properties(self, state_class, kwargs):
         """Test that all states have x, y position properties"""
         state = state_class(x=123, y=456, **kwargs)
         assert state.x == 123
         assert state.y == 456
 
-    @pytest.mark.parametrize("state_class,kwargs", [
-        (CircleState, {"radius": 50}),
-        (RectangleState, {"width": 100, "height": 60}),
-        (TriangleState, {"size": 100}),
-        (TextState, {"text": "Test"}),
-    ])
+    @pytest.mark.parametrize(
+        "state_class,kwargs",
+        [
+            (CircleState, {"radius": 50}),
+            (RectangleState, {"width": 100, "height": 60}),
+            (TriangleState, {"size": 100}),
+            (TextState, {"text": "Test"}),
+        ],
+    )
     def test_common_transform_properties(self, state_class, kwargs):
         """Test that all states have scale, rotation, opacity"""
-        state = state_class(
-            x=0, y=0,
-            scale=2.5,
-            rotation=45,
-            opacity=0.7,
-            **kwargs
-        )
+        state = state_class(x=0, y=0, scale=2.5, rotation=45, opacity=0.7, **kwargs)
         assert state.scale == 2.5
         assert state.rotation == 45
         assert state.opacity == 0.7
 
-    @pytest.mark.parametrize("state_class,kwargs", [
-        (CircleState, {"radius": 50}),
-        (RectangleState, {"width": 100, "height": 60}),
-        (PolygonState, {"size": 50, "num_sides": 6}),
-    ])
+    @pytest.mark.parametrize(
+        "state_class,kwargs",
+        [
+            (CircleState, {"radius": 50}),
+            (RectangleState, {"width": 100, "height": 60}),
+            (PolygonState, {"size": 50, "num_sides": 6}),
+        ],
+    )
     def test_common_visual_properties(self, state_class, kwargs):
         """Test that vertex states have fill_color, stroke_color, stroke_width"""
         state = state_class(
-            x=0, y=0,
+            x=0,
+            y=0,
             fill_color=Color("#FF0000"),
             stroke_color=Color("#0000FF"),
             stroke_width=3.5,
-            **kwargs
+            **kwargs,
         )
         assert state.fill_color == Color("#FF0000")
         assert state.stroke_color == Color("#0000FF")
@@ -425,10 +407,7 @@ class TestStateGeneration:
     def test_poly_ring_generates_contours_with_hole(self):
         """Test that PolyRingState generates contours with hole"""
         state = PolyRingState(
-            outer_size=100,
-            inner_size=50,
-            num_edges=6,
-            _num_vertices=24
+            outer_size=100, inner_size=50, num_edges=6, _num_vertices=24
         )
         contours = state._generate_contours()
 

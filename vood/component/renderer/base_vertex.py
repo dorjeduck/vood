@@ -15,7 +15,7 @@ class VertexRenderer(Renderer):
     Handles both open and closed shapes, with special logic for fill behavior:
     - Open shapes (lines): No fill, only stroke
     - Closed shapes: Both fill and stroke
-    - Shapes with holes: Uses SVG masks for proper rendering during morphing
+    - Shapes with  holes : Uses SVG masks for proper rendering during morphing
     - During morphing: Fill fades in/out smoothly
 
     The key Manim-inspired feature: when morphing from open to closed,
@@ -53,21 +53,26 @@ class VertexRenderer(Renderer):
         stroke_opacity = getattr(state, "stroke_opacity", 1)
         stroke_width = getattr(state, "stroke_width", 0)
 
-        holes_stroke_color = getattr(state, "holes_stroke_color", stroke_color)
-        holes_stroke_opacity = getattr(state, "holes_stroke_opacity", stroke_opacity)
-        holes_stroke_width = getattr(state, "holes_stroke_width", stroke_width)
+        holes_stroke_color = getattr(
+            state, " holes_stroke_color", stroke_color
+        )
+        holes_stroke_opacity = getattr(
+            state, " holes_stroke_opacity", stroke_opacity
+        )
+        holes_stroke_width = getattr(
+            state, " holes_stroke_width", stroke_width
+        )
 
         # Determine rendering strategy
         has_fill = fill_color and state.fill_opacity > 0
         has_stroke = stroke_color and stroke_width > 0 and state.stroke_opacity > 0
 
-       
         # Check if vertices form a closed shape
         vertices_are_closed = self._check_closed(contours.outer.vertices)
 
-        # Render based on whether we have holes
+        # Render based on whether we have  holes
         if contours.has_holes:
-            # Use mask-based rendering for shapes with holes
+            # Use mask-based rendering for shapes with  holes
             self._render_with_holes(
                 group,
                 contours,
@@ -85,7 +90,7 @@ class VertexRenderer(Renderer):
                 drawing,
             )
         else:
-            # Simple rendering for shapes without holes
+            # Simple rendering for shapes without  holes
             self._render_simple(
                 group,
                 contours.outer.vertices,
@@ -109,10 +114,9 @@ class VertexRenderer(Renderer):
 
         first_vertex = vertices[0]
         last_vertex = vertices[-1]
-        
-        
+
         distance = last_vertex.distance_to(first_vertex)
-        
+
         return distance < 1.0  # Tolerance of 1 pixel
 
     def _render_simple(
@@ -129,7 +133,7 @@ class VertexRenderer(Renderer):
         stroke_width,
         state,
     ):
-        """Render a simple shape without holes"""
+        """Render a simple shape without  holes"""
         first_vertex = vertices[0]
 
         # Render fill
@@ -187,10 +191,10 @@ class VertexRenderer(Renderer):
         state,
         drawing: Optional[dw.Drawing],
     ):
-        """Render a shape with holes using SVG masks
+        """Render a shape with vertex loops using SVG masks
 
         Strategy:
-        1. Create a mask with white outer contour and black holes
+        1. Create a mask with white outer contour and black  holes
         2. Add mask to drawing's defs section
         3. Apply mask to fill via mask attribute
         4. Render strokes separately
@@ -213,7 +217,7 @@ class VertexRenderer(Renderer):
             outer_mask_path.Z()
         mask.append(outer_mask_path)
 
-        # Mask: Black holes (hides)
+        # Mask: Black vertex loops (hides)
         for hole in contours.holes:
             hole_mask_path = dw.Path(fill="black")
             hole_verts = hole.vertices
@@ -266,7 +270,7 @@ class VertexRenderer(Renderer):
 
             group.append(outer_stroke_path)
 
-            # Hole strokes (need mask applied to hide strokes in overlapping holes)
+            # Hole strokes (need mask applied to hide strokes in overlapping  holes )
             # Double the stroke width because mask cuts through the middle of the stroke
             for hole in contours.holes:
                 hole_verts = hole.vertices

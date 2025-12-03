@@ -1,4 +1,4 @@
-"""Perforated star state - star with holes"""
+"""Perforated star state - star with  holes"""
 
 from __future__ import annotations
 from dataclasses import dataclass
@@ -11,22 +11,22 @@ from vood.transition import easing
 
 @dataclass(frozen=True)
 class PerforatedStarState(PerforatedVertexState):
-    """Star with holes
+    """Star with  holes
 
-    A star-shaped outer contour with zero or more holes of arbitrary shapes.
+    A star-shaped outer contour with zero or more vertex loops of arbitrary shapes.
 
     Args:
         outer_radius: Distance from center to outer points (tips)
         inner_radius: Distance from center to inner points (valleys)
         num_points: Number of star points (minimum 3)
-        holes: List of Shape objects specifying hole geometry and positions
+         holes : List of Shape objects specifying hole geometry and positions
 
     Example:
         PerforatedStarState(
             outer_radius=100,
             inner_radius=50,
             num_points=5,
-            holes=[Circle(radius=20, x=0, y=0)],
+             holes =[Circle(radius=20, x=0, y=0)],
             fill_color=Color("#FFD700"),
         )
     """
@@ -45,9 +45,10 @@ class PerforatedStarState(PerforatedVertexState):
     def _generate_outer_contour(self) -> VertexLoop:
         """Generate star outer contour"""
         return VertexStar(
-            cx=0, cy=0,
+            cx=0,
+            cy=0,
             outer_radius=self.outer_radius,
             inner_radius=self.inner_radius,
             num_points=self.num_points,
-            num_vertices=self._num_vertices
+            num_vertices=self._num_vertices,
         )

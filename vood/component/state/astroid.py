@@ -41,7 +41,7 @@ class AstroidState(VertexState):
 
         Returns VertexContours with:
         - Outer: astroid shape (counter-clockwise)
-        - Holes: none (astroids don't have holes)
+        -  vertex_loops : none (astroids don't have  vertex_loops )
         """
         # Generate astroid shape
         astroid = VertexAstroid(

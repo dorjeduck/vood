@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.5.0] - 2025-12-03
+* M→N shape morphing with automatic opacity adjustment
+* PointState for explicit shape disappearance/appearance control
+* Refactored interpolation engine (shape_list_interpolator module)
+* Eliminated duplicate vertex interpolation code
+
 ## [0.4.0] - 2025-11-29
 * lib architecture redesign/cleanup
 * norm (l1,l2,linf) config for vertex alignment 
@@ -9,7 +15,7 @@
 ## [0.3.0] - 2025-11-21
 * lib architecture redesign/cleanup
 * configuration support
-* advanced morphing (shapes with holes)
+* advanced morphing (shapes with  vertex_loops )
 
 ## [0.2.0] - 2025-11-15
 

@@ -6,9 +6,9 @@ alignment strategies used during morph interpolation.
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import  Tuple
 from dataclasses import dataclass
-from vood.core.point2d import Points2D,Point2D
+from vood.core.point2d import Points2D
 
 @dataclass
 class AlignmentContext:

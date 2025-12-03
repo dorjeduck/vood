@@ -1,7 +1,6 @@
 """Unit tests for vertex alignment strategies"""
 
 import pytest
-import math
 from vood.transition.vertex_alignment import (
     AngularAligner,
     EuclideanAligner,

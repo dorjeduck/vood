@@ -12,6 +12,7 @@ from .vertex_triangle import VertexTriangle
 from .vertex_line import VertexLine
 from .vertex_polygon import VertexPolygon
 from .vertex_regular_polygon import VertexRegularPolygon
+from .vertex_point import VertexPoint
 from .vertex_utils import (
     centroid,
     angle_from_centroid,
@@ -34,6 +35,7 @@ __all__ = [
     "VertexLine",
     "VertexPolygon",
     "VertexRegularPolygon",
+    "VertexPoint",
     "centroid",
     "angle_from_centroid",
     "angle_distance",
