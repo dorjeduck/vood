@@ -530,6 +530,18 @@ class VSceneExporter:
             logger.info(f"Generating animation-only HTML with {total_frames} frames...")
             html_content = self._generate_animation_html(times, play_interval_ms)
 
+        # Clean html_content of any html/body/head wrapper tags if present
+        # (in case IPython.display.HTML or other sources added document wrappers)
+        # Only clean if we detect wrapper tags to avoid unnecessary modifications
+        import re
+        if any(tag in html_content.lower() for tag in ['<!doctype', '<html', '<body', '<head']):
+            html_content = re.sub(r'<!DOCTYPE[^>]*>', '', html_content, flags=re.IGNORECASE)
+            html_content = re.sub(r'</?html[^>]*>', '', html_content, flags=re.IGNORECASE)
+            html_content = re.sub(r'<head>.*?</head>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+            html_content = re.sub(r'</?body[^>]*>', '', html_content, flags=re.IGNORECASE)
+            html_content = html_content.strip()
+            logger.debug("Cleaned HTML wrapper tags from content before embedding")
+
         # Wrap in complete HTML document
         full_html = f"""<!DOCTYPE html>
 <html lang="en">

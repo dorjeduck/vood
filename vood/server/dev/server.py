@@ -324,7 +324,20 @@ class DevServer:
         )
 
         # Extract HTML string from IPython.display.HTML object
-        return html_obj.data
+        html_content = html_obj.data
+
+        # Clean any html/body/head wrapper tags if present
+        # (in case IPython.display.HTML added document wrappers)
+        # Only clean if we detect wrapper tags to preserve content integrity
+        import re
+        if any(tag in html_content.lower() for tag in ['<!doctype', '<html', '<body', '<head']):
+            html_content = re.sub(r'<!DOCTYPE[^>]*>', '', html_content, flags=re.IGNORECASE)
+            html_content = re.sub(r'</?html[^>]*>', '', html_content, flags=re.IGNORECASE)
+            html_content = re.sub(r'<head>.*?</head>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
+            html_content = re.sub(r'</?body[^>]*>', '', html_content, flags=re.IGNORECASE)
+            logger.debug("Cleaned HTML wrapper tags from preview content")
+
+        return html_content.strip()
 
     async def _send_current_preview(self):
         """
@@ -433,8 +446,10 @@ class DevServer:
 
             def export_func():
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                # Use different filenames for interactive vs animation-only
+                mode_suffix = "interactive" if interactive else "animation"
                 return exporter.to_html(
-                    filename=f"animation_{timestamp}",
+                    filename=f"animation_{timestamp}_{mode_suffix}",
                     total_frames=total_frames,
                     framerate=fps,
                     interactive=interactive,
@@ -704,8 +719,10 @@ class DevServer:
             output_dir=str(self.export_manager.output_dir),
         )
 
+        # Use different filenames for interactive vs animation-only to prevent overwriting
+        mode_suffix = "interactive" if interactive else "animation"
         output_file = exporter.to_html(
-            filename=f"animation_{timestamp}",
+            filename=f"animation_{timestamp}_{mode_suffix}",
             total_frames=total_frames,
             framerate=fps,
             interactive=interactive,
