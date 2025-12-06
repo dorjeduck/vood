@@ -35,13 +35,7 @@ class RectangleRenderer(Renderer):
             "y": -(state.height) / 2,
             "width": state.width,
             "height": state.height,
-            "fill": fill_color,
         }
-
-        # Add stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-            rect_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-            rect_kwargs["stroke_opacity"] = state.stroke_opacity
-            rect_kwargs["stroke_width"] = state.stroke_width
+        self._set_fill_and_stroke_kwargs(state, rect_kwargs, drawing)
 
         return dw.Rectangle(**rect_kwargs)

@@ -49,9 +49,13 @@ class VertexRenderer(Renderer):
         # Get style properties
         fill_color = getattr(state, "fill_color", None)
         fill_opacity = getattr(state, "fill_opacity", 1)
+        fill_gradient = getattr(state, "fill_gradient", None)
+        fill_pattern = getattr(state, "fill_pattern", None)
         stroke_color = getattr(state, "stroke_color", None)
         stroke_opacity = getattr(state, "stroke_opacity", 1)
         stroke_width = getattr(state, "stroke_width", 0)
+        stroke_gradient = getattr(state, "stroke_gradient", None)
+        stroke_pattern = getattr(state, "stroke_pattern", None)
 
         holes_stroke_color = getattr(
             state, " holes_stroke_color", stroke_color
@@ -64,8 +68,8 @@ class VertexRenderer(Renderer):
         )
 
         # Determine rendering strategy
-        has_fill = fill_color and state.fill_opacity > 0
-        has_stroke = stroke_color and stroke_width > 0 and state.stroke_opacity > 0
+        has_fill = (fill_pattern or fill_gradient or fill_color) and state.fill_opacity > 0
+        has_stroke = (stroke_pattern or stroke_gradient or stroke_color) and stroke_width > 0 and state.stroke_opacity > 0
 
         # Check if vertices form a closed shape
         vertices_are_closed = self._check_closed(contours.outer.vertices)
@@ -80,9 +84,13 @@ class VertexRenderer(Renderer):
                 has_stroke,
                 fill_color,
                 fill_opacity,
+                fill_gradient,
+                fill_pattern,
                 stroke_color,
                 stroke_opacity,
                 stroke_width,
+                stroke_gradient,
+                stroke_pattern,
                 holes_stroke_color,
                 holes_stroke_opacity,
                 holes_stroke_width,
@@ -102,7 +110,10 @@ class VertexRenderer(Renderer):
                 stroke_color,
                 stroke_opacity,
                 stroke_width,
+                stroke_gradient,
+                stroke_pattern,
                 state,
+                drawing,
             )
 
         return group
@@ -128,21 +139,33 @@ class VertexRenderer(Renderer):
         has_stroke,
         fill_color,
         fill_opacity,
+        fill_gradient,
+        fill_pattern,
         stroke_color,
         stroke_opacity,
         stroke_width,
+        stroke_gradient,
+        stroke_pattern,
         state,
+        drawing,
     ):
         """Render a simple shape without  holes"""
         first_vertex = vertices[0]
 
         # Render fill
         if has_fill:
-            fill_path = dw.Path(
-                fill=fill_color.to_rgb_string(),
-                fill_opacity=fill_opacity,
-                stroke="none",
-            )
+            if fill_pattern:
+                fill_value = fill_pattern.to_drawsvg(drawing)
+                fill_path = dw.Path(fill=fill_value, stroke="none")
+            elif fill_gradient:
+                fill_value = fill_gradient.to_drawsvg()
+                fill_path = dw.Path(fill=fill_value, stroke="none")
+            else:
+                fill_path = dw.Path(
+                    fill=fill_color.to_rgb_string(),
+                    fill_opacity=fill_opacity,
+                    stroke="none",
+                )
 
             fill_path.M(first_vertex.x, first_vertex.y)
             for v in vertices[1:]:
@@ -157,13 +180,28 @@ class VertexRenderer(Renderer):
             if hasattr(state, "stroke_linecap") and state.stroke_linecap is not None:
                 kwargs["stroke_linecap"] = state.stroke_linecap
 
-            stroke_path = dw.Path(
-                fill="none",
-                stroke=stroke_color.to_rgb_string(),
-                stroke_opacity=stroke_opacity,
-                stroke_width=stroke_width,
-                **kwargs,
-            )
+            if stroke_pattern:
+                stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_pattern.to_drawsvg(drawing),
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
+            elif stroke_gradient:
+                stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_gradient.to_drawsvg(),
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
+            else:
+                stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_color.to_rgb_string(),
+                    stroke_opacity=stroke_opacity,
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
 
             stroke_path.M(first_vertex.x, first_vertex.y)
             for v in vertices[1:]:
@@ -182,9 +220,13 @@ class VertexRenderer(Renderer):
         has_stroke,
         fill_color,
         fill_opacity,
+        fill_gradient,
+        fill_pattern,
         stroke_color,
         stroke_opacity,
         stroke_width,
+        stroke_gradient,
+        stroke_pattern,
         holes_stroke_color,
         holes_stroke_opacity,
         holes_stroke_width,
@@ -234,12 +276,25 @@ class VertexRenderer(Renderer):
 
         # Render fill with mask applied
         if has_fill:
-            fill_path = dw.Path(
-                fill=fill_color.to_rgb_string(),
-                fill_opacity=fill_opacity,
-                stroke="none",
-                mask=f"url(#{mask_id})",
-            )
+            if fill_pattern:
+                fill_path = dw.Path(
+                    fill=fill_pattern.to_drawsvg(drawing),
+                    stroke="none",
+                    mask=f"url(#{mask_id})",
+                )
+            elif fill_gradient:
+                fill_path = dw.Path(
+                    fill=fill_gradient.to_drawsvg(),
+                    stroke="none",
+                    mask=f"url(#{mask_id})",
+                )
+            else:
+                fill_path = dw.Path(
+                    fill=fill_color.to_rgb_string(),
+                    fill_opacity=fill_opacity,
+                    stroke="none",
+                    mask=f"url(#{mask_id})",
+                )
 
             fill_path.M(outer_verts[0].x, outer_verts[0].y)
             for v in outer_verts[1:]:
@@ -255,13 +310,28 @@ class VertexRenderer(Renderer):
                 kwargs["stroke_linecap"] = state.stroke_linecap
 
             # Outer stroke
-            outer_stroke_path = dw.Path(
-                fill="none",
-                stroke=stroke_color.to_rgb_string(),
-                stroke_opacity=stroke_opacity,
-                stroke_width=stroke_width,
-                **kwargs,
-            )
+            if stroke_pattern:
+                outer_stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_pattern.to_drawsvg(drawing),
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
+            elif stroke_gradient:
+                outer_stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_gradient.to_drawsvg(),
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
+            else:
+                outer_stroke_path = dw.Path(
+                    fill="none",
+                    stroke=stroke_color.to_rgb_string(),
+                    stroke_opacity=stroke_opacity,
+                    stroke_width=stroke_width,
+                    **kwargs,
+                )
 
             outer_stroke_path.M(outer_verts[0].x, outer_verts[0].y)
             for v in outer_verts[1:]:

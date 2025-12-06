@@ -46,13 +46,9 @@ class LineRenderer(Renderer):
 
         # Create line with basic properties
         line_kwargs = {
-            "stroke": state.stroke_color.to_rgb_string(),
-            "stroke_width": state.stroke_width,
-            "stroke_opacity": state.stroke_opacity,
             "stroke_linecap": state.stroke_linecap,
-            "fill": "none",  # Lines don't have fill
         }
-
+        self._set_fill_and_stroke_kwargs(state, line_kwargs, drawing)
         # Add stroke dash array if specified
         if state.stroke_dasharray:
             line_kwargs["stroke_dasharray"] = state.stroke_dasharray

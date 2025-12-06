@@ -22,10 +22,10 @@ morphing_clip = VElement(
     property_keystates={
         "clip_state": [
             (0.0, CircleState(radius=60)),
-            (0.5, SquareState(size=100)),
-            (1.0, TriangleState(size=120)),
+            (0.5, SquareState(size=70)),
+            (1.0, TriangleState(size=80)),
         ]
-    }
+    },
 )
 
 scene.add_element(morphing_clip)

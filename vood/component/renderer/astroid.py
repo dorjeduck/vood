@@ -33,27 +33,13 @@ class AstroidRenderer(Renderer):
         group = dw.Group()
 
         # Create a path for the astroid shape
-        path = dw.Path(
-            fill=state.fill_color.to_rgb_string() if state.fill_color else "none",
-            fill_opacity=state.fill_opacity,
-            stroke=(
-                state.stroke_color.to_rgb_string()
-                if state.stroke_color and state.stroke_width > 0
-                else "none"
-            ),
-            stroke_width=(
-                state.stroke_width
-                if state.stroke_color and state.stroke_width > 0
-                else 0
-            ),
-            stroke_opacity=(
-                state.stroke_opacity
-                if state.stroke_color and state.stroke_width > 0
-                else 0
-            ),
-            stroke_linejoin="round",
-            stroke_linecap="round",
-        )
+        path_kwargs = {
+            "stroke_linejoin": "round",
+            "stroke_linecap": "round",
+        }
+        self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
+
+        path = dw.Path(**path_kwargs)
 
         # Calculate cusp positions (the pointed tips)
         cusps = []

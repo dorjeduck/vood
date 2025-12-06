@@ -244,13 +244,19 @@ class DevServer:
                     job_ids.append(job.job_id)
                     formats.append(("gif", job.job_id))
                 elif format_str == "html-interactive":
-                    job = self.export_manager.create_job(ExportFormat.HTML)
-                    job_ids.append(job.job_id)
-                    formats.append(("html-interactive", job.job_id))
+                    # Create jobs for both standalone and embeddable versions
+                    job_standalone = self.export_manager.create_job(ExportFormat.HTML)
+                    job_embeddable = self.export_manager.create_job(ExportFormat.HTML)
+                    job_ids.extend([job_standalone.job_id, job_embeddable.job_id])
+                    formats.append(("html-interactive-standalone", job_standalone.job_id))
+                    formats.append(("html-interactive-embed", job_embeddable.job_id))
                 elif format_str == "html-animation":
-                    job = self.export_manager.create_job(ExportFormat.HTML)
-                    job_ids.append(job.job_id)
-                    formats.append(("html-animation", job.job_id))
+                    # Create jobs for both standalone and embeddable versions
+                    job_standalone = self.export_manager.create_job(ExportFormat.HTML)
+                    job_embeddable = self.export_manager.create_job(ExportFormat.HTML)
+                    job_ids.extend([job_standalone.job_id, job_embeddable.job_id])
+                    formats.append(("html-animation-standalone", job_standalone.job_id))
+                    formats.append(("html-animation-embed", job_embeddable.job_id))
 
             # Start batch export in background
             asyncio.create_task(
@@ -486,41 +492,47 @@ class DevServer:
                     message="Starting batch export..."
                 )
 
-            # Create shared temporary directory for frames
-            temp_context = tempfile.TemporaryDirectory(prefix="vood_batch_frames_")
-            frames_dir = Path(temp_context.name)
+            # Check if we need to generate frames (only for MP4/GIF)
+            needs_frames = any(fmt[0] in ["mp4", "gif"] for fmt in formats)
 
-            logger.info(f"Generating {total_frames} frames once for {len(formats)} format(s)...")
+            if needs_frames:
+                # Create shared temporary directory for frames
+                temp_context = tempfile.TemporaryDirectory(prefix="vood_batch_frames_")
+                frames_dir = Path(temp_context.name)
 
-            # Generate PNG frames once
-            exporter = VSceneExporter(
-                scene=self.current_scene,
-                output_dir=str(self.export_manager.output_dir),
-                converter=ConverterType.PLAYWRIGHT,
-            )
+                logger.info(f"Generating {total_frames} frames once for {len(formats)} format(s)...")
 
-            def progress_callback(frame_num: int, total: int):
-                """Update progress for all jobs during frame generation."""
-                progress = (frame_num / total) * 0.5  # Frame generation is 50% of total
-                for _, job_id in formats:
-                    self.export_manager.update_job(
-                        job_id,
-                        progress=progress,
-                        message=f"Generating frames {frame_num}/{total}"
-                    )
+                # Generate PNG frames once
+                exporter = VSceneExporter(
+                    scene=self.current_scene,
+                    output_dir=str(self.export_manager.output_dir),
+                    converter=ConverterType.PLAYWRIGHT,
+                )
 
-            # Generate frames
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None,
-                self._generate_frames_for_batch,
-                exporter,
-                frames_dir,
-                total_frames,
-                fps,
-                width_px,
-                progress_callback
-            )
+                def progress_callback(frame_num: int, total: int):
+                    """Update progress for all jobs during frame generation."""
+                    progress = (frame_num / total) * 0.5  # Frame generation is 50% of total
+                    for _, job_id in formats:
+                        self.export_manager.update_job(
+                            job_id,
+                            progress=progress,
+                            message=f"Generating frames {frame_num}/{total}"
+                        )
+
+                # Generate frames
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(
+                    None,
+                    self._generate_frames_for_batch,
+                    exporter,
+                    frames_dir,
+                    total_frames,
+                    fps,
+                    width_px,
+                    progress_callback
+                )
+            else:
+                loop = asyncio.get_event_loop()
 
             # Create each format from the shared frames
             for idx, (format_name, job_id) in enumerate(formats):
@@ -538,12 +550,14 @@ class DevServer:
                             job_id, frames_dir, total_frames, fps, timestamp,
                             format_progress_start, format_progress_end
                         )
-                    elif format_name in ["html-interactive", "html-animation"]:
-                        interactive = (format_name == "html-interactive")
+                    elif format_name.startswith("html-"):
+                        # Parse format: html-{interactive|animation}-{standalone|embed}
+                        interactive = "interactive" in format_name
+                        embeddable = "embed" in format_name
                         await loop.run_in_executor(
                             None,
                             self._create_html_export,
-                            job_id, total_frames, fps, interactive, timestamp
+                            job_id, total_frames, fps, interactive, embeddable, timestamp
                         )
                         self.export_manager.update_job(
                             job_id,
@@ -711,6 +725,7 @@ class DevServer:
         total_frames: int,
         fps: int,
         interactive: bool,
+        embeddable: bool,
         timestamp: str,
     ):
         """Create HTML export (runs in thread pool)."""
@@ -719,13 +734,15 @@ class DevServer:
             output_dir=str(self.export_manager.output_dir),
         )
 
-        # Use different filenames for interactive vs animation-only to prevent overwriting
+        # Use different filenames for interactive vs animation-only, and standalone vs embeddable
         mode_suffix = "interactive" if interactive else "animation"
+        embed_suffix = "_embed" if embeddable else ""
         output_file = exporter.to_html(
-            filename=f"animation_{timestamp}_{mode_suffix}",
+            filename=f"animation_{timestamp}_{mode_suffix}{embed_suffix}",
             total_frames=total_frames,
             framerate=fps,
             interactive=interactive,
+            embeddable=embeddable,
         )
 
         self.export_manager.update_job(

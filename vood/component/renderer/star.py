@@ -49,16 +49,9 @@ class StarRenderer(Renderer):
 
         # Create lines with star points
         lines_kwargs = {
-            "fill": fill_color,
-            "fill_opacity": state.fill_opacity,
             "close": True,
         }  # Close the polygon
-
-        # Add stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-            lines_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-            lines_kwargs["stroke_opacity"] = state.stroke_opacity
-            lines_kwargs["stroke_width"] = state.stroke_width
+        self._set_fill_and_stroke_kwargs(state, lines_kwargs, drawing)
 
         # Create Lines with flattened coordinates
         return dw.Lines(*coords, **lines_kwargs)

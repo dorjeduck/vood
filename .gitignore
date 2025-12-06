@@ -121,3 +121,4 @@ exports/*
 CLAUDE.md
 ARCHITECTURAL_ANALYSIS.md
 vood.toml
+examples/*

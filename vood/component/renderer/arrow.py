@@ -49,12 +49,8 @@ class ArrowRenderer(Renderer):
             sw,  # back top
         ]
 
-        arrow_kwargs = {
-            "stroke": state.stroke_color.to_rgb_string(),
-            "stroke_width": state.stroke_width,
-            "stroke_opacity": state.stroke_opacity,
-            "fill": state.fill_color.to_rgb_string(),
-            "fill_opacity": state.fill_opacity,
-        }
+        arrow_kwargs = {}
+        self._set_fill_and_stroke_kwargs(state, arrow_kwargs, drawing)
+
 
         return dw.Lines(*corners, close=True, **arrow_kwargs)

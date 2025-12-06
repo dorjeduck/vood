@@ -129,15 +129,13 @@ class PathTextRenderer(Renderer):
             "font_family": state.font_family,
             "font_size": state.font_size,
             "font_weight": state.font_weight,
-            "fill": fill_color,
-            "fill_opacity": state.fill_opacity,
-            "stroke": stroke_color,
-            "stroke_opacity": state.stroke_opacity,
             "text_anchor": state.text_anchor,
             "dominant_baseline": state.dominant_baseline,
             "path": text_path,
             "start_offset": f"{offset * 100}%",
         }
+        self._set_fill_and_stroke_kwargs(state, text_kwargs, drawing)
+
 
         # Add letter spacing if specified
         if abs(state.letter_spacing) > 1e-10:

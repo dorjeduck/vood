@@ -72,7 +72,9 @@ class VSceneExporter:
         from vood.converter.cairo_svg_converter import CairoSvgConverter
         from vood.converter.inkscape_svg_converter import InkscapeSvgConverter
         from vood.converter.playwright_svg_converter import PlaywrightSvgConverter
-        from vood.converter.playwright_http_svg_converter import PlaywrightHttpSvgConverter
+        from vood.converter.playwright_http_svg_converter import (
+            PlaywrightHttpSvgConverter,
+        )
 
         converter_map = {
             ConverterType.CAIROSVG: CairoSvgConverter,
@@ -292,7 +294,8 @@ class VSceneExporter:
             if conv_results:
                 files.update(conv_results)
                 for fmt, path in conv_results.items():
-                    logger.info(f'{fmt.upper()} exported to "{path}"')
+                    if fmt.upper() != "SUCCESS":
+                        logger.info(f'{fmt.upper()} exported to "{path}"')
 
         return ExportResult(success=True, files=files)
 
@@ -485,6 +488,7 @@ class VSceneExporter:
         total_frames: int = 60,
         framerate: int = DEFAULT_FRAMERATE,
         interactive: bool = True,
+        embeddable: bool = False,
     ) -> str:
         """Export scene as self-contained HTML file.
 
@@ -497,6 +501,9 @@ class VSceneExporter:
             framerate: Playback framerate (fps)
             interactive: If True, includes controls (play/pause, slider).
                         If False, creates auto-playing looping animation.
+            embeddable: If True, exports only the content (no <html>, <head>, <body> tags)
+                       for direct embedding into existing webpages. If False, exports
+                       a complete standalone HTML document.
 
         Returns:
             Path to the exported HTML file
@@ -534,16 +541,34 @@ class VSceneExporter:
         # (in case IPython.display.HTML or other sources added document wrappers)
         # Only clean if we detect wrapper tags to avoid unnecessary modifications
         import re
-        if any(tag in html_content.lower() for tag in ['<!doctype', '<html', '<body', '<head']):
-            html_content = re.sub(r'<!DOCTYPE[^>]*>', '', html_content, flags=re.IGNORECASE)
-            html_content = re.sub(r'</?html[^>]*>', '', html_content, flags=re.IGNORECASE)
-            html_content = re.sub(r'<head>.*?</head>', '', html_content, flags=re.IGNORECASE | re.DOTALL)
-            html_content = re.sub(r'</?body[^>]*>', '', html_content, flags=re.IGNORECASE)
+
+        if any(
+            tag in html_content.lower()
+            for tag in ["<!doctype", "<html", "<body", "<head"]
+        ):
+            html_content = re.sub(
+                r"<!DOCTYPE[^>]*>", "", html_content, flags=re.IGNORECASE
+            )
+            html_content = re.sub(
+                r"</?html[^>]*>", "", html_content, flags=re.IGNORECASE
+            )
+            html_content = re.sub(
+                r"<head>.*?</head>", "", html_content, flags=re.IGNORECASE | re.DOTALL
+            )
+            html_content = re.sub(
+                r"</?body[^>]*>", "", html_content, flags=re.IGNORECASE
+            )
             html_content = html_content.strip()
             logger.debug("Cleaned HTML wrapper tags from content before embedding")
 
-        # Wrap in complete HTML document
-        full_html = f"""<!DOCTYPE html>
+        # Choose output format based on embeddable flag
+        if embeddable:
+            # Export only the content for embedding into existing pages
+            final_html = html_content
+            logger.info(f"Exporting embeddable HTML fragment (no document wrapper)")
+        else:
+            # Wrap in complete HTML document for standalone use
+            final_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -569,11 +594,13 @@ class VSceneExporter:
 """
 
         # Write to file
-        output_path.write_text(full_html, encoding="utf-8")
+        output_path.write_text(final_html, encoding="utf-8")
         logger.info(f'HTML exported to "{output_path}"')
         return str(output_path)
 
-    def _generate_animation_html(self, times: list[float], play_interval_ms: int) -> str:
+    def _generate_animation_html(
+        self, times: list[float], play_interval_ms: int
+    ) -> str:
         """Generate simple auto-playing animation HTML without controls.
 
         Args:
@@ -592,15 +619,17 @@ class VSceneExporter:
         frames_html = []
         for i, t in enumerate(times):
             svg = self.scene.to_svg(frame_time=t, log=False)
-            active = 'active' if i == 0 else ''
-            frames_html.append(f'''
+            active = "active" if i == 0 else ""
+            frames_html.append(
+                f"""
                 <div class="frame-{preview_id} {active}" id="frame-{preview_id}-{i}">
                     {svg}
                 </div>
-            ''')
+            """
+            )
 
         # Build complete HTML with minimal styling and auto-play
-        html = f'''
+        html = f"""
             <style>
                 .animation-container-{preview_id} {{
                     display: inline-block;
@@ -638,7 +667,7 @@ class VSceneExporter:
                     setInterval(nextFrame, interval);
                 }})();
             </script>
-        '''
+        """
 
         return html
 

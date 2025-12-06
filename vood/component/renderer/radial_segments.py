@@ -64,14 +64,9 @@ class RadialSegmentsRenderer(Renderer):
                     y1 = from_px * math.sin(rad)
                     x2 = to_px * math.cos(rad)
                     y2 = to_px * math.sin(rad)
-                    line = dw.Line(
-                        x1,
-                        y1,
-                        x2,
-                        y2,
-                        stroke=stroke,
-                        stroke_width=state.stroke_width,
-                    )
+                    line_kwargs = {}
+                    self._set_fill_and_stroke_kwargs(state, line_kwargs, drawing)
+                    line = dw.Line(x1, y1, x2, y2, **line_kwargs)
                     group.append(line)
 
         return group

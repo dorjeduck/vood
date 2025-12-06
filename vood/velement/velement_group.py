@@ -76,7 +76,9 @@ class VElementGroup(BaseVElement):
         """Render the element group in its initial state (static rendering)"""
         return self.render_at_frame_time(0.0)
 
-    def render_at_frame_time(self, t: float,drawing: Optional[dw.Drawing] = None) -> Optional[dw.Group]:
+    def render_at_frame_time(
+        self, t: float, drawing: Optional[dw.Drawing] = None
+    ) -> Optional[dw.Group]:
         """Render the element transform group at a specific animation time"""
 
         group_state, _ = self._get_state_at_time(t)

@@ -6,13 +6,13 @@ from dataclasses import dataclass
 from typing import Optional
 
 from vood.component.state.base import State
+from vood.component.state.base_color import ColorState
 from vood.component.vertex import VertexContours
 from vood.transition import easing
-from vood.core.color import Color
 
 
 @dataclass(frozen=True)
-class VertexState(State):
+class VertexState(ColorState):
     """Base state for vertex-based morphable shapes with multi-contour support
 
     All vertex shapes share:
@@ -35,11 +35,7 @@ class VertexState(State):
     """
 
     closed: bool = True  # Whether shape is closed
-    fill_color: Optional[Color] = Color.NONE
-    fill_opacity: float = 1
-    stroke_color: Optional[Color] = Color.NONE
-    stroke_opacity: float = 1
-    stroke_width: float = 1
+
     _num_vertices: Optional[int] = (
         None  # Vertex resolution (from config if not specified)
     )
@@ -49,18 +45,11 @@ class VertexState(State):
         **State.DEFAULT_EASING,
         "num_vertices": easing.step,
         "closed": easing.step,
-        "fill_color": easing.linear,
-        "fill_opacity": easing.linear,
-        "stroke_color": easing.linear,
-        "stroke_opacity": easing.linear,
-        "stroke_width": easing.in_out,
         "_aligned_contours": easing.linear,  # Contours interpolate linearly
     }
 
     def __post_init__(self):
         super().__post_init__()
-        self._normalize_color_field("fill_color")
-        self._normalize_color_field("stroke_color")
 
         # Apply config default for _num_vertices if not specified
         if self._num_vertices is None:

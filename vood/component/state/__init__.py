@@ -1,4 +1,5 @@
 from .base import State, States
+from .base_color import ColorState
 from .base_vertex import VertexState
 from .arc import ArcState
 from .arrow import ArrowState
@@ -52,6 +53,7 @@ from .shape_collection import ShapeCollectionState
 __all__ = [
     "State",
     "States",
+    "ColorState",
     "VertexState",
     "ArcState",
     "ArrowState",

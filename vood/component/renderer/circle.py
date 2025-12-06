@@ -34,18 +34,6 @@ class CircleRenderer(Renderer):
             "cy": 0,
             "r": state.radius,
         }
-        if state.fill_color:
-            fill_color = state.fill_color.to_rgb_string()
-            circle_kwargs["fill"] = fill_color
-            circle_kwargs["fill_opacity"] = state.fill_opacity
-        else:
-            circle_kwargs["fill"] = "none"  # No fill if color is None
-
-        # Add stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-
-            circle_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-            circle_kwargs["stroke_width"] = state.stroke_width
-            circle_kwargs["stroke_opacity"] = state.stroke_opacity
+        self._set_fill_and_stroke_kwargs(state, circle_kwargs, drawing)
 
         return dw.Circle(**circle_kwargs)

@@ -290,11 +290,8 @@ class ImageRenderer(Renderer):
             group.append(placeholder)
             return group  # Skip image rendering on error
 
-        # Apply stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-            stroke_color = state.stroke_color.to_rgb_string()
-            image_kwargs["stroke"] = stroke_color
-            image_kwargs["stroke_width"] = state.stroke_width
+        # Apply fill and stroke styling
+        self._set_fill_and_stroke_kwargs(state, image_kwargs, drawing)
 
         # Create the image element
         image = dw.Image(**image_kwargs)

@@ -25,13 +25,9 @@ class SpiralRenderer(Renderer):
             return group
 
         # Build path from vertices
-        path = dw.Path(
-            fill=state.fill_color.to_hex(),
-            stroke=state.stroke_color.to_hex(),
-            stroke_width=state.stroke_width,
-            fill_opacity=state.fill_opacity,
-            stroke_opacity=state.stroke_opacity,
-        )
+        path_kwargs = {}
+        self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
+        path = dw.Path(**path_kwargs)
 
         # Start at first vertex
         path.M(vertices[0].x, vertices[0].y)

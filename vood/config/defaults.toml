@@ -22,6 +22,8 @@ y = 0.0
 scale = 1.0
 opacity = 1.0
 rotation = 0.0
+skew_x = 0.0
+skew_y = 0.0
 
 [state.visual]
 # Visual properties for vertex-based shapes

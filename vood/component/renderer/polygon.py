@@ -38,15 +38,8 @@ class PolygonRenderer(Renderer):
             corners.extend([x, y])
 
         # Build kwargs
-        lines_kwargs = {
-            "close": True,
-            "fill": state.fill_color.to_rgb_string(),
-            "fill_opacity": state.fill_opacity,
-        }
+        lines_kwargs = {"close": True}
+        self._set_fill_and_stroke_kwargs(state, lines_kwargs, drawing)
 
-        # Add stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-            lines_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-            lines_kwargs["stroke_width"] = state.stroke_width
 
         return dw.Lines(*corners, **lines_kwargs)

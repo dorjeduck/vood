@@ -266,8 +266,6 @@ class VScene:
 
         if filename:
             drawing.save_svg(filename)
-            if log:
-                logger.info(f"Scene saved to {filename} at t={frame_time}")
 
         return svg_string
 

@@ -38,12 +38,10 @@ class ArcRenderer(Renderer):
         angle_diff = end_rad - start_rad
         large_arc = 1 if abs(angle_diff) > math.pi else 0
 
-        path = dw.Path(
-            fill="none",
-            stroke=(
-                state.stroke_color.to_rgb_string() if state.stroke_color else "black"
-            ),
-        )
+        path_kwargs = {}
+        self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
+        path = dw.Path(**path_kwargs)
+        
         path.M(start_x, start_y)
         path.A(state.radius, state.radius, 0, large_arc, 1, end_x, end_y)
 

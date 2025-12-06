@@ -616,11 +616,15 @@
             }
             if (document.getElementById('format-html-interactive').checked) {
                 formats.push('html-interactive');
-                formatNames.push('HTML Interactive');
+                // HTML exports create both standalone and embeddable versions
+                formatNames.push('HTML Interactive (Standalone)');
+                formatNames.push('HTML Interactive (Embeddable)');
             }
             if (document.getElementById('format-html-animation').checked) {
                 formats.push('html-animation');
-                formatNames.push('HTML Animation');
+                // HTML exports create both standalone and embeddable versions
+                formatNames.push('HTML Animation (Standalone)');
+                formatNames.push('HTML Animation (Embeddable)');
             }
 
             if (formats.length === 0) {
@@ -646,9 +650,11 @@
             exportStatus.className = 'export-status processing';
 
             // Check if we need batch export (MP4+GIF combination benefits from frame reuse)
+            // Also use batch for HTML exports since they create multiple versions
             const hasMp4 = formats.includes('mp4');
             const hasGif = formats.includes('gif');
-            const useBatchExport = (hasMp4 && hasGif) || formats.length > 2;
+            const hasHtml = formats.includes('html-interactive') || formats.includes('html-animation');
+            const useBatchExport = (hasMp4 && hasGif) || formats.length > 2 || hasHtml;
 
             if (useBatchExport) {
                 // Use batch export for frame reuse optimization

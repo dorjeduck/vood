@@ -123,8 +123,6 @@ class CircleTextRenderer(Renderer):
             drawsvg Text element
         """
 
-        fill_color = state.fill_color.to_rgb_string()
-
         # Map offset to path coordinates
         mapped_offset = 0.25 + (offset * 0.5)
 
@@ -134,13 +132,15 @@ class CircleTextRenderer(Renderer):
             "font_size": state.font_size,
             "font_weight": state.font_weight,
             "letter_spacing": state.letter_spacing,
-            "fill": fill_color,
             "text_anchor": state.text_align,
             "path": circle_path,
             "start_offset": f"{mapped_offset*100}%",
             "text_anchor": state.text_anchor,
             "dominant_baseline": state.dominant_baseline,
         }
+
+        self._set_fill_and_stroke_kwargs(state, text_kwargs, drawing)
+
 
         # Add letter spacing if specified
         if abs(state.letter_spacing) > 1e-10:

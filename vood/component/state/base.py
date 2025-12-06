@@ -6,6 +6,7 @@ from typing import Any, Optional, List
 from vood.transition import easing
 from vood.core.color import Color
 from vood.component.registry import get_renderer_class_for_state
+from vood.component.effect.filter import Filter
 
 
 @dataclass(frozen=True)
@@ -24,12 +25,17 @@ class State(ABC):
     scale: Optional[float] = None
     opacity: Optional[float] = None
     rotation: Optional[float] = None
+    skew_x: Optional[float] = None
+    skew_y: Optional[float] = None
 
     # Clipping and masking support
     clip_state: Optional[State] = None
     mask_state: Optional[State] = None
     clip_states: Optional[List[State]] = None
     mask_states: Optional[List[State]] = None
+
+    # Filter support
+    filter: Optional[Filter] = None
 
     # Fields that should not be interpolated (structural/configuration properties)
     NON_INTERPOLATABLE_FIELDS: frozenset[str] = frozenset(
@@ -42,6 +48,8 @@ class State(ABC):
         "scale": easing.in_out,
         "opacity": easing.linear,
         "rotation": easing.in_out,
+        "skew_x": easing.linear,
+        "skew_y": easing.linear,
         "clip_state": easing.linear,
         "mask_state": easing.linear,
         "clip_states": easing.linear,
@@ -68,7 +76,12 @@ class State(ABC):
             self._set_field("opacity", config.get(ConfigKey.STATE_OPACITY, 1.0))
         if self.rotation is None:
             self._set_field("rotation", config.get(ConfigKey.STATE_ROTATION, 0.0))
+        if self.skew_x is None:
+            self._set_field("skew_x", config.get(ConfigKey.STATE_SKEW_X, 0.0))
+        if self.skew_y is None:
+            self._set_field("skew_y", config.get(ConfigKey.STATE_SKEW_Y, 0.0))
 
+    
     def get_renderer_class(self):
         """Get the renderer class for this state.
 

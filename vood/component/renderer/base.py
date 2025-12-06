@@ -40,6 +40,9 @@ class Renderer(ABC):
         # Apply clipping/masking before transforms
         elem = self._apply_clipping_and_masking(elem, state, drawing)
 
+        # Apply filter if specified
+        elem = self._apply_filter(elem, state, drawing)
+
         transforms = []
         # SVG applies transforms right-to-left, so order is: translate, rotate, scale
         if state.x != 0 or state.y != 0:
@@ -48,6 +51,10 @@ class Renderer(ABC):
             transforms.append(f"rotate({state.rotation})")
         if state.scale != 1.0:
             transforms.append(f"scale({state.scale})")
+        if state.skew_x and state.skew_x != 1.0:
+            transforms.append(f"skewX({state.skew_x})")
+        if state.skew_y and state.skew_y != 1.0:
+            transforms.append(f"skewY({state.skew_y})")
 
         if transforms:
             elem.args["transform"] = " ".join(transforms)
@@ -135,11 +142,18 @@ class Renderer(ABC):
         for clip_state in clip_states:
             # For clipPaths, ensure the state has a fill (color doesn't matter for clipping)
             from vood.core.color import Color
-            if not hasattr(clip_state, 'fill_color') or clip_state.fill_color == Color.NONE:
+
+            if (
+                not hasattr(clip_state, "fill_color")
+                or clip_state.fill_color == Color.NONE
+            ):
                 clip_state = replace(clip_state, fill_color=Color("#000000"))
 
             # Check if this is a morph state (has _aligned_contours from interpolation)
-            if hasattr(clip_state, '_aligned_contours') and clip_state._aligned_contours is not None:
+            if (
+                hasattr(clip_state, "_aligned_contours")
+                and clip_state._aligned_contours is not None
+            ):
                 # This is an interpolated state between different shape types
                 # Use VertexRenderer for morphing
                 renderer = VertexRenderer()
@@ -159,9 +173,12 @@ class Renderer(ABC):
                 transforms.append(f"rotate({clip_state.rotation})")
             if clip_state.scale != 1.0:
                 transforms.append(f"scale({clip_state.scale})")
-
+            if clip_state.skew_x != 1.0:
+                transforms.append(f"skewX({clip_state.skew_x})")
+            if clip_state.skew_y != 1.0:
+                transforms.append(f"skewY({clip_state.skew_y})")
             # Extract paths from group if needed (VertexRenderer returns a group)
-            if isinstance(clip_elem, dw.Group) and hasattr(clip_elem, 'children'):
+            if isinstance(clip_elem, dw.Group) and hasattr(clip_elem, "children"):
                 for child in clip_elem.children:
                     if transforms:
                         child.args["transform"] = " ".join(transforms)
@@ -170,7 +187,6 @@ class Renderer(ABC):
                 if transforms:
                     clip_elem.args["transform"] = " ".join(transforms)
                 clip_path.append(clip_elem)
-
 
         # Add to drawing's defs
         drawing.append_def(clip_path)
@@ -202,11 +218,15 @@ class Renderer(ABC):
 
         # For masks, ensure the state has a fill (masks use white for visible areas)
         from vood.core.color import Color
-        if not hasattr(mask_state, 'fill_color') or mask_state.fill_color == Color.NONE:
+
+        if not hasattr(mask_state, "fill_color") or mask_state.fill_color == Color.NONE:
             mask_state = replace(mask_state, fill_color=Color("#FFFFFF"))
 
         # Check if this is a morph state (has _aligned_contours from interpolation)
-        if hasattr(mask_state, '_aligned_contours') and mask_state._aligned_contours is not None:
+        if (
+            hasattr(mask_state, "_aligned_contours")
+            and mask_state._aligned_contours is not None
+        ):
             # This is an interpolated state between different shape types
             # Use VertexRenderer for morphing
             renderer = VertexRenderer()
@@ -218,7 +238,7 @@ class Renderer(ABC):
         mask_elem = renderer._render_core(mask_state, drawing=drawing)
 
         # Extract paths from group if needed (VertexRenderer returns a group)
-        if isinstance(mask_elem, dw.Group) and hasattr(mask_elem, 'children'):
+        if isinstance(mask_elem, dw.Group) and hasattr(mask_elem, "children"):
             elements = list(mask_elem.children)
         else:
             elements = [mask_elem]
@@ -247,3 +267,101 @@ class Renderer(ABC):
         drawing.append_def(mask)
 
         return mask_id
+    
+    def _apply_filter(
+        self, elem: dw.DrawingElement, state: State, drawing: dw.Drawing
+    ) -> dw.DrawingElement:
+        """Apply filter to element based on state
+
+        Args:
+            elem: The rendered element to filter
+            state: State containing filter definition
+            drawing: Drawing for adding defs
+
+        Returns:
+            Element with filter applied (if filter is specified)
+        """
+        if state.filter is None:
+            return elem
+
+        # Create filter def and add to drawing
+        filter_id = self._create_filter_def(state.filter, drawing)
+
+        # Apply filter to element
+        elem.args["filter"] = f"url(#{filter_id})"
+
+        return elem
+
+    def _create_filter_def(self, filter_obj, drawing: dw.Drawing) -> str:
+        """Create Filter def from a filter object and add to drawing
+
+        Args:
+            filter_obj: Filter object defining the filter effect
+            drawing: Drawing to add def to
+
+        Returns:
+            ID of the created Filter def
+        """
+        import uuid
+
+        # Generate unique ID
+        filter_id = f"filter-{uuid.uuid4().hex[:8]}"
+
+        # Create Filter container
+        filter_elem = dw.Filter(id=filter_id)
+
+        # Handle composite filters (multiple filter items)
+        from svgpy.component.effect.filter import CompositeFilter
+        if isinstance(filter_obj, CompositeFilter):
+            for sub_filter in filter_obj.filters:
+                filter_item = sub_filter.to_drawsvg()
+                filter_elem.append(filter_item)
+        else:
+            # Single filter
+            filter_item = filter_obj.to_drawsvg()
+            filter_elem.append(filter_item)
+
+        # Add to drawing's defs
+        drawing.append_def(filter_elem)
+
+        return filter_id
+
+
+
+    def _set_fill_and_stroke_kwargs(
+        self, state: State, kwargs: dict, drawing: Optional[dw.Drawing] = None
+    ) -> None:
+        """Helper to set fill and stroke properties in kwargs dict
+
+        Handles the standard priority order:
+        - Fill: pattern → gradient → color → none
+        - Stroke: pattern → gradient → color (if stroke_width > 0)
+
+        Args:
+            state: State containing fill/stroke properties
+            kwargs: Dictionary to populate with fill/stroke properties
+            drawing: Optional Drawing for pattern rendering
+        """
+        # Check pattern first, then gradient, then color for fill
+        if state.fill_pattern:
+            kwargs["fill"] = state.fill_pattern.to_drawsvg(drawing)
+        elif state.fill_gradient:
+            kwargs["fill"] = state.fill_gradient.to_drawsvg()
+        elif state.fill_color:
+            kwargs["fill"] = state.fill_color.to_rgb_string()
+            kwargs["fill_opacity"] = state.fill_opacity
+        else:
+            kwargs["fill"] = "none"
+
+        # Check pattern first, then gradient, then color for stroke
+        if state.stroke_pattern:
+            kwargs["stroke"] = state.stroke_pattern.to_drawsvg(drawing)
+            kwargs["stroke_width"] = state.stroke_width
+        elif state.stroke_gradient:
+            kwargs["stroke"] = state.stroke_gradient.to_drawsvg()
+            kwargs["stroke_width"] = state.stroke_width
+        elif state.stroke_color and state.stroke_width > 0:
+            kwargs["stroke"] = state.stroke_color.to_rgb_string()
+            kwargs["stroke_width"] = state.stroke_width
+            kwargs["stroke_opacity"] = state.stroke_opacity
+

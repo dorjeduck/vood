@@ -27,12 +27,10 @@ class TextRenderer(Renderer):
             "font_family": state.font_family,
             "font_size": state.font_size,
             "font_weight": state.font_weight,
-            "fill": fill_color,
-            "fill_opacity": state.fill_opacity,
-            "stroke": state.stroke_color.to_rgb_string(),
-            "stroke_opacity": state.stroke_opacity,
             "text_anchor": state.text_anchor,
             "letter_spacing": state.letter_spacing,
             "dominant_baseline": state.dominant_baseline,
         }
+        self._set_fill_and_stroke_kwargs(state, text_kwargs, drawing)
+
         return dw.Text(**text_kwargs)

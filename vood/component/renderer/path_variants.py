@@ -62,15 +62,8 @@ class PathVariantsRenderer(Renderer, ABC):
 
         paths = data if isinstance(data, list) else [data]
         for path_string in paths:
-            path_kwargs = {
-                "d": path_string,
-                "fill": fill_color,
-                "fill_opacity": state.fill_opactiy,
-            }
-            if state.stroke_color and state.stroke_width > 0:
-                path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-                path_kwargs["stroke_opacity"] = state.stroke_opacity
-                path_kwargs["stroke_width"] = state.stroke_width
+            path_kwargs = {"d": path_string}
+            self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
 
             group.append(dw.Path(**path_kwargs))
         group.transform = f"translate({-cx},{-cy})"

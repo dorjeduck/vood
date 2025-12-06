@@ -56,12 +56,7 @@ class CrossRenderer(Renderer):
             -ht,  # 11
         ]
 
-        cross_kwargs = {
-            "stroke": state.stroke_color.to_rgb_string(),
-            "stroke_width": state.stroke_width,
-            "stroke_opacity": state.stroke_opacity,
-            "fill": state.fill_color.to_rgb_string(),
-            "fill_opacity": state.fill_opacity,
-        }
+        cross_kwargs = {}
+        self._set_fill_and_stroke_kwargs(state, cross_kwargs, drawing)
 
         return dw.Lines(*corners, close=True, **cross_kwargs)

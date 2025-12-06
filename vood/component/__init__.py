@@ -1,9 +1,11 @@
 """Component system for vood - renderers and states for various shapes and elements"""
 
 # Import submodules
+from . import effect
 from . import renderer
 from . import state
 from . import vertex
+
 
 # Import registry functions
 from .registry import (
@@ -112,4 +114,33 @@ __all__ = [
     "StarRenderer",
     "TextRenderer",
     "TriangleRenderer",
+    # Effects - Gradients
+    "Gradient",
+    "LinearGradient",
+    "RadialGradient",
+    "GradientStop",
+    # Effects - Patterns
+    "Pattern",
+    "CustomPattern",
+    "DotsPattern",
+    "StripesPattern",
+    "GridPattern",
+    "CheckerboardPattern",
+    # Effects - Filters
+    "Filter",
+    "GaussianBlurFilter",
+    "DropShadowFilter",
+    "ColorMatrixFilter",
+    "CompositeFilter",
+    "OffsetFilter",
+    "MorphologyFilter",
+    "FloodFilter",
+    "BlendFilter",
+    "CompositeFilterPrimitive",
+    "TurbulenceFilter",
+    "DisplacementMapFilter",
+    "ConvolveMatrixFilter",
+    "TileFilter",
+    "ImageFilter",
+    "MergeNodeFilter",
 ]

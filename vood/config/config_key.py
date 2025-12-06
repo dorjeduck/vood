@@ -34,6 +34,8 @@ class ConfigKey(str, Enum):
     STATE_SCALE = "state.scale"
     STATE_OPACITY = "state.opacity"
     STATE_ROTATION = "state.rotation"
+    STATE_SKEW_X = "state.skew_x"
+    STATE_SKEW_Y = "state.skew_y"
 
     # State visual properties
     STATE_VISUAL_FILL_COLOR = "state.visual.fill_color"

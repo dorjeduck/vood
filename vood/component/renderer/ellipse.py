@@ -37,14 +37,8 @@ class EllipseRenderer(Renderer):
             "cy": 0,
             "rx": state.rx,
             "ry": state.ry,
-            "fill": state.fill_color.to_rgb_string(),
-            "fill_opacity": state.fill_opacity,
         }
 
-        # Add stroke if specified
-        if state.stroke_color and state.stroke_width > 0:
-            ellipse_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-            ellipse_kwargs["stroke_width"] = state.stroke_width
-            ellipse_kwargs["stroke_opacity"] = state.stroke_opacity
+        self._set_fill_and_stroke_kwargs(state, ellipse_kwargs, drawing)
 
         return dw.Ellipse(**ellipse_kwargs)

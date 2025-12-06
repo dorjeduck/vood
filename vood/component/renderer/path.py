@@ -35,15 +35,12 @@ class PathRenderer(Renderer):
                 if isinstance(state.data, SVGPath)
                 else state.data
             ),
-            "fill": state.fill_color.to_rgb_string(),
             "fill_rule": state.fill_rule,
-            "fill_opacity": state.fill_opacity,
-            "stroke": state.stroke_color.to_rgb_string(),
-            "stroke_width": state.stroke_width,
-            "stroke_opacity": state.stroke_opacity,
             "stroke_dasharray": state.stroke_dasharray,
             "stroke_linecap": state.stroke_linecap,
             "stroke_linejoin": state.stroke_linejoin,
         }
+        self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
+
 
         return dw.Path(**path_kwargs)

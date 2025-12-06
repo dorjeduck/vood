@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+from vood.component.state.base_color import ColorState
+
 from .base import State
 from vood.component.registry import renderer
 from vood.component.renderer.text import TextRenderer
@@ -13,13 +15,8 @@ from vood.core.color import Color
 
 @renderer(TextRenderer)
 @dataclass(frozen=True)
-class TextState(State):
+class TextState(ColorState):
     """State class for text elements"""
-
-    fill_color: Optional[Color] = Color(0, 0, 255)
-    fill_opacity: float = 1
-    stroke_color: Optional[Color] = Color.NONE
-    stroke_opacity: float = 1
 
     font_size: float = 16
 
@@ -35,10 +32,6 @@ class TextState(State):
     # Default easing functions for each property
     DEFAULT_EASING = {
         **State.DEFAULT_EASING,
-        "fill_color": easing.linear,
-        "stroke_color": easing.linear,
-        "fill_opacity": easing.linear,
-        "stroke_opacity": easing.linear,
         "font_size": easing.in_out,
         "letter_spacing": easing.in_out,
         "text": easing.step,
@@ -53,4 +46,3 @@ class TextState(State):
     def __post_init__(self):
         super().__post_init__()
         self._none_color("fill_color")
-

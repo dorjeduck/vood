@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, Union
 from enum import StrEnum
 
+from vood.component.state.base_color import ColorState
 from vood.path.svg_path import SVGPath
 from vood.core.color import Color
 
@@ -44,22 +45,18 @@ class FillRule(StrEnum):
 
 @renderer(PathRenderer)
 @dataclass(frozen=True)
-class PathState(State):
+class PathState(ColorState):
     """State for SVG path rendering and morphing"""
 
     data: Union[str, SVGPath] = "M 0,0 L 10,10 L 0,20 Z"  # Default path data
 
     # Stroke properties
-    stroke_color: Optional[Color] = None
-    stroke_width: float = 1.0
-    stroke_opacity: float = 1.0
+
     stroke_linecap: Union[StrokeLinecap, str] = StrokeLinecap.BUTT
     stroke_linejoin: Union[StrokeLinejoin, str] = StrokeLinejoin.MITER
     stroke_dasharray: Optional[str] = None
 
     # Fill properties
-    fill_color: Optional[Color] = None
-    fill_opacity: float = 1.0
     fill_rule: Union[str, FillRule] = FillRule.EVENODD  # nonzero, evenodd
 
     # General properties
@@ -85,11 +82,9 @@ class PathState(State):
 
     def __post_init__(self):
         super().__post_init__()
-       
 
         if isinstance(self.data, str):
             self._set_field("data", SVGPath.from_string(self.data))
 
         self._none_color("fill_color")
         self._none_color("stroke_color")
-

@@ -44,9 +44,6 @@ class ImageState(State):
         **State.DEFAULT_EASING,
         "width": easing.in_out,
         "height": easing.in_out,
-        "stroke_color": easing.linear,
-        "stroke_opacity": easing.linear,
-        "stroke_width": easing.in_out,
     }
 
     def __post_init__(self):

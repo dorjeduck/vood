@@ -86,15 +86,8 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
 
             for path_string in data:
                 # Create path kwargs
-                path_kwargs = {
-                    "d": path_string,
-                    "fill": fill_color,
-                }
-
-                # Add stroke if specified
-                if state.stroke_color and state.stroke_width > 0:
-                    path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-                    path_kwargs["stroke_width"] = state.stroke_width
+                path_kwargs = {"d": path_string}
+                self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
 
                 # Set opacity
                 path_kwargs["opacity"] = state.opacity
@@ -107,15 +100,8 @@ class PathAndTextVariantsRenderer(Renderer, ABC):
             path_string = data
 
             # Create path kwargs
-            path_kwargs = {
-                "d": path_string,
-                "fill": fill_color,
-            }
-
-            # Add stroke if specified
-            if state.stroke_color and state.stroke_width > 0:
-                path_kwargs["stroke"] = state.stroke_color.to_rgb_string()
-                path_kwargs["stroke_width"] = state.stroke_width
+            path_kwargs = {"d": path_string}
+            self._set_fill_and_stroke_kwargs(state, path_kwargs, drawing)
 
             # Set opacity
             path_kwargs["opacity"] = state.opacity
