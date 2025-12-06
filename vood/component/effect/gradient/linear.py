@@ -32,8 +32,21 @@ class LinearGradient(Gradient):
             )
 
     def to_drawsvg(self) -> dw.LinearGradient:
+
+        import uuid
+
+        # Generate unique ID
+        gradient_id = f"gradient-{uuid.uuid4().hex[:8]}"
+
         """Convert to drawsvg LinearGradient"""
-        grad = dw.LinearGradient(self.x1, self.y1, self.x2, self.y2)
+        grad = dw.LinearGradient(
+            self.x1,
+            self.y1,
+            self.x2,
+            self.y2,
+            gradientUnits="userSpaceOnUse",
+            id=gradient_id,
+        )
         for stop in self.stops:
             grad.add_stop(stop.offset, stop.color.to_hex(), stop.opacity)
         return grad

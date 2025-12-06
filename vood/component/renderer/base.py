@@ -267,7 +267,7 @@ class Renderer(ABC):
         drawing.append_def(mask)
 
         return mask_id
-    
+
     def _apply_filter(
         self, elem: dw.DrawingElement, state: State, drawing: dw.Drawing
     ) -> dw.DrawingElement:
@@ -311,7 +311,8 @@ class Renderer(ABC):
         filter_elem = dw.Filter(id=filter_id)
 
         # Handle composite filters (multiple filter items)
-        from svgpy.component.effect.filter import CompositeFilter
+        from vood.component.effect.filter import CompositeFilter
+
         if isinstance(filter_obj, CompositeFilter):
             for sub_filter in filter_obj.filters:
                 filter_item = sub_filter.to_drawsvg()
@@ -325,8 +326,6 @@ class Renderer(ABC):
         drawing.append_def(filter_elem)
 
         return filter_id
-
-
 
     def _set_fill_and_stroke_kwargs(
         self, state: State, kwargs: dict, drawing: Optional[dw.Drawing] = None
@@ -364,4 +363,3 @@ class Renderer(ABC):
             kwargs["stroke"] = state.stroke_color.to_rgb_string()
             kwargs["stroke_width"] = state.stroke_width
             kwargs["stroke_opacity"] = state.stroke_opacity
-

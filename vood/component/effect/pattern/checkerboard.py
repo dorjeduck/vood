@@ -1,4 +1,5 @@
 """Checkerboard pattern implementation"""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
@@ -8,6 +9,7 @@ import drawsvg as dw
 from .base import Pattern
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from vood.core.color import Color
 
@@ -43,43 +45,52 @@ class CheckerboardPattern(Pattern):
 
         tile_size = self.square_size * 2
 
+        import uuid
+
+        pattern_id = f"pattern-{uuid.uuid4().hex[:8]}"
+
         pattern = dw.Pattern(
-            width=tile_size,
-            height=tile_size,
-            x=0,
-            y=0,
-            patternUnits="userSpaceOnUse"
+            width=tile_size, height=tile_size, x=0, y=0, patternUnits="userSpaceOnUse",
+            id=pattern_id
         )
 
         renderer = RectangleRenderer()
 
         # Top-left and bottom-right (color1)
         tl_state = RectangleState(
-            x=self.square_size/2, y=self.square_size/2,
-            width=self.square_size, height=self.square_size,
-            fill_color=self.color1
+            x=self.square_size / 2,
+            y=self.square_size / 2,
+            width=self.square_size,
+            height=self.square_size,
+            fill_color=self.color1,
         )
         pattern.append(renderer.render(tl_state, drawing))
 
         br_state = RectangleState(
-            x=self.square_size * 1.5, y=self.square_size * 1.5,
-            width=self.square_size, height=self.square_size,
-            fill_color=self.color1
+            x=self.square_size * 1.5,
+            y=self.square_size * 1.5,
+            width=self.square_size,
+            height=self.square_size,
+            fill_color=self.color1,
         )
         pattern.append(renderer.render(br_state, drawing))
 
         # Top-right and bottom-left (color2)
         tr_state = RectangleState(
-            x=self.square_size * 1.5, y=self.square_size/2,
-            width=self.square_size, height=self.square_size,
-            fill_color=self.color2
+            x=self.square_size * 1.5,
+            y=self.square_size / 2,
+            width=self.square_size,
+            height=self.square_size,
+            fill_color=self.color2,
         )
         pattern.append(renderer.render(tr_state, drawing))
 
         bl_state = RectangleState(
-            x=self.square_size/2, y=self.square_size * 1.5,
-            width=self.square_size, height=self.square_size,
-            fill_color=self.color2
+            x=self.square_size / 2,
+            y=self.square_size * 1.5,
+            width=self.square_size,
+            height=self.square_size,
+            fill_color=self.color2,
         )
         pattern.append(renderer.render(bl_state, drawing))
 
@@ -99,7 +110,5 @@ class CheckerboardPattern(Pattern):
         color2 = self.color2.interpolate(other.color2, t)
 
         return CheckerboardPattern(
-            square_size=square_size,
-            color1=color1,
-            color2=color2
+            square_size=square_size, color1=color1, color2=color2
         )

@@ -34,7 +34,17 @@ class RadialGradient(Gradient):
 
     def to_drawsvg(self) -> dw.RadialGradient:
         """Convert to drawsvg RadialGradient"""
-        grad = dw.RadialGradient(self.cx, self.cy, self.r)
+        import uuid
+
+        gradient_id = f"gradient-{uuid.uuid4().hex[:8]}"
+
+        grad = dw.RadialGradient(
+            self.cx,
+            self.cy,
+            self.r,
+            gradientUnits="userSpaceOnUse",
+            id=gradient_id,
+        )
         for stop in self.stops:
             grad.add_stop(stop.offset, stop.color.to_hex(), stop.opacity)
         return grad

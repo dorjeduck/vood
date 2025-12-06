@@ -46,12 +46,17 @@ class DotsPattern(Pattern):
         """Convert to drawsvg Pattern object"""
         from vood.component import CircleState, CircleRenderer, RectangleState, RectangleRenderer
 
+        import uuid
+
+        pattern_id = f"pattern-{uuid.uuid4().hex[:8]}"
+
         pattern = dw.Pattern(
             width=self.spacing,
             height=self.spacing,
             x=0,
             y=0,
-            patternUnits="userSpaceOnUse"
+            patternUnits="userSpaceOnUse",
+            id=pattern_id
         )
 
         # Add background if specified

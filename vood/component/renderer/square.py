@@ -28,6 +28,7 @@ class SquareRenderer(Renderer):
             dw.Rectangle: The drawsvg rectangle object
         """
 
+
         # Create rectangle centered at origin with scaled dimensions
         rect_kwargs = {
             "x": -(state.size) / 2,  # Center the rectangle

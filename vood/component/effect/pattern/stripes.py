@@ -44,6 +44,10 @@ class StripesPattern(Pattern):
         """Convert to drawsvg Pattern object"""
         from vood.component import RectangleState, RectangleRenderer
 
+        import uuid
+
+        pattern_id = f"pattern-{uuid.uuid4().hex[:8]}"
+
         tile_size = self.stripe_width * 2
 
         pattern = dw.Pattern(
@@ -51,7 +55,8 @@ class StripesPattern(Pattern):
             height=tile_size,
             x=0,
             y=0,
-            patternUnits="userSpaceOnUse"
+            patternUnits="userSpaceOnUse",
+            id=pattern_id
         )
 
         renderer = RectangleRenderer()

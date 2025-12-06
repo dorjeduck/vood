@@ -5,6 +5,9 @@ from dataclasses import fields, replace
 import logging
 
 from vood.component import State
+from vood.component.effect.gradient.base import Gradient
+from vood.component.effect.pattern.base import Pattern
+from vood.component.effect.filter.base import Filter
 from vood.component.state.path import MorphMethod
 from vood.component.vertex.vertex_contours import VertexContours
 from vood.component.vertex.vertex_loop import VertexLoop
@@ -281,6 +284,13 @@ class InterpolationEngine:
             )
 
         # Handle State ↔ None transitions
+        if (
+            isinstance(start_value, Gradient)
+            or isinstance(start_value, Pattern)
+            or isinstance(start_value, Filter)
+        ):
+            return start_value.interpolate(end_value, eased_t)
+
         if isinstance(start_value, State) and end_value is None:
             # Fade out: opacity → 0
             return replace(start_value, opacity=lerp(start_value.opacity, 0.0, eased_t))

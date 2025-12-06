@@ -55,12 +55,17 @@ class CustomPattern(Pattern):
 
     def to_drawsvg(self, drawing: Optional[dw.Drawing] = None) -> dw.Pattern:
         """Convert to drawsvg Pattern object"""
+        import uuid
+
+        pattern_id = f"pattern-{uuid.uuid4().hex[:8]}"
+        
         pattern = dw.Pattern(
             width=self.width,
             height=self.height,
             x=0,
             y=0,
-            patternUnits=self.pattern_units
+            patternUnits=self.pattern_units,
+            id=pattern_id
         )
 
         # Render each content item into the pattern

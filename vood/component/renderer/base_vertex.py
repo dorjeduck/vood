@@ -57,19 +57,19 @@ class VertexRenderer(Renderer):
         stroke_gradient = getattr(state, "stroke_gradient", None)
         stroke_pattern = getattr(state, "stroke_pattern", None)
 
-        holes_stroke_color = getattr(
-            state, " holes_stroke_color", stroke_color
-        )
-        holes_stroke_opacity = getattr(
-            state, " holes_stroke_opacity", stroke_opacity
-        )
-        holes_stroke_width = getattr(
-            state, " holes_stroke_width", stroke_width
-        )
+        holes_stroke_color = getattr(state, " holes_stroke_color", stroke_color)
+        holes_stroke_opacity = getattr(state, " holes_stroke_opacity", stroke_opacity)
+        holes_stroke_width = getattr(state, " holes_stroke_width", stroke_width)
 
         # Determine rendering strategy
-        has_fill = (fill_pattern or fill_gradient or fill_color) and state.fill_opacity > 0
-        has_stroke = (stroke_pattern or stroke_gradient or stroke_color) and stroke_width > 0 and state.stroke_opacity > 0
+        has_fill = (
+            fill_pattern or fill_gradient or fill_color
+        ) and state.fill_opacity > 0
+        has_stroke = (
+            (stroke_pattern or stroke_gradient or stroke_color)
+            and stroke_width > 0
+            and state.stroke_opacity > 0
+        )
 
         # Check if vertices form a closed shape
         vertices_are_closed = self._check_closed(contours.outer.vertices)
@@ -98,6 +98,7 @@ class VertexRenderer(Renderer):
                 drawing,
             )
         else:
+
             # Simple rendering for shapes without  holes
             self._render_simple(
                 group,
@@ -107,6 +108,8 @@ class VertexRenderer(Renderer):
                 has_stroke,
                 fill_color,
                 fill_opacity,
+                fill_gradient,
+                fill_pattern,
                 stroke_color,
                 stroke_opacity,
                 stroke_width,
@@ -154,13 +157,16 @@ class VertexRenderer(Renderer):
 
         # Render fill
         if has_fill:
+
             if fill_pattern:
                 fill_value = fill_pattern.to_drawsvg(drawing)
                 fill_path = dw.Path(fill=fill_value, stroke="none")
             elif fill_gradient:
+                
                 fill_value = fill_gradient.to_drawsvg()
                 fill_path = dw.Path(fill=fill_value, stroke="none")
             else:
+
                 fill_path = dw.Path(
                     fill=fill_color.to_rgb_string(),
                     fill_opacity=fill_opacity,
